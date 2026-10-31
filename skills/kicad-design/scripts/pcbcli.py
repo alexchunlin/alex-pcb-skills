@@ -307,7 +307,8 @@ def cmd_drc(a):
         relaxed = result["pack_relaxes_setup"]
         if relaxed:
             ex = ", ".join(f"{r['constraint']} {r['pack_min_mm']}<{r['setup_min_mm']}" for r in relaxed[:4])
-            print(f"  pack minimums below the board setup: {len(relaxed)} ({ex}{", ..." if len(relaxed) > 4 else ""}) "
+            more = ", ..." if len(relaxed) > 4 else ""
+            print(f"  pack minimums below the board setup: {len(relaxed)} ({ex}{more}) "
                   f"{'raised to the setup value' if not a.no_floor else 'LEFT AS IS: packed count can mask setup errors'}")
         if result["masked_by_raw_pack"]:
             print(f"  plain errors absent from the packed run: {len(result['masked_by_raw_pack'])}")

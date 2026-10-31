@@ -338,3 +338,23 @@ commands so the next reviewer runs them instead of rewriting them.
   from a refill. The R1-S1 reviewer ran `check.sh` with the generated files present and saw "identical". Same
   mechanism as the Zener isolated-copper warnings. Rule: the fill-save-reload-refill sequence belongs in
   `pcblib.board` (item 4), and regen-check's pass-1-vs-pass-2 comparison is the gate.
+- **P1-T11 `pcbcheck` v0 (handoff item 3) turns the rung-1 overclaims into rows.** Nine checks over the kicadxml
+  netlist and pcbnew, `checks.json` declares the intent, undeclared power nets, connectors, jumpers and test
+  points fail (cadcheck's rule). With `examples/rung1-zener-a1/checks.json` the Zener board fails exactly two
+  rows: C3 to U1.8 at 2.639 mm against 2.0 (R1-Z1-F3) and 10 of the 11 refdes named in BRINGUP.md hidden on
+  silk (R1-Z1-F4); 22 rows pass, among them the Qwiic pin order on J1/J2, the SA0 strap resolving to 0x6B
+  through JP1, and the 2-board pull-up chain at exactly 3.0 mA. With the SKiDL config declaring the design log's
+  own claims (`chain_boards: 4`, `default_ratio: 2.0`) the board fails six rows: 6.0 mA against 3.0 on both
+  lines, via diameter 1.33x, hole clearance 1.25x and edge clearance 1.5x the JLC floor, and 14 hidden refdes.
+  Planted misdeclarations (swapped Qwiic pins, an undeclared jumper, the wrong address, an undeclared rail, an
+  unknown key) each fail or warn by name. 12 s per board, most of it the SWIG load.
+- **P1-T12 Pin types come from the netlist, bridges from the footprint name.** The kicadxml `libparts` block
+  carries `power_in` on U1 pins 5/6/7/8 in both attempts, so decoupling rows target supply pins without a
+  declaration (the fallback P1-T5 needed). Solder-jumper shipped state is in the footprint name
+  (`SolderJumper-3_..._Bridged12`), which both front ends preserve; pull-ups and address straps are resolved
+  through those bridges, so "pull-up removable by cutting JP2" and "0x6B by default" are checked as wired, not
+  as drawn. Net names differ per front end (`3V3` vs `+3V3`, `SDA` vs `/SDA`): the config carries the project's
+  names, and the two example configs show the mapping.
+- **P1-T13 KiCad's Python is 3.9.** A nested same-quote f-string that python3 3.14 accepts crashed `pcbcheck`'s
+  margin check when it imported `pcbcli` under KiCad's interpreter. verify_all now compiles every script under
+  both interpreters (section 16).

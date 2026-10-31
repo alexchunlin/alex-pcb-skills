@@ -19,6 +19,10 @@
 #                                                                  regeneration twice; compare netlist, DRC, fab hashes and
 #                                                                  placement with the handed-in tree and between passes;
 #                                                                  defaults from DIR/regen.json (R1-Z1-F2)
+#   pcb check    x.kicad_pcb [checks.json] [--out pcbcheck.json] [--only a,b] [--netlist x.xml] [--bringup F]
+#                                                                  intent checks (rails, decoupling, pull-ups, addresses,
+#                                                                  connectors, jumpers, test points, silk, margin); undeclared
+#                                                                  items fail; `pcb check` alone prints the config keys
 #   pcb q        x.kicad_pcb <cmd ...>                             one measurement over pcbnew (`pcb q` alone lists them)
 #   pcb py       script.py [args] | -c "code"                      KiCad's Python with pcbnew (GUI guard first)
 #   pcb guard                                                      exit 1 if a KiCad GUI process is running
@@ -50,6 +54,8 @@ cmd="${1:-}"; shift || true
 case "$cmd" in
   erc|drc|netlist|diff|render|svg|stats) exec python3 -I "$HERE/pcbcli.py" "$cmd" "$@" ;;
   fab|regen-check) exec python3 -I "$HERE/pcbcli.py" "$cmd" "$@" ;;
+  check) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbcheck.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
+     kpy "$HERE/pcbcheck.py" "$@" ;;
   q) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbq.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
      kpy "$HERE/pcbq.py" "$@" ;;
   py) guard; kpy "$@" ;;
@@ -61,7 +67,7 @@ case "$cmd" in
      [ -n "$noopen" ] && set -- --no-open "$@"
      [ -n "${PCB_DRY:-}" ] && { echo "$DIODE $cmd $*"; exit 0; }
      exec "$DIODE" "$cmd" "$@" ;;
-  ""|-h|--help|help) sed -n '2,29p' "$0"; exit 0 ;;
+  ""|-h|--help|help) sed -n '2,33p' "$0"; exit 0 ;;
   *) [ -x "$DIODE" ] || { echo "pcb: unknown command '$cmd' and Diode pcb not found at $DIODE" >&2; exit 2; }
      [ -n "${PCB_DRY:-}" ] && { echo "$DIODE $cmd $*"; exit 0; }
      exec "$DIODE" "$cmd" "$@" ;;

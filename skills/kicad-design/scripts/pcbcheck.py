@@ -252,7 +252,7 @@ def check_addresses(CFG, NL, B):
                 got = str(strap.get(level, "")).lower()
                 st = "pass" if got == addr else "fail"
                 row("addresses", st, f"addresses:{bus}:{ref}",
-                    f"{ref} strap pin {strap['pin']} ({net}) resolves {level} through {[l[0] for l in links if l[2] & r]} -> {got or '?'}; declared {addr}",
+                    f"{ref} strap pin {strap['pin']} ({net}) resolves {level} through {[l[0] for l in links if net in l[2]]} -> {got or '?'}; declared {addr}",
                     value=got, limit=addr, objects=[ref, net], finding="P0-T2")
             else:
                 row("addresses", "pass", f"addresses:{bus}:{ref}", f"{ref} declared {addr} (no strap declared, not resolved)", value=addr, objects=[ref])

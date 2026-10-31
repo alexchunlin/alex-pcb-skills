@@ -1,6 +1,6 @@
 #!/bin/sh
 # Re-prove every tool in this repo against the rung-1 attempts and the reference boards. Writes only under
-# /tmp/alexpcb-verify/run-<pid> (latest: /tmp/alexpcb-verify/latest). About 5 minutes (sections 11 and 12 regenerate the attempts twice each).
+# /tmp/alexpcb-verify/run-<pid> (latest: /tmp/alexpcb-verify/latest). About 6 minutes (sections 11 and 12 regenerate the attempts twice each).
 #   sh tools/verify_all.sh            # everything
 #   sh tools/verify_all.sh 1 5 7      # only these sections (the --changed selector from alex-3d-skills lands with phase 7)
 # Inputs (read-only, copied first): RUNS (default ~/code-stuff/alex-pcb-runs) and REF (default /tmp/pcb-ref). A section
@@ -175,6 +175,56 @@ if [ -d "$K" ]; then
   [ "$(jq_ "$V/sregen/regen.json" "(d['pass1']['cmd_exit'], d['pass2']['cmd_exit'], d['pass1']['drc']['plain_errors'], d['pass2']['drc']['plain_errors'])")" = "(0, 0, 12, 18)" ] && ok "skidl check.sh exits 0 twice, DRC 12 errors on pass 1 and 18 on pass 2" || bad "skidl passes $(jq_ "$V/sregen/regen.json" "(d['pass1']['cmd_exit'], d['pass2']['cmd_exit'], d['pass1']['drc'], d['pass2']['drc'])")"
   [ "$(jq_ "$V/sregen/regen.json" "'nets' in ' '.join(d['diff_ref_pass1'])")" = False ] && ok "skidl netlist identical from clean" || bad "skidl netlist differs"
 else echo "NOTE no $K"; fi
+fi
+
+if want 13 "pcbcheck on rung1-zener-a1 with examples/rung1-zener-a1/checks.json: exactly the review's C3 and refdes findings"; then
+if [ -f "$ZB" ]; then
+  $PCB check "$ZB" "$ROOT/examples/rung1-zener-a1/checks.json" --out "$V/zcheck.json" > "$V/zcheck.txt"; rc=$?
+  [ "$rc" = 1 ] && ok "zener check exits 1" || bad "zener check rc $rc"
+  [ "$(jq_ "$V/zcheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['decoupling:U1.8:C3', 'silk:refdes']" ] && ok "zener fails are exactly C3 decoupling and silk refdes (R1-Z1-F3, R1-Z1-F4)" || bad "zener fails $(jq_ "$V/zcheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+  [ "$(jq_ "$V/zcheck.json" "[r['value'] for r in d['rows'] if r['id']=='decoupling:U1.8:C3'][0]")" = 2.639 ] && ok "zener C3 row carries 2.639 mm (review: 2.639)" || bad "zener C3 value"
+  [ "$(jq_ "$V/zcheck.json" "[r['value'] for r in d['rows'] if r['id']=='silk:refdes'][0]")" = 10 ] && ok "zener 10 hidden refdes named in BRINGUP.md" || bad "zener silk $(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['id']=='silk:refdes']")"
+  [ "$(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['id']=='addresses:I2C:U1'][0]")" = "U1 strap pin 1 (SA0) resolves high through ['JP1'] -> 0x6b; declared 0x6b" ] && ok "zener address strap resolves 0x6B through JP1" || bad "zener address $(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['check']=='addresses']")"
+  [ "$(jq_ "$V/zcheck.json" "[r['value'] for r in d['rows'] if r['id']=='pullups:I2C:sda'][0]")" = 3.0 ] && ok "zener pull-up chain: 2 boards = 3.0 mA, at the limit (review R1-S1-F2 arithmetic)" || bad "zener pullups $(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['check']=='pullups']")"
+  [ "$(jq_ "$V/zcheck.json" "sum(1 for r in d['rows'] if r['check']=='connectors' and r['status']=='pass')")" = 3 ] && ok "zener J1/J2/J3 pin maps pass" || bad "zener connectors"
+  [ "$(jq_ "$V/zcheck.json" "d['summary']['passes']")" = 22 ] && ok "zener 22 passes" || bad "zener passes $(jq_ "$V/zcheck.json" "d['summary']")"
+else echo "NOTE no $ZB"; fi
+fi
+
+if want 14 "pcbcheck on rung1-skidl-a1: the 'four boards' and '2x the floor' claims fail as rows (R1-S1-F2)"; then
+if [ -f "$KB" ]; then
+  $PCB check "$KB" "$ROOT/examples/rung1-skidl-a1/checks.json" --out "$V/scheck.json" > "$V/scheck.txt"; rc=$?
+  [ "$(jq_ "$V/scheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['margin:edge_clearance', 'margin:hole_clearance', 'margin:via_diameter', 'pullups:I2C:scl', 'pullups:I2C:sda', 'silk:refdes']" ] && ok "skidl fails: pull-up chain x2, margin x3, silk" || bad "skidl fails $(jq_ "$V/scheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+  [ "$(jq_ "$V/scheck.json" "[r['value'] for r in d['rows'] if r['id']=='pullups:I2C:sda'][0]")" = 6.0 ] && ok "skidl 4 boards = 6.0 mA against 3.0 (the 'up to four boards' claim)" || bad "skidl pullup value"
+  [ "$(jq_ "$V/scheck.json" "[r['value'] for r in d['rows'] if r['id']=='margin:via_diameter'][0]")" = 1.33 ] && ok "skidl via diameter 1.33x the floor (the '2x every feature' claim)" || bad "skidl margin value"
+  [ "$(jq_ "$V/scheck.json" "sum(1 for r in d['rows'] if r['check']=='decoupling' and r['status']=='pass')")" = 5 ] && ok "skidl decoupling: all 5 rows within 2 mm (review: 1.69 to 1.98 mm)" || bad "skidl decoupling $(jq_ "$V/scheck.json" "[r['msg'] for r in d['rows'] if r['check']=='decoupling']")"
+else echo "NOTE no $KB"; fi
+fi
+
+if want 15 "pcbcheck planted misdeclarations: swapped Qwiic pins, undeclared jumper, wrong address, undeclared rail, unknown key"; then
+if [ -f "$ZB" ]; then
+  python3 -I -c "
+import json; c=json.load(open('$ROOT/examples/rung1-zener-a1/checks.json'))
+c['connectors']['J1']={'1':'GND','2':'3V3','3':'SCL','4':'SDA'}; del c['jumpers']['JP2']
+c['buses']['I2C']['devices']['U1']['address']='0x6A'; del c['rails']['GND']; c['bogus']=1
+json.dump(c, open('$V/planted.json','w'))"
+  $PCB check "$ZB" "$V/planted.json" --out "$V/pcheck.json" > "$V/pcheck.txt"
+  f="$(jq_ "$V/pcheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")"
+  for id in connectors:J1 jumpers:JP2 addresses:I2C:U1 rails:GND; do
+    case "$f" in *"'$id'"*) ok "planted: $id fails" ;; *) bad "planted: $id did not fail ($f)" ;; esac
+  done
+  grep -q "CONFIG unknown key 'bogus'" "$V/pcheck.txt" && ok "planted: unknown config key warned" || bad "planted: no config warn"
+  grep -q "pin 3: declared SCL, netlist SDA" "$V/pcheck.txt" && ok "planted: J1 row names the swapped pin" || bad "planted: J1 message $(grep connectors:J1 "$V/pcheck.txt")"
+  $PCB check "$ZB" "$ROOT/examples/rung1-zener-a1/checks.json" --out "$V/ocheck.json" --only connectors,rails > /dev/null
+  [ "$(jq_ "$V/ocheck.json" "sorted({r['check'] for r in d['rows']})")" = "['connectors', 'rails']" ] && ok "--only connectors,rails runs just those" || bad "--only $(jq_ "$V/ocheck.json" "sorted({r['check'] for r in d['rows']})")"
+else echo "NOTE no $ZB"; fi
+fi
+
+if want 16 "every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"; then
+  KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
+  for py in python3 "$KPY"; do
+    "$py" -I -m py_compile "$ROOT"/skills/kicad-design/scripts/*.py 2> "$V/compile.txt" && ok "compiles under $("$py" -c 'import sys; print(sys.version.split()[0])')" || bad "compile: $(cat "$V/compile.txt")"
+  done
 fi
 
 echo; echo "verify_all: $pass passed, $fail failed  ($V)"
