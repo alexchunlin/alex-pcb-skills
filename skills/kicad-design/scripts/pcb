@@ -12,8 +12,13 @@
 #   pcb render   x.kicad_pcb [--out DIR] [--side top,bottom] [--size N]
 #   pcb svg      x.kicad_pcb|x.kicad_sch [--out DIR]               layer SVG (board) or per-sheet SVG (schematic)
 #   pcb stats    x.kicad_pcb                                       board statistics (JSON from kicad-cli, short summary)
-#   pcb fab      x.kicad_pcb [--out DIR]                           gerbers + drill zip, JLC BOM/CPL from footprint fields, renders,
+#   pcb fab      x.kicad_pcb [--out DIR] [--no-render]               gerbers + drill zip, JLC BOM/CPL from footprint fields, renders,
 #                                                                  fab.json manifest with member hashes (R1-S1-F3, R1-S1-F4)
+#   pcb regen-check DIR --cmd "tools/regen.sh" --board REL.kicad_pcb [--generated layout fab] [--sch REL] [--out DIR]
+#                                                                  copy the project, delete its generated outputs, run the
+#                                                                  regeneration twice; compare netlist, DRC, fab hashes and
+#                                                                  placement with the handed-in tree and between passes;
+#                                                                  defaults from DIR/regen.json (R1-Z1-F2)
 #   pcb q        x.kicad_pcb <cmd ...>                             one measurement over pcbnew (`pcb q` alone lists them)
 #   pcb py       script.py [args] | -c "code"                      KiCad's Python with pcbnew (GUI guard first)
 #   pcb guard                                                      exit 1 if a KiCad GUI process is running
@@ -44,7 +49,7 @@ guard() {
 cmd="${1:-}"; shift || true
 case "$cmd" in
   erc|drc|netlist|diff|render|svg|stats) exec python3 -I "$HERE/pcbcli.py" "$cmd" "$@" ;;
-  fab) exec python3 -I "$HERE/pcbcli.py" fab "$@" ;;
+  fab|regen-check) exec python3 -I "$HERE/pcbcli.py" "$cmd" "$@" ;;
   q) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbq.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
      kpy "$HERE/pcbq.py" "$@" ;;
   py) guard; kpy "$@" ;;
@@ -56,7 +61,7 @@ case "$cmd" in
      [ -n "$noopen" ] && set -- --no-open "$@"
      [ -n "${PCB_DRY:-}" ] && { echo "$DIODE $cmd $*"; exit 0; }
      exec "$DIODE" "$cmd" "$@" ;;
-  ""|-h|--help|help) sed -n '2,24p' "$0"; exit 0 ;;
+  ""|-h|--help|help) sed -n '2,29p' "$0"; exit 0 ;;
   *) [ -x "$DIODE" ] || { echo "pcb: unknown command '$cmd' and Diode pcb not found at $DIODE" >&2; exit 2; }
      [ -n "${PCB_DRY:-}" ] && { echo "$DIODE $cmd $*"; exit 0; }
      exec "$DIODE" "$cmd" "$@" ;;

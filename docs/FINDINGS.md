@@ -323,3 +323,18 @@ commands so the next reviewer runs them instead of rewriting them.
 - **P1-T8 Diode `pcb` name collision turned into a guardrail.** The wrapper is also called `pcb`; any subcommand
   it does not own goes to `~/.local/bin/pcb`, with `--no-open` inserted on `layout` and `apply` (P0-T6) and
   `open` refused. `PCB_DRY=1` prints the command instead of running it, which is how verify_all tests it.
+- **P1-T9 `pcb regen-check` (handoff item 2) reproduces R1-Z1-F2 without judgment.** It copies the project, deletes
+  the declared generated paths, runs the project's regeneration command twice and compares netlist connectivity,
+  DRC counts, fab member hashes and footprint/track placement against the handed-in tree and between passes. On
+  rung1-zener-a1: `tools/regen.sh` exits 1 both times (`no matches found: fab/gerbers/*`), pass 1 reports 12
+  errors and 4 warnings, pass 2 converges to the handed-in 20 and 0; placement and tracks are identical
+  throughout. Fab hashes drop three timestamp lines per file (`%TF.CreationDate`, the drill `; ... date` header,
+  and the `G04 Created by KiCad ... date` comment, which the first version missed) so Edge.Cuts hashes equal
+  across passes while F.Cu differs, which is the zone-fill difference and real. 93 s per project before
+  `--no-render`, about 60 s after.
+- **P1-T10 The SKiDL regeneration also diverges on its first pass from clean, and nobody had seen it.** `check.sh`
+  exits 0 from a clean tree, but pass 1 has 12 DRC errors against 18 on pass 2 and in the handed-in tree: the
+  6 `hole_clearance` errors (NPTH to zone) are missing because the first fill of a freshly built board differs
+  from a refill. The R1-S1 reviewer ran `check.sh` with the generated files present and saw "identical". Same
+  mechanism as the Zener isolated-copper warnings. Rule: the fill-save-reload-refill sequence belongs in
+  `pcblib.board` (item 4), and regen-check's pass-1-vs-pass-2 comparison is the gate.

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Re-prove every tool in this repo against the rung-1 attempts and the reference boards. Writes only under
-# /tmp/alexpcb-verify/run-<pid> (latest: /tmp/alexpcb-verify/latest). About 2 minutes.
+# /tmp/alexpcb-verify/run-<pid> (latest: /tmp/alexpcb-verify/latest). About 5 minutes (sections 11 and 12 regenerate the attempts twice each).
 #   sh tools/verify_all.sh            # everything
 #   sh tools/verify_all.sh 1 5 7      # only these sections (the --changed selector from alex-3d-skills lands with phase 7)
 # Inputs (read-only, copied first): RUNS (default ~/code-stuff/alex-pcb-runs) and REF (default /tmp/pcb-ref). A section
@@ -154,6 +154,27 @@ if want 10 "GUI guards (P0-T6): layout/apply get --no-open, open is refused, gua
   $PCB open x > /dev/null 2>&1; [ $? = 2 ] && ok "open refused" || bad "open not refused"
   $PCB guard > /dev/null; rc=$?; [ "$rc" = 0 ] && ok "guard: no GUI running" || echo "NOTE guard reports a KiCad GUI running (rc $rc); not counted"
   $PCB > /dev/null && ok "pcb with no command prints help and exits 0" || bad "help exit"
+fi
+
+if want 11 "regen-check on rung1-zener-a1: reproduces R1-Z1-F2 (exit 1 from clean, pass 1 12 err/4 warn, pass 2 20/0)"; then
+if [ -d "$Z" ]; then
+  $PCB regen-check "$Z" --cmd tools/regen.sh --board layout/qwiic_imu/qwiic_imu.kicad_pcb --generated layout fab --out "$V/zregen" > "$V/zregen.txt"; rc=$?
+  [ "$rc" = 1 ] && grep -q "FAILS" "$V/zregen.txt" && ok "zener regen-check FAILS with exit 1" || bad "zener regen-check rc $rc: $(tail -1 "$V/zregen.txt")"
+  [ "$(jq_ "$V/zregen/regen.json" "(d['pass1']['cmd_exit'], d['pass1']['drc']['plain_errors'], d['pass1']['drc']['plain_warnings'])")" = "(1, 12, 4)" ] && ok "zener pass 1: regen.sh exit 1, DRC 12 errors 4 warnings (review: 4 isolated_copper)" || bad "zener pass 1 $(jq_ "$V/zregen/regen.json" "(d['pass1']['cmd_exit'], d['pass1']['drc'])")"
+  [ "$(jq_ "$V/zregen/regen.json" "(d['pass2']['drc']['plain_errors'], d['pass2']['drc']['plain_warnings'])")" = "(20, 0)" ] && ok "zener pass 2 converges to 20/0" || bad "zener pass 2 $(jq_ "$V/zregen/regen.json" "d['pass2']['drc']")"
+  [ "$(jq_ "$V/zregen/regen.json" "'placement' in ' '.join(d['diff_ref_pass1']) or 'copper' in ' '.join(d['diff_ref_pass1'])")" = False ] && ok "zener placement and tracks identical to the handed-in board" || bad "zener placement differs: $(jq_ "$V/zregen/regen.json" "d['diff_ref_pass1']")"
+  [ "$(jq_ "$V/zregen/regen.json" "d['pass1']['fab']['gerbers']['qwiic_imu-Edge_Cuts.gm1'] == d['pass2']['fab']['gerbers']['qwiic_imu-Edge_Cuts.gm1']")" = True ] && ok "zener Edge.Cuts gerber hashes equal across passes (dates stripped, P1-T9)" || bad "zener edge gerber hash differs between passes"
+  [ "$(jq_ "$V/zregen/regen.json" "d['pass1']['fab']['gerbers']['qwiic_imu-F_Cu.gtl'] == d['pass2']['fab']['gerbers']['qwiic_imu-F_Cu.gtl']")" = False ] && ok "zener F.Cu gerber differs between passes (the zone-fill difference is real)" || bad "zener F.Cu gerber equal between passes?"
+else echo "NOTE no $Z"; fi
+fi
+
+if want 12 "regen-check on rung1-skidl-a1: exit 0 but the first pass from clean diverges (P1-T10)"; then
+if [ -d "$K" ]; then
+  $PCB regen-check "$K" --cmd ./check.sh --board qwiic_imu.kicad_pcb --generated qwiic_imu.kicad_sch qwiic_imu.kicad_pcb qwiic_imu.kicad_pro qwiic_imu.kicad_prl qwiic_imu.xml qwiic_imu.net fab qwiic_imu-drc.json qwiic_imu-erc.json qwiic_imu.kicad_dru --out "$V/sregen" > "$V/sregen.txt"; rc=$?
+  [ "$rc" = 1 ] && ok "skidl regen-check FAILS" || bad "skidl regen-check rc $rc"
+  [ "$(jq_ "$V/sregen/regen.json" "(d['pass1']['cmd_exit'], d['pass2']['cmd_exit'], d['pass1']['drc']['plain_errors'], d['pass2']['drc']['plain_errors'])")" = "(0, 0, 12, 18)" ] && ok "skidl check.sh exits 0 twice, DRC 12 errors on pass 1 and 18 on pass 2" || bad "skidl passes $(jq_ "$V/sregen/regen.json" "(d['pass1']['cmd_exit'], d['pass2']['cmd_exit'], d['pass1']['drc'], d['pass2']['drc'])")"
+  [ "$(jq_ "$V/sregen/regen.json" "'nets' in ' '.join(d['diff_ref_pass1'])")" = False ] && ok "skidl netlist identical from clean" || bad "skidl netlist differs"
+else echo "NOTE no $K"; fi
 fi
 
 echo; echo "verify_all: $pass passed, $fail failed  ($V)"

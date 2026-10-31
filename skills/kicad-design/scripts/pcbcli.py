@@ -57,11 +57,21 @@ def copper_layers(board):
     return names
 
 
+DATE_LINE = re.compile(rb"CreationDate|DRILL file .* date |G04 Created by KiCad .* date ")
+
+
 def sha256(path):
+    """sha256 of the file with its timestamp lines dropped (gerber %TF.CreationDate, drill '; ... date', gbrjob
+    "CreationDate"), so two regenerations of the same board hash the same (P1-T9)."""
     h = hashlib.sha256()
     with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            h.update(chunk)
+        data = f.read()
+    if path.endswith((".png", ".zip")):
+        h.update(data)
+    else:
+        for line in data.splitlines(True):
+            if not DATE_LINE.search(line):
+                h.update(line)
     return h.hexdigest()
 
 
@@ -513,12 +523,12 @@ def cmd_fab(a):
             n_cpl += 1
     offsets = {r["ref"]: r["origin_to_fab_centre_mm"] for r in fd["footprints"]
                if r["origin_to_fab_centre_mm"] is not None and r["origin_to_fab_centre_mm"] > 0.1 and not r["dnp"]}
-    # renders
-    for side in ("top", "bottom"):
+    # renders (18 of fab's 21 s; --no-render for regen-check and other comparisons)
+    for side in (() if a.no_render else ("top", "bottom")):
         kicad("pcb", "render", "--side", side, "--width", "1400", "--height", "1400", "--zoom", "0.9", "--quality", "high",
               "--background", "opaque", "-o", os.path.join(out, f"{name}_{side}.png"), board)
     man["files"].update({"bom": bom_full, "bom_jlcpcb": bom_jlc, "cpl_jlcpcb": cpl, "pos_kicad": pos_raw,
-                         "renders": [os.path.join(out, f"{name}_{s}.png") for s in ("top", "bottom")]})
+                         "renders": [] if a.no_render else [os.path.join(out, f"{name}_{s}.png") for s in ("top", "bottom")]})
     man["hashes"] = {os.path.basename(p): sha256(p) for p in (bom_full, bom_jlc, cpl)}
     man["bom_lines"] = len(groups)
     man["bom_missing_lcsc"] = missing
@@ -538,10 +548,173 @@ def cmd_fab(a):
     return 0
 
 
+# ----------------------------------------------------------------------------------------------------- regen-check
+def self_cmd(*args):
+    p = subprocess.run([sys.executable, "-I", os.path.abspath(__file__), *args], capture_output=True, text=True)
+    return p.returncode, p.stdout + p.stderr
+
+
+def gui_pids():
+    p = subprocess.run(["pgrep", "-fl", r"MacOS/(pcbnew|eeschema|kicad)$"], capture_output=True, text=True)
+    return [l for l in p.stdout.splitlines() if l.strip()]
+
+
+def measure_tree(root, cfg, out):
+    """Netlist nodes, DRC counts, fab hashes and placement of the project under root. Missing files are reported,
+    not fatal: a regeneration that produced nothing is the finding."""
+    os.makedirs(out, exist_ok=True)
+    m = {"root": root, "missing": []}
+    board = os.path.join(root, cfg["board"])
+    sch = os.path.join(root, cfg["sch"]) if cfg.get("sch") else sibling(board, ".kicad_sch")
+    if sch and os.path.exists(sch):
+        try:
+            xml = export_netlist(sch, os.path.join(out, "netlist.xml"))
+            m["nets"] = {",".join(sorted(f"{r}.{p}" for r, p in k)): v for k, v in nodes(xml).items()}
+        except SystemExit as e:
+            m["missing"].append(f"netlist: {e}")
+    else:
+        m["missing"].append("schematic")
+    if os.path.exists(board):
+        rc, log = self_cmd("drc", board, "--out", os.path.join(out, "drc"), *(["--pack", cfg["pack"]] if cfg.get("pack") else []))
+        try:
+            d = json.load(open(os.path.join(out, "drc", "drc.json")))
+            m["drc"] = {"plain_errors": d["plain"]["errors"], "plain_warnings": d["plain"]["warnings"],
+                        "packed_errors": d["packed"]["errors"] if d["packed"] else None,
+                        "packed_warnings": d["packed"]["warnings"] if d["packed"] else None,
+                        "unconnected": d["plain"]["unconnected"], "sentinel": d["sentinel"],
+                        "plain_by_type": d["plain"]["by_type"], "exit": d["exit"]}
+        except (OSError, ValueError, KeyError):
+            m["missing"].append(f"drc: {log[-300:]}")
+        rc, log = self_cmd("fab", board, "--out", os.path.join(out, "fab"), "--no-render")
+        try:
+            f = json.load(open(os.path.join(out, "fab", "fab.json")))
+            m["fab"] = {"gerbers": f["files"]["gerbers"], "csv": f["hashes"], "bom_lines": f["bom_lines"],
+                        "missing_lcsc": f["bom_missing_lcsc"], "cpl_lines": f["cpl_lines"]}
+        except (OSError, ValueError, KeyError):
+            m["missing"].append(f"fab: {log[-300:]}")
+        try:
+            fps = kpy_json(board, "fps")["footprints"]
+            m["placement"] = {r["ref"]: [r["pos"], r["rot"], r["layer"]] for r in fps}
+            nets = kpy_json(board, "nets")["nets"]
+            m["copper"] = {n["net"]: [n["length_mm"], n["vias"], n["min_width_mm"]] for n in nets}
+        except SystemExit as e:
+            m["missing"].append(f"pcbq: {e}")
+    else:
+        m["missing"].append("board")
+    return m
+
+
+def compare(a, b):
+    """What differs between two measure_tree results; empty list = identical in every measured respect."""
+    diffs = []
+    for key in ("nets", "placement", "copper"):
+        if key in a and key in b:
+            ka, kb = set(a[key]), set(b[key])
+            if key == "nets":
+                if ka != kb:
+                    diffs.append(f"{key}: {len(ka - kb)} only in first, {len(kb - ka)} only in second")
+            else:
+                ch = [k for k in ka & kb if a[key][k] != b[key][k]]
+                if ka != kb or ch:
+                    diffs.append(f"{key}: {len(ka ^ kb)} items added/removed, {len(ch)} changed ({', '.join(sorted(ch)[:6])})")
+        elif (key in a) != (key in b):
+            diffs.append(f"{key}: present in only one")
+    if "drc" in a and "drc" in b:
+        for k in ("plain_errors", "plain_warnings", "packed_errors", "packed_warnings", "unconnected"):
+            if a["drc"][k] != b["drc"][k]:
+                diffs.append(f"drc {k}: {a['drc'][k]} vs {b['drc'][k]}")
+    elif (("drc" in a) != ("drc" in b)):
+        diffs.append("drc: present in only one")
+    if "fab" in a and "fab" in b:
+        ga, gb = a["fab"]["gerbers"], b["fab"]["gerbers"]
+        bad = sorted(f for f in set(ga) | set(gb) if ga.get(f) != gb.get(f))
+        if bad:
+            diffs.append(f"fab gerbers differ: {', '.join(bad)}")
+        bad = sorted(f for f in set(a["fab"]["csv"]) | set(b["fab"]["csv"]) if a["fab"]["csv"].get(f) != b["fab"]["csv"].get(f))
+        if bad:
+            diffs.append(f"fab csv differ: {', '.join(bad)}")
+    elif (("fab" in a) != ("fab" in b)):
+        diffs.append("fab: present in only one")
+    return diffs
+
+
+def cmd_regen_check(a):
+    """Code is the source of truth only if the project regenerates from a clean tree (R1-Z1-F2): copy the project,
+    delete its generated outputs, run its regeneration command twice, and compare netlist, DRC, fab package and
+    placement against the tree as handed in and between the two passes."""
+    proj = os.path.abspath(a.project)
+    cfg = {}
+    cfg_path = os.path.join(proj, "regen.json")
+    if os.path.exists(cfg_path):
+        cfg = json.load(open(cfg_path))
+    for k in ("cmd", "board", "sch", "pack"):
+        if getattr(a, k, None):
+            cfg[k] = getattr(a, k)
+    if a.generated:
+        cfg["generated"] = a.generated
+    for k in ("cmd", "board"):
+        if not cfg.get(k):
+            sys.exit(f"regen-check: --{k} is required (or put it in {cfg_path})")
+    cfg.setdefault("generated", [])
+    out = os.path.abspath(a.out or os.path.join(proj, "regen-check"))
+    if os.path.isdir(out):
+        shutil.rmtree(out)
+    os.makedirs(out)
+    res = {"project": proj, "config": cfg, "out": out, "gui_before": gui_pids()}
+    if res["gui_before"] and not os.environ.get("PCB_ALLOW_GUI"):
+        sys.exit("regen-check: a KiCad GUI is running; close it first (P0-T6):\n" + "\n".join(res["gui_before"]))
+    print(f"regen-check {os.path.basename(proj)}: measuring the tree as handed in")
+    res["ref"] = measure_tree(proj, cfg, os.path.join(out, "ref"))
+    fresh = os.path.join(out, "fresh")
+    shutil.copytree(proj, fresh, symlinks=True, ignore=shutil.ignore_patterns("regen-check", "review", ".git"))
+    removed = []
+    for g in cfg["generated"]:
+        p = os.path.join(fresh, g)
+        if os.path.isdir(p):
+            shutil.rmtree(p); removed.append(g + "/")
+        elif os.path.exists(p):
+            os.remove(p); removed.append(g)
+    res["removed"] = removed
+    passes = []
+    for n in (1, 2):
+        print(f"  pass {n}: {cfg['cmd']}")
+        log = os.path.join(out, f"pass{n}.log")
+        try:
+            with open(log, "w") as lf:
+                p = subprocess.run(cfg["cmd"], shell=True, cwd=fresh, stdout=lf, stderr=subprocess.STDOUT, timeout=a.timeout,
+                                   env={**os.environ, "PCB_ALLOW_GUI": ""})
+            rc = p.returncode
+        except subprocess.TimeoutExpired:
+            rc = "timeout"
+        gui = [g for g in gui_pids() if g not in res["gui_before"]]
+        m = measure_tree(fresh, cfg, os.path.join(out, f"pass{n}"))
+        m["cmd_exit"] = rc
+        m["gui_appeared"] = gui
+        m["log"] = log
+        passes.append(m)
+        print(f"    exit {rc}; missing {m['missing'] or 'nothing'}; " + (f"GUI APPEARED {gui}" if gui else ""))
+    res["pass1"], res["pass2"] = passes
+    res["diff_ref_pass1"] = compare(res["ref"], passes[0])
+    res["diff_pass1_pass2"] = compare(passes[0], passes[1])
+    ok = (passes[0]["cmd_exit"] == 0 and passes[1]["cmd_exit"] == 0 and not passes[0]["missing"]
+          and not res["diff_ref_pass1"] and not res["diff_pass1_pass2"] and not passes[0]["gui_appeared"])
+    res["verdict"] = "REGENERATES" if ok else "FAILS"
+    json.dump(res, open(os.path.join(out, "regen.json"), "w"), indent=1)
+    print(f"  removed before pass 1: {', '.join(removed) or 'nothing (no --generated list)'}")
+    print(f"  pass 1 vs handed-in tree: {'identical' if not res['diff_ref_pass1'] else '; '.join(res['diff_ref_pass1'])}")
+    print(f"  pass 2 vs pass 1:         {'identical' if not res['diff_pass1_pass2'] else '; '.join(res['diff_pass1_pass2'])}")
+    for n, m in ((1, passes[0]), (2, passes[1])):
+        d = m.get("drc", {})
+        print(f"  pass {n}: exit {m['cmd_exit']}, DRC plain {d.get('plain_errors', '?')} err / {d.get('plain_warnings', '?')} warn, "
+              f"packed {d.get('packed_errors', '?')} err, fab {'ok' if 'fab' in m else 'MISSING'}")
+    print(f"  {res['verdict']} -> {rel(os.path.join(out, 'regen.json'))}")
+    return 0 if ok else 1
+
+
 # ----------------------------------------------------------------------------------------------------- main
 def main(argv):
     p = argparse.ArgumentParser(prog="pcb")
-    sp = p.add_subparsers(dest="cmd", required=True)
+    sp = p.add_subparsers(dest="subcmd", required=True)
     s = sp.add_parser("erc"); s.add_argument("sch"); s.add_argument("--out"); s.add_argument("--list", action="store_true")
     s = sp.add_parser("drc"); s.add_argument("pcb"); s.add_argument("--pack"); s.add_argument("--out")
     s.add_argument("--no-parity", action="store_true"); s.add_argument("--no-floor", action="store_true")
@@ -553,10 +726,14 @@ def main(argv):
     s = sp.add_parser("svg"); s.add_argument("src"); s.add_argument("--out")
     s = sp.add_parser("stats"); s.add_argument("pcb"); s.add_argument("--json"); s.add_argument("--raw", action="store_true")
     s = sp.add_parser("fab"); s.add_argument("pcb"); s.add_argument("--out"); s.add_argument("--name")
+    s.add_argument("--no-render", action="store_true")
+    s = sp.add_parser("regen-check"); s.add_argument("project"); s.add_argument("--cmd"); s.add_argument("--board")
+    s.add_argument("--sch"); s.add_argument("--pack"); s.add_argument("--generated", nargs="*")
+    s.add_argument("--out"); s.add_argument("--timeout", type=int, default=1200)
     a = p.parse_args(argv)
     if not os.path.exists(KICAD_CLI):
         sys.exit(f"kicad-cli not found at {KICAD_CLI} (set KICAD_CLI)")
-    return globals()["cmd_" + a.cmd](a)
+    return globals()["cmd_" + a.subcmd.replace("-", "_")](a)
 
 
 if __name__ == "__main__":

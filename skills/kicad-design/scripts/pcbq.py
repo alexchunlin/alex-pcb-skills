@@ -24,9 +24,7 @@ import pcbnew
 from pcbnew import ToMM, FromMM
 
 OUT = []
-JSON = "--json" in sys.argv
-if JSON:
-    sys.argv.remove("--json")
+JSON = False
 
 
 def say(*a):
@@ -319,6 +317,10 @@ CMDS = {k[2:]: v for k, v in globals().items() if k.startswith("q_")}
 
 
 def main():
+    global JSON
+    JSON = "--json" in sys.argv
+    if JSON:
+        sys.argv.remove("--json")
     if len(sys.argv) < 3 or sys.argv[2] not in CMDS:
         sys.exit(__doc__)
     board = pcbnew.LoadBoard(sys.argv[1])
