@@ -1,10 +1,16 @@
 #!/bin/sh
 # Re-prove every tool in this repo against the rung-1 attempts and the reference boards. Writes only under
-# /tmp/alexpcb-verify/run-<pid> (latest: /tmp/alexpcb-verify/latest). About 6 minutes (sections 11 and 12 regenerate the attempts twice each).
-#   sh tools/verify_all.sh            # everything
-#   sh tools/verify_all.sh 1 5 7      # only these sections (the --changed selector from alex-3d-skills lands with phase 7)
-# Inputs (read-only, copied first): RUNS (default ~/code-stuff/alex-pcb-runs) and REF (default /tmp/pcb-ref). A section
-# whose input is missing prints NOTE and is not a failure.
+# /tmp/alexpcb-verify/run-<pid> (latest: /tmp/alexpcb-verify/latest). About 8 minutes.
+#   sh tools/verify_all.sh                       # everything
+#   sh tools/verify_all.sh 1 5 7                 # only these sections
+#   sh tools/verify_all.sh --changed [BASE] [--dry-run]   # only what the change since merge-base(BASE, HEAD) affects
+#                                                # (BASE defaults to main; committed, uncommitted and untracked files)
+# Each section opens with `if want ID; then  #@ watch: PATTERNS [needs: IDS]` and closes with `fi  #@ end ID`; each
+# tools/verify.d/*.sh script has a `# watch:` header. tools/verify_select.py (ported from alex-3d-skills) maps the changed
+# paths onto them and prints the plan first (--dry-run: only the plan). A path nothing watches runs everything, unless
+# `#@ none:` says no test reads it. A unit selected under --changed that runs no check fails the run; a section whose
+# input is missing on this machine says so with nochecks.
+# Inputs (read-only, copied first): RUNS (default ~/code-stuff/alex-pcb-runs) and REF (default /tmp/pcb-ref).
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PCB="$ROOT/skills/kicad-design/scripts/pcb"
@@ -14,11 +20,41 @@ VT="${VERIFY_TMP:-/tmp/alexpcb-verify}"; V="$VT/run-$$"
 rm -rf "$V"; mkdir -p "$V"; ln -sfn "$V" "$VT/latest"
 printf '{"commit": "%s", "dirty": %s, "when": "%s"}\n' "$(git -C "$ROOT" rev-parse HEAD 2>/dev/null)" \
   "$([ -n "$(git -C "$ROOT" status --porcelain -- skills tools 2>/dev/null)" ] && echo true || echo false)" "$(date +%Y-%m-%dT%H:%M:%S)" > "$V/meta.json"
-SEL="${*:-ALL}"
-want() { [ "$SEL" = ALL ] || case " $SEL " in *" $1 "*) ;; *) return 1 ;; esac; echo "== $1 $2"; }
+#@ plumbing
+#@ group @cli = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcbcli.py
+#@ group @q = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcbq.py
+#@ group @check = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcbq.py skills/kicad-design/scripts/pcbcli.py
+#@ group @lib = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcblib/**
+# none: paths no test reads (a watch wins: section 20 reads FINDINGS.md and every skills/**/*.md)
+#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README
+SELECTED=ALL; EXPECT=""; CHANGED=""; RAN=""; CUR=""; CUR_N=0; CUR_OK=""
+case "${1:-}" in
+  --*) P=$(python3 -I "$ROOT/tools/verify_select.py" "$@") || { rc=$?; printf '%s\n' "$P"; exit $rc; }
+       printf '%s\n' "$P" | grep -v -e '^SELECT' -e '^UNITS'
+       SELECTED=$(printf '%s\n' "$P" | sed -n 's/^SELECT *//p')
+       EXPECT=$(printf '%s\n' "$P" | sed -n 's/^UNITS *//p')
+       [ "$SELECTED" = ALL ] || EXPECT="$SELECTED"
+       case " $* " in *" --dry-run "*) exit 0 ;; esac
+       [ -n "$SELECTED" ] || { echo "verify_all: the selector chose nothing (it always picks verify_select.sh)"; exit 2; }
+       CHANGED=1 ;;
+  "") ;;
+  *) SELECTED="$*" ;;                       # a list of section IDs
+esac
 pass=0; fail=0
 ok() { echo "PASS $1"; pass=$((pass+1)); }
 bad() { echo "FAIL $1"; fail=$((fail+1)); }
+# want ID: is this unit selected? Under --changed it also records the unit, and the unit before it must have run a check.
+unit_end() {
+  [ -n "$CUR" ] && [ -n "$CHANGED" ] && [ -z "$CUR_OK" ] && [ $((pass+fail)) = "$CUR_N" ] && bad "verify_all: $CUR was selected but ran no checks"
+  CUR=""; CUR_OK=""
+}
+want() {
+  unit_end
+  [ "$SELECTED" = ALL ] || case " $SELECTED " in *" $1 "*) ;; *) return 1 ;; esac
+  CUR=$1; CUR_N=$((pass+fail)); RAN="$RAN $1"; return 0
+}
+nochecks() { echo "NOTE $1"; CUR_OK=1; }   # a selected unit with nothing to check on this machine
+#@ plumbing end
 jq_() { python3 -I -c "import json,sys; d=json.load(open(sys.argv[1])); print(eval(sys.argv[2], {}, {'d': d}))" "$1" "$2" 2>/dev/null; }
 # copies: the tools must never touch the attempts
 Z="$V/zener"; K="$V/skidl"
@@ -28,7 +64,8 @@ ZB="$Z/layout/qwiic_imu/qwiic_imu.kicad_pcb"; ZS="$Z/layout/qwiic_imu/qwiic_imu.
 KB="$K/qwiic_imu.kicad_pcb"; KS="$K/qwiic_imu.kicad_sch"
 MB="$REF/motorgo-plink-hardware/motorgo_plink/motorgo_plink.kicad_pcb"
 
-if want 1 "dual DRC on rung1-zener-a1: plain 20 errors, raw pack 0, floored pack 20, sentinel fires (R1-Z1-F1)"; then
+if want 1; then  #@ watch: @cli
+echo "== 1 dual DRC on rung1-zener-a1: plain 20 errors, raw pack 0, floored pack 20, sentinel fires (R1-Z1-F1)"
 if [ -f "$ZB" ]; then
   $PCB drc "$ZB" --out "$V/zdrc" > "$V/zdrc.txt"; rc=$?
   [ "$rc" = 1 ] && ok "zener drc exits 1 on errors" || bad "zener drc exit $rc"
@@ -42,20 +79,22 @@ if [ -f "$ZB" ]; then
   [ "$(jq_ "$V/zdrc-raw/drc.json" "len(d['masked_by_raw_pack'])")" = 20 ] && ok "zener raw pack masks all 20 plain errors" || bad "zener masked $(jq_ "$V/zdrc-raw/drc.json" "len(d['masked_by_raw_pack'])")"
   [ -z "$(cd "$RUNS" && git status --porcelain 2>/dev/null)" ] || true
   cmp -s "$ZB" "$RUNS/rung1-zener-a1/layout/qwiic_imu/qwiic_imu.kicad_pcb" && ok "zener board untouched by drc" || bad "zener board modified"
-else echo "NOTE no $ZB"; fi
-fi
+else nochecks "no $ZB"; fi
+fi  #@ end 1
 
-if want 2 "dual DRC on rung1-skidl-a1: plain 18 errors (R1-S1-F1)"; then
+if want 2; then  #@ watch: @cli
+echo "== 2 dual DRC on rung1-skidl-a1: plain 18 errors (R1-S1-F1)"
 if [ -f "$KB" ]; then
   $PCB drc "$KB" --out "$V/kdrc" > "$V/kdrc.txt"
   [ "$(jq_ "$V/kdrc/drc.json" "d['plain']['errors']")" = 18 ] && ok "skidl plain 18 errors" || bad "skidl plain $(jq_ "$V/kdrc/drc.json" "d['plain']['errors']")"
   [ "$(jq_ "$V/kdrc/drc.json" "sorted(d['plain']['by_type']['error'].items())")" = "[('clearance', 12), ('hole_clearance', 6)]" ] && ok "skidl types clearance 12 + hole_clearance 6" || bad "skidl types $(jq_ "$V/kdrc/drc.json" "d['plain']['by_type']")"
   $PCB drc "$KB" --out "$V/kdrc-raw" --no-floor > /dev/null
   [ "$(jq_ "$V/kdrc-raw/drc.json" "d['packed']['errors']")" = 0 ] && ok "skidl raw pack 0 errors" || bad "skidl raw pack $(jq_ "$V/kdrc-raw/drc.json" "d['packed']['errors']")"
-else echo "NOTE no $KB"; fi
-fi
+else nochecks "no $KB"; fi
+fi  #@ end 2
 
-if want 3 "dual DRC on the Plink reference board with --pack jlcpcb: per-type cap, library paths through the mirror (P0-T2, P1-T1, P1-T2)"; then
+if want 3; then  #@ watch: @cli
+echo "== 3 dual DRC on the Plink reference board with --pack jlcpcb: per-type cap, library paths through the mirror (P0-T2, P1-T1, P1-T2)"
 if [ -f "$MB" ]; then
   t0=$(date +%s); $PCB drc "$MB" --pack jlcpcb --out "$V/mdrc" --no-floor > "$V/mdrc.txt"; t1=$(date +%s)
   [ "$(jq_ "$V/mdrc/drc.json" "d['plain']['by_type']['error']['copper_edge_clearance']")" = 40 ] && ok "plink plain copper_edge_clearance 40 (P0-T2)" || bad "plink edge $(jq_ "$V/mdrc/drc.json" "d['plain']['by_type']")"
@@ -64,10 +103,11 @@ if [ -f "$MB" ]; then
   [ "$(jq_ "$V/mdrc/drc.json" "'track_width(sentinel)' in d['capped_types'] and 'silk_overlap' in d['capped_types']")" = True ] && ok "plink: 199 cap detected on the sentinel and silk_overlap (P1-T2)" || bad "plink cap $(jq_ "$V/mdrc/drc.json" "d['capped_types']")"
   [ "$(jq_ "$V/mdrc/drc.json" "d['packed']['by_type']['warning'].get('lib_footprint_mismatch')")" = 86 ] && ok "plink lib_footprint_mismatch 86 in the mirror = in place (library paths resolve, P1-T1)" || bad "plink lib mismatch $(jq_ "$V/mdrc/drc.json" "d['packed']['by_type']['warning'].get('lib_footprint_mismatch')")"
   echo "NOTE plink dual drc took $((t1-t0)) s"
-else echo "NOTE no $MB (clone motorgo-plink-hardware into $REF)"; fi
-fi
+else nochecks "no $MB (clone motorgo-plink-hardware into $REF)"; fi
+fi  #@ end 3
 
-if want 4 "rejected rule pack is detected (P0-T5): bad layer name -> exit 2, sentinel not fired"; then
+if want 4; then  #@ watch: @cli
+echo "== 4 rejected rule pack is detected (P0-T5): bad layer name -> exit 2, sentinel not fired"
 if [ -f "$ZB" ]; then
   printf '(version 1)\n(rule "bad layer" (layer "No.Such") (constraint clearance (min 0.1mm)))\n' > "$V/bad.kicad_dru"
   $PCB drc "$ZB" --pack "$V/bad.kicad_dru" --out "$V/zbad" > "$V/zbad.txt"; rc=$?
@@ -76,19 +116,21 @@ if [ -f "$ZB" ]; then
   printf '(version 1)\n(rule "ok" (constraint clearance (min 0.1mm)))\n' > "$V/ok.kicad_dru"
   $PCB drc "$ZB" --pack "$V/ok.kicad_dru" --out "$V/zok" > "$V/zok.txt"; rc=$?
   [ "$rc" = 1 ] && grep -q "sentinel fired" "$V/zok.txt" && ok "accepted pack: sentinel fired, exit 1 on the plain errors" || bad "accepted pack rc $rc"
-else echo "NOTE no $ZB"; fi
-fi
+else nochecks "no $ZB"; fi
+fi  #@ end 4
 
-if want 5 "ERC and netlist on both rung-1 schematics"; then
+if want 5; then  #@ watch: @cli
+echo "== 5 ERC and netlist on both rung-1 schematics"
 for s in "$ZS" "$KS"; do
-  [ -f "$s" ] || { echo "NOTE no $s"; continue; }
+  [ -f "$s" ] || { nochecks "no $s"; continue; }
   n=$(basename "$(dirname "$s")"); $PCB erc "$s" --out "$V/erc-$n.json" > "$V/erc-$n.txt"; rc=$?
   grep -q "0 errors, 1 warnings" "$V/erc-$n.txt" && [ "$rc" = 0 ] && ok "erc $n: 0 errors 1 warning, exit 0" || bad "erc $n: $(head -1 "$V/erc-$n.txt") rc $rc"
   $PCB netlist "$s" "$V/net-$n.xml" > "$V/net-$n.txt" && grep -q "11 nets" "$V/net-$n.txt" && ok "netlist $n: 11 nets" || bad "netlist $n: $(cat "$V/net-$n.txt")"
 done
-fi
+fi  #@ end 5
 
-if want 6 "connectivity diff (P0-T3): identical, renamed, planted U1 SDA/SCL pin swap, schematic inputs"; then
+if want 6; then  #@ watch: @cli  needs: 5
+echo "== 6 connectivity diff (P0-T3): identical, renamed, planted U1 SDA/SCL pin swap, schematic inputs"
 if [ -f "$V/net-qwiic_imu.xml" ]; then
   X="$V/net-qwiic_imu.xml"
   $PCB diff "$X" "$X" > "$V/diff1.txt" && ok "diff identical exits 0" || bad "diff identical: $(head -1 "$V/diff1.txt")"
@@ -101,10 +143,11 @@ open('$V/swapped.xml','w').write(t.replace(a,'@@').replace(b,a).replace('@@',b))
   [ "$rc" = 1 ] && grep -q "CONNECTIVITY CHANGED" "$V/diff3.txt" && ok "diff catches the planted SDA/SCL pin swap (exit 1)" || bad "diff swap rc $rc"
   [ "$(jq_ "$V/diff3.json" "sorted(d['only_in_a'])")" = "['SCL', 'SDA']" ] && ok "diff names the two nets" || bad "diff nets $(jq_ "$V/diff3.json" "d['only_in_a']")"
   $PCB diff "$ZS" "$X" > "$V/diff4.txt" && ok "diff accepts a .kicad_sch input" || bad "diff sch input: $(head -1 "$V/diff4.txt")"
-else echo "NOTE section 5 did not run"; fi
-fi
+else nochecks "section 5 did not run"; fi
+fi  #@ end 6
 
-if want 7 "pcb q measurements reproduce the R1-Z1 review (decoupling, coverage, vias, silk, dist)"; then
+if want 7; then  #@ watch: @q
+echo "== 7 pcb q measurements reproduce the R1-Z1 review (decoupling, coverage, vias, silk, dist)"
 if [ -f "$ZB" ]; then
   $PCB q "$ZB" decoupling > "$V/q-dec.txt"
   grep -q "C1(100nF) 3V3 -> U1.8: centre 1.7511" "$V/q-dec.txt" && ok "q decoupling C1 -> U1.8 1.751 mm (review: 1.751)" || bad "q decoupling C1: $(grep C1 "$V/q-dec.txt")"
@@ -120,10 +163,11 @@ if [ -f "$ZB" ]; then
   $PCB q "$ZB" nets > "$V/q-nets.txt" && [ "$(grep -c '^PCBQ net' "$V/q-nets.txt")" = 11 ] && ok "q nets: 11 nets" || bad "q nets $(grep -c '^PCBQ net' "$V/q-nets.txt")"
   $PCB q "$ZB" holes | tail -1 | grep -q "6 pad holes, 25 vias" && ok "q holes" || bad "q holes"
   $PCB q "$ZB" nosuch > /dev/null 2>&1; [ $? != 0 ] && ok "q unknown command exits non-zero" || bad "q unknown command exit 0"
-else echo "NOTE no $ZB"; fi
-fi
+else nochecks "no $ZB"; fi
+fi  #@ end 7
 
-if want 8 "pcb fab on the Zener board: 14 gerber files, JLC BOM/CPL, J1/J2 origin offset flagged (R1-S1-F3, R1-S1-F4)"; then
+if want 8; then  #@ watch: @cli @q
+echo "== 8 pcb fab on the Zener board: 14 gerber files, JLC BOM/CPL, J1/J2 origin offset flagged (R1-S1-F3, R1-S1-F4)"
 if [ -f "$ZB" ]; then
   $PCB fab "$ZB" --out "$V/zfab" > "$V/zfab.txt"; rc=$?
   [ "$rc" = 0 ] && ok "fab exits 0" || bad "fab exit $rc: $(cat "$V/zfab.txt")"
@@ -135,28 +179,31 @@ if [ -f "$ZB" ]; then
   # no drill-mark flashes: the F.Cu gerber has no aperture flashed at the NPTH centres (R1-S1-F3 came from --board-plot-params)
   n=$(grep -c "D03\*" "$V/zfab/gerbers/qwiic_imu-Edge_Cuts.gm1"); [ "$n" = 0 ] && ok "fab edge-cuts gerber has no flashes" || bad "fab edge-cuts flashes $n"
   [ -s "$V/zfab/qwiic_imu_top.png" ] && [ -s "$V/zfab/qwiic_imu_bottom.png" ] && ok "fab renders both sides" || bad "fab renders"
-else echo "NOTE no $ZB"; fi
-fi
+else nochecks "no $ZB"; fi
+fi  #@ end 8
 
-if want 9 "render, svg, stats"; then
+if want 9; then  #@ watch: @cli
+echo "== 9 render, svg, stats"
 if [ -f "$ZB" ]; then
   $PCB render "$ZB" --out "$V/r" --size 600 > /dev/null && [ -s "$V/r/qwiic_imu_top.png" ] && ok "render" || bad "render"
   $PCB svg "$ZB" --out "$V/r" > "$V/svg.txt" && [ "$(ls "$V/r"/*.svg | wc -l | tr -d ' ')" = 4 ] && ok "svg board: F, B, In1, In2" || bad "svg board: $(cat "$V/svg.txt")"
   $PCB svg "$ZS" --out "$V/rs" > "$V/svgs.txt" && ls "$V/rs"/*.svg > /dev/null 2>&1 && ok "svg schematic" || bad "svg schematic: $(cat "$V/svgs.txt")"
   $PCB stats "$ZB" --json "$V/stats.json" > "$V/stats.txt" && grep -q "4 copper layers" "$V/stats.txt" && [ "$(jq_ "$V/stats.json" "d['vias']['through']")" = 25 ] && ok "stats: 4 layers, 25 vias" || bad "stats: $(head -2 "$V/stats.txt")"
-else echo "NOTE no $ZB"; fi
-fi
+else nochecks "no $ZB"; fi
+fi  #@ end 9
 
-if want 10 "GUI guards (P0-T6): layout/apply get --no-open, open is refused, guard runs"; then
+if want 10; then  #@ watch: skills/kicad-design/scripts/pcb
+echo "== 10 GUI guards (P0-T6): layout/apply get --no-open, open is refused, guard runs"
   [ "$(PCB_DRY=1 $PCB layout foo.zen)" = "$HOME/.local/bin/pcb layout --no-open foo.zen" ] && ok "layout injects --no-open" || bad "layout: $(PCB_DRY=1 $PCB layout foo.zen)"
   [ "$(PCB_DRY=1 $PCB apply schematic --no-open foo.zen)" = "$HOME/.local/bin/pcb apply schematic --no-open foo.zen" ] && ok "apply keeps a single --no-open" || bad "apply: $(PCB_DRY=1 $PCB apply schematic --no-open foo.zen)"
   [ "$(PCB_DRY=1 $PCB build foo.zen)" = "$HOME/.local/bin/pcb build foo.zen" ] && ok "build passes through" || bad "build passthrough"
   $PCB open x > /dev/null 2>&1; [ $? = 2 ] && ok "open refused" || bad "open not refused"
   $PCB guard > /dev/null; rc=$?; [ "$rc" = 0 ] && ok "guard: no GUI running" || echo "NOTE guard reports a KiCad GUI running (rc $rc); not counted"
   $PCB > /dev/null && ok "pcb with no command prints help and exits 0" || bad "help exit"
-fi
+fi  #@ end 10
 
-if want 11 "regen-check on rung1-zener-a1: reproduces R1-Z1-F2 (exit 1 from clean, pass 1 12 err/4 warn, pass 2 20/0)"; then
+if want 11; then  #@ watch: @cli @q
+echo "== 11 regen-check on rung1-zener-a1: reproduces R1-Z1-F2 (exit 1 from clean, pass 1 12 err/4 warn, pass 2 20/0)"
 if [ -d "$Z" ]; then
   $PCB regen-check "$Z" --cmd tools/regen.sh --board layout/qwiic_imu/qwiic_imu.kicad_pcb --generated layout fab --out "$V/zregen" > "$V/zregen.txt"; rc=$?
   [ "$rc" = 1 ] && grep -q "FAILS" "$V/zregen.txt" && ok "zener regen-check FAILS with exit 1" || bad "zener regen-check rc $rc: $(tail -1 "$V/zregen.txt")"
@@ -165,19 +212,21 @@ if [ -d "$Z" ]; then
   [ "$(jq_ "$V/zregen/regen.json" "'placement' in ' '.join(d['diff_ref_pass1']) or 'copper' in ' '.join(d['diff_ref_pass1'])")" = False ] && ok "zener placement and tracks identical to the handed-in board" || bad "zener placement differs: $(jq_ "$V/zregen/regen.json" "d['diff_ref_pass1']")"
   [ "$(jq_ "$V/zregen/regen.json" "d['pass1']['fab']['gerbers']['qwiic_imu-Edge_Cuts.gm1'] == d['pass2']['fab']['gerbers']['qwiic_imu-Edge_Cuts.gm1']")" = True ] && ok "zener Edge.Cuts gerber hashes equal across passes (dates stripped, P1-T9)" || bad "zener edge gerber hash differs between passes"
   [ "$(jq_ "$V/zregen/regen.json" "d['pass1']['fab']['gerbers']['qwiic_imu-F_Cu.gtl'] == d['pass2']['fab']['gerbers']['qwiic_imu-F_Cu.gtl']")" = False ] && ok "zener F.Cu gerber differs between passes (the zone-fill difference is real)" || bad "zener F.Cu gerber equal between passes?"
-else echo "NOTE no $Z"; fi
-fi
+else nochecks "no $Z"; fi
+fi  #@ end 11
 
-if want 12 "regen-check on rung1-skidl-a1: exit 0 but the first pass from clean diverges (P1-T10)"; then
+if want 12; then  #@ watch: @cli @q
+echo "== 12 regen-check on rung1-skidl-a1: exit 0 but the first pass from clean diverges (P1-T10)"
 if [ -d "$K" ]; then
   $PCB regen-check "$K" --cmd ./check.sh --board qwiic_imu.kicad_pcb --generated qwiic_imu.kicad_sch qwiic_imu.kicad_pcb qwiic_imu.kicad_pro qwiic_imu.kicad_prl qwiic_imu.xml qwiic_imu.net fab qwiic_imu-drc.json qwiic_imu-erc.json qwiic_imu.kicad_dru --out "$V/sregen" > "$V/sregen.txt"; rc=$?
   [ "$rc" = 1 ] && ok "skidl regen-check FAILS" || bad "skidl regen-check rc $rc"
   [ "$(jq_ "$V/sregen/regen.json" "(d['pass1']['cmd_exit'], d['pass2']['cmd_exit'], d['pass1']['drc']['plain_errors'], d['pass2']['drc']['plain_errors'])")" = "(0, 0, 12, 18)" ] && ok "skidl check.sh exits 0 twice, DRC 12 errors on pass 1 and 18 on pass 2" || bad "skidl passes $(jq_ "$V/sregen/regen.json" "(d['pass1']['cmd_exit'], d['pass2']['cmd_exit'], d['pass1']['drc'], d['pass2']['drc'])")"
   [ "$(jq_ "$V/sregen/regen.json" "'nets' in ' '.join(d['diff_ref_pass1'])")" = False ] && ok "skidl netlist identical from clean" || bad "skidl netlist differs"
-else echo "NOTE no $K"; fi
-fi
+else nochecks "no $K"; fi
+fi  #@ end 12
 
-if want 13 "pcbcheck on rung1-zener-a1 with examples/rung1-zener-a1/checks.json: exactly the review's C3 and refdes findings"; then
+if want 13; then  #@ watch: @check examples/rung1-zener-a1/checks.json
+echo "== 13 pcbcheck on rung1-zener-a1 with examples/rung1-zener-a1/checks.json: exactly the review's C3 and refdes findings"
 if [ -f "$ZB" ]; then
   $PCB check "$ZB" "$ROOT/examples/rung1-zener-a1/checks.json" --out "$V/zcheck.json" > "$V/zcheck.txt"; rc=$?
   [ "$rc" = 1 ] && ok "zener check exits 1" || bad "zener check rc $rc"
@@ -187,21 +236,23 @@ if [ -f "$ZB" ]; then
   [ "$(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['id']=='addresses:I2C:U1'][0]")" = "U1 strap pin 1 (SA0) resolves high through ['JP1'] -> 0x6b; declared 0x6b" ] && ok "zener address strap resolves 0x6B through JP1" || bad "zener address $(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['check']=='addresses']")"
   [ "$(jq_ "$V/zcheck.json" "[r['value'] for r in d['rows'] if r['id']=='pullups:I2C:sda'][0]")" = 3.0 ] && ok "zener pull-up chain: 2 boards = 3.0 mA, at the limit (review R1-S1-F2 arithmetic)" || bad "zener pullups $(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['check']=='pullups']")"
   [ "$(jq_ "$V/zcheck.json" "sum(1 for r in d['rows'] if r['check']=='connectors' and r['status']=='pass')")" = 3 ] && ok "zener J1/J2/J3 pin maps pass" || bad "zener connectors"
-  [ "$(jq_ "$V/zcheck.json" "d['summary']['passes']")" = 22 ] && ok "zener 22 passes" || bad "zener passes $(jq_ "$V/zcheck.json" "d['summary']")"
-else echo "NOTE no $ZB"; fi
-fi
+  [ "$(jq_ "$V/zcheck.json" "d['summary']['passes']")" = 25 ] && ok "zener 25 passes" || bad "zener passes $(jq_ "$V/zcheck.json" "d['summary']")"
+else nochecks "no $ZB"; fi
+fi  #@ end 13
 
-if want 14 "pcbcheck on rung1-skidl-a1: the 'four boards' and '2x the floor' claims fail as rows (R1-S1-F2)"; then
+if want 14; then  #@ watch: @check examples/rung1-skidl-a1/checks.json
+echo "== 14 pcbcheck on rung1-skidl-a1: the 'four boards' and '2x the floor' claims fail as rows (R1-S1-F2)"
 if [ -f "$KB" ]; then
   $PCB check "$KB" "$ROOT/examples/rung1-skidl-a1/checks.json" --out "$V/scheck.json" > "$V/scheck.txt"; rc=$?
-  [ "$(jq_ "$V/scheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['margin:edge_clearance', 'margin:hole_clearance', 'margin:via_diameter', 'pullups:I2C:scl', 'pullups:I2C:sda', 'silk:refdes']" ] && ok "skidl fails: pull-up chain x2, margin x3, silk" || bad "skidl fails $(jq_ "$V/scheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+  [ "$(jq_ "$V/scheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['decoupling:C1:gnd_via', 'decoupling:C2:gnd_via', 'margin:edge_clearance', 'margin:hole_clearance', 'margin:via_diameter', 'pullups:I2C:scl', 'pullups:I2C:sda', 'silk:refdes']" ] && ok "skidl fails: GND via x2 (C1 1.21, C2 1.10 against the claimed 1 mm), pull-up chain x2, margin x3, silk" || bad "skidl fails $(jq_ "$V/scheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
   [ "$(jq_ "$V/scheck.json" "[r['value'] for r in d['rows'] if r['id']=='pullups:I2C:sda'][0]")" = 6.0 ] && ok "skidl 4 boards = 6.0 mA against 3.0 (the 'up to four boards' claim)" || bad "skidl pullup value"
   [ "$(jq_ "$V/scheck.json" "[r['value'] for r in d['rows'] if r['id']=='margin:via_diameter'][0]")" = 1.33 ] && ok "skidl via diameter 1.33x the floor (the '2x every feature' claim)" || bad "skidl margin value"
-  [ "$(jq_ "$V/scheck.json" "sum(1 for r in d['rows'] if r['check']=='decoupling' and r['status']=='pass')")" = 5 ] && ok "skidl decoupling: all 5 rows within 2 mm (review: 1.69 to 1.98 mm)" || bad "skidl decoupling $(jq_ "$V/scheck.json" "[r['msg'] for r in d['rows'] if r['check']=='decoupling']")"
-else echo "NOTE no $KB"; fi
-fi
+  [ "$(jq_ "$V/scheck.json" "sum(1 for r in d['rows'] if r['check']=='decoupling' and r['status']=='pass')")" = 6 ] && ok "skidl decoupling: 5 distance rows within 2 mm (review: 1.69 to 1.98 mm) and C3's GND via within 1 mm" || bad "skidl decoupling $(jq_ "$V/scheck.json" "[r['msg'] for r in d['rows'] if r['check']=='decoupling']")"
+else nochecks "no $KB"; fi
+fi  #@ end 14
 
-if want 15 "pcbcheck planted misdeclarations: swapped Qwiic pins, undeclared jumper, wrong address, undeclared rail, unknown key"; then
+if want 15; then  #@ watch: @check examples/rung1-zener-a1/checks.json
+echo "== 15 pcbcheck planted misdeclarations: swapped Qwiic pins, undeclared jumper, wrong address, undeclared rail, unknown key"
 if [ -f "$ZB" ]; then
   python3 -I -c "
 import json; c=json.load(open('$ROOT/examples/rung1-zener-a1/checks.json'))
@@ -217,10 +268,11 @@ json.dump(c, open('$V/planted.json','w'))"
   grep -q "pin 3: declared SCL, netlist SDA" "$V/pcheck.txt" && ok "planted: J1 row names the swapped pin" || bad "planted: J1 message $(grep connectors:J1 "$V/pcheck.txt")"
   $PCB check "$ZB" "$ROOT/examples/rung1-zener-a1/checks.json" --out "$V/ocheck.json" --only connectors,rails > /dev/null
   [ "$(jq_ "$V/ocheck.json" "sorted({r['check'] for r in d['rows']})")" = "['connectors', 'rails']" ] && ok "--only connectors,rails runs just those" || bad "--only $(jq_ "$V/ocheck.json" "sorted({r['check'] for r in d['rows']})")"
-else echo "NOTE no $ZB"; fi
-fi
+else nochecks "no $ZB"; fi
+fi  #@ end 15
 
-if want 17 "pcblib.board: the ported Zener layout on a board fresh from Diode pcb layout gives the designer's copper (P1-T14, P1-T15)"; then
+if want 17; then  #@ watch: @lib @cli @q examples/rung1-zener-a1/layout_board.py examples/rung1-zener-a1/attempt/**
+echo "== 17 pcblib.board: the ported Zener layout on a board fresh from Diode pcb layout gives the designer's copper (P1-T14, P1-T15)"
 if [ -d "$Z" ] && [ -x "$HOME/.local/bin/pcb" ]; then
   FR="$V/zfresh"; rm -rf "$FR"; cp -R "$Z" "$FR"; rm -rf "$FR/layout" "$FR/fab" "$FR/review" "$FR/regen-check"
   (cd "$FR" && "$HOME/.local/bin/pcb" build qwiic_imu.zen > "$V/zfresh-build.txt" 2>&1 && "$HOME/.local/bin/pcb" layout --no-open qwiic_imu.zen >> "$V/zfresh-build.txt" 2>&1)
@@ -245,10 +297,11 @@ assert set(a)==set(b) and all(abs(a[k][0]-b[k][0])<=0.005 and a[k][1]==b[k][1] f
   $PCB drc "$FB" --out "$V/portdrc2" --no-parity > "$V/portdrc2.txt"
   [ "$(jq_ "$V/portdrc2/drc.json" "(d['plain']['errors'], d['plain']['by_type']['error'].get('hole_clearance'))")" = "(20, 8)" ] && ok "same script with the pack in the project dir: 20 errors, 8 hole_clearance (the filler read the pack, P1-T14)" || bad "pack-present fill $(jq_ "$V/portdrc2/drc.json" "d['plain']['by_type']")"
   [ "$(wc -l < "$ROOT/examples/rung1-zener-a1/layout_board.py")" -lt 120 ] && ok "port is under 120 lines (designer: 280)" || bad "port grew"
-else echo "NOTE no $Z or no Diode pcb"; fi
-fi
+else nochecks "no $Z or no Diode pcb"; fi
+fi  #@ end 17
 
-if want 18 "pcblib.board.from_netlist builds the SKiDL board from its kicadxml with pad nets and fields"; then
+if want 18; then  #@ watch: @lib skills/kicad-design/scripts/pcb
+echo "== 18 pcblib.board.from_netlist builds the SKiDL board from its kicadxml with pad nets and fields"
 if [ -d "$K" ]; then
   (cd "$K" && $PCB py -c "
 from pcblib.board import Board
@@ -259,10 +312,11 @@ print('FROMNET', s['footprints'], len(nets), b.field('U1', 'LCSC'), b.fp('J3').I
 b.save()" > "$V/fromnet.txt" 2>&1); rc=$?
   grep -q "^FROMNET 15 11 C967633 True" "$V/fromnet.txt" && ok "from_netlist: 15 footprints, 11 nets on pads, LCSC field read, J3 DNP, U1 pad 1 placed" || bad "from_netlist rc $rc: $(cat "$V/fromnet.txt")"
   [ -s /tmp/alexpcb-verify/fromnet.kicad_pcb ] && ok "from_netlist board saved" || bad "from_netlist not saved"
-else echo "NOTE no $K"; fi
-fi
+else nochecks "no $K"; fi
+fi  #@ end 18
 
-if want 19 "pcb schfix on a raw Diode schematic without the test-point power hack: fields, labels, symlib, PWR_FLAGs; ERC 2/32 -> 0/1 (P1-T16)"; then
+if want 19; then  #@ watch: skills/kicad-design/scripts/pcbsch.py @q @lib @cli examples/rung1-zener-a1/layout_board.py examples/rung1-zener-a1/attempt/**
+echo "== 19 pcb schfix on a raw Diode schematic without the test-point power hack: fields, labels, symlib, PWR_FLAGs; ERC 2/32 -> 0/1 (P1-T16)"
 if [ -d "$Z" ] && [ -x "$HOME/.local/bin/pcb" ]; then
   F2="$V/zfresh2"; rm -rf "$F2"; cp -R "$Z" "$F2"; rm -rf "$F2/layout" "$F2/fab" "$F2/review" "$F2/regen-check"
   sed -i '' 's/TestPoint(name="TP1", power_source=True, P1=GND)/TestPoint(name="TP1", P1=GND)/; s/TestPoint(name="TP2", power_source=True, P1=V3V3)/TestPoint(name="TP2", P1=V3V3)/' "$F2/qwiic_imu.zen"
@@ -282,10 +336,11 @@ if [ -d "$Z" ] && [ -x "$HOME/.local/bin/pcb" ]; then
   $PCB drc "$F2/layout/qwiic_imu/qwiic_imu.kicad_pcb" --pack jlcpcb --out "$V/fixdrc" > "$V/fixdrc.txt"
   [ "$(jq_ "$V/fixdrc/drc.json" "(d['plain']['parity'], d['plain']['errors'], d['plain']['unconnected'])")" = "(2, 12, 0)" ] && ok "after schfix + pcblib layout: parity 2 warnings (U1 NC pad naming only), 12 errors, 0 unconnected" || bad "parity/drc $(jq_ "$V/fixdrc/drc.json" "(d['plain']['parity'], d['plain']['errors'], d['plain']['unconnected'])")"
   $PCB erc "$S2" --out "$V/fixerc.json" --list | grep -q "FLG01 Pin 1" && ok "the one ERC warning left is SDX (bidirectional) on the flagged GND net, a datasheet tie-off to accept" || bad "unexpected ERC after schfix"
-else echo "NOTE no $Z or no Diode pcb"; fi
-fi
+else nochecks "no $Z or no Diode pcb"; fi
+fi  #@ end 19
 
-if want 20 "skills: every FINDINGS ID cited in skills/ and examples/ exists; templates and reference files present"; then
+if want 20; then  #@ watch: skills/**/*.md skills/kicad-design/templates/** docs/FINDINGS.md examples/*/checks.json examples/*/*.py
+echo "== 20 skills: every FINDINGS ID cited in skills/ and examples/ exists; templates and reference files present"
   ids=$(grep -rhoIE --include='*.md' --include='*.py' --include='*.json' --include='*.sh' --include='pcb' '\b(P[0-9]-T[0-9]+|R[0-9]-[SZ][0-9]-[FTR][0-9]+)\b' "$ROOT"/skills "$ROOT"/examples/*/*.py "$ROOT"/examples/*/checks.json 2>/dev/null | sort -u)
   missing=""; n=0
   for id in $ids; do n=$((n+1)); grep -q "$id" "$ROOT/docs/FINDINGS.md" || missing="$missing $id"; done
@@ -297,14 +352,27 @@ if want 20 "skills: every FINDINGS ID cited in skills/ and examples/ exists; tem
   [ -z "$missing" ] && ok "skill, reference, template and review files present" || bad "missing:$missing"
   python3 -I -c "import json; json.load(open('$ROOT/skills/kicad-design/templates/project/checks.json'))" && ok "template checks.json parses" || bad "template checks.json"
   head -3 "$ROOT/skills/kicad-design/SKILL.md" | grep -q "^name: kicad-design" && head -3 "$ROOT/skills/pcb-design-review/SKILL.md" | grep -q "^name: pcb-design-review" && ok "SKILL.md frontmatter names" || bad "frontmatter"
-fi
+fi  #@ end 20
 
-if want 16 "every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"; then
+if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
+echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"
   KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
   for py in python3 "$KPY"; do
     "$py" -I -m py_compile "$ROOT"/skills/kicad-design/scripts/*.py "$ROOT"/skills/kicad-design/scripts/pcblib/*.py "$ROOT"/examples/*/*.py 2> "$V/compile.txt" && ok "compiles under $("$py" -c 'import sys; print(sys.version.split()[0])')" || bad "compile: $(cat "$V/compile.txt")"
   done
-fi
+fi  #@ end 16
 
+#@ plumbing
+# per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
+# Under --changed, each by its # watch: header.
+mkdir -p "$ROOT/tools/verify.d"
+for f in "$ROOT"/tools/verify.d/*.sh; do [ -f "$f" ] && want "${f##*/}" && . "$f"; done
+unit_end
+# --changed: every unit the plan selected must have run (a broken want() or loop ran nothing and passed)
+if [ -n "$CHANGED" ]; then
+  for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
+  echo "verify_all --changed: ran$RAN"
+fi
 echo; echo "verify_all: $pass passed, $fail failed  ($V)"
 [ "$fail" = 0 ]
+#@ plumbing end

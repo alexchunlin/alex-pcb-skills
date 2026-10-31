@@ -1,0 +1,3 @@
+Per-feature verify scripts, sourced by tools/verify_all.sh after the numbered sections. Each calls ok/bad and may use
+$ROOT, $PCB, $V (scratch dir), $RUNS, $REF. Each starts with a `# watch: PATTERNS` header (and optional `# needs: IDS`)
+so `verify_all.sh --changed` can select it; a script with no header runs on every change.

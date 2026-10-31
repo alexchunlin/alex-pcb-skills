@@ -393,3 +393,21 @@ commands so the next reviewer runs them instead of rewriting them.
   to exist (verify_all 20: 39 IDs). The reviewed Zener attempt's source is archived under
   `examples/rung1-zener-a1/attempt/` so the worked example is in the repo. Not yet measured: whether a designer
   on the skill reaches 9/9/9; that is handoff item 8 (rung-1 attempt 2).
+- **P1-T18 The fabbed Plink bug is a pin map, and `pcb check` catches it.** "IMU I2C mismatch" in rework commit
+  2179d08 is an SDA/SCL swap on the LISM6 sheet: at fb32540 (the board fabbed October 2024) U11 pin 13 (SCL) sits
+  on `/i2c_1.sda` and pin 14 (SDA) on `/i2c_1.scl`; at 0250d75 they are the right way round. A `pinmaps` row
+  (`{"U11": {"13": "/i2c_1.scl", "14": "/i2c_1.sda"}}`, written from the datasheet pin names and the bus nets)
+  fails on v1 and passes on the fix. The other two rework items are not catchable yet: the missing back-power
+  Schottky (D4 appears in the fix) needs a topology row, silk readability needs a readability row. Both are in
+  the bench as honest misses. Also added: `gnd_via_max_mm`, which turns R1-S1's "GND vias within 1 mm" into a
+  row (C1 1.213, C2 1.100 fail; C3 0.925 passes).
+- **P1-T19 Replay bench and `--changed` selector (handoff item 7).** `tools/bench/replay.py` replays four archived
+  boards (the two rung-1 attempts from `examples/*/board/`, Plink at fb32540 and 0250d75 from
+  `examples/plink/*.tar.gz`) through `pcb drc`, `pcb check` and `pcb fab` of a chosen commit and scores the report
+  lines against `labels.json` (17 labels: 12 reviewer findings, 3 fab-history bugs, 2 process items). At the
+  phase-4 tools: recall 8 of 11 labels as fails, 9 as fail-or-warn, weighted 14 of 17, 0 false fails, 28 untriaged
+  DRC warnings as the noise baseline (lib_footprint_mismatch, silk_*); the 3 misses are the two non-catchable
+  Plink items and nothing else; the 2 regen labels score only from a verify_all run (`--from-verify`). 1 min 40 s.
+  `tools/verify_select.py` is the 3D repo's selector unchanged; `verify_all.sh` now carries the `#@ watch:` map
+  (20 sections, 2 verify.d scripts), and `verify_select_cases.py` checks the map and 10 fake change lists:
+  a docs-only change runs only the selector test, `pcbsch.py` runs 19 and 16, a label edit runs the bench.

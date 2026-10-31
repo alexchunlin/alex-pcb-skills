@@ -1,0 +1,11 @@
+{
+  "_about": "MotorGo Plink (Every-Flavor-Robotics/motorgo-plink-hardware). v1-fb32540 is the board fabbed Oct 2024; fixed-0250d75 carries the Nov 2024 rework (commit 2179d08: IMU I2C mismatch, silk readability, back-power Schottky). Only the rows the rework history labels are declared; run with --only pinmaps,addresses until the rest is written.",
+  "project": "motorgo_plink",
+  "rails": {"+3.3V": {"v": 3.3}, "GND": {}},
+  "pinmaps": {
+    "U11": {"13": "/i2c_1.scl", "14": "/i2c_1.sda"},
+    "U10": {"1": "/i2c_1.scl", "11": "/i2c_1.sda"}
+  },
+  "buses": {"I2C_1": {"sda": "/i2c_1.sda", "scl": "/i2c_1.scl", "rail": "+3.3V", "max_sink_ma": 3.0, "chain_boards": 1,
+                      "devices": {"U11": {"address": "0x6B"}, "U10": {"address": "0x1E"}}}}
+}

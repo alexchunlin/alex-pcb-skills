@@ -1,8 +1,9 @@
 {
-  "_about": "Same intent as examples/rung1-zener-a1/checks.json with the SKiDL attempt's net names (+3V3, /SDA) and its jumper/test-point numbering. chain_boards 4 reproduces the design log's 'up to four boards' claim (R1-S1-F2); min_ratio 2.0 everywhere reproduces 'every feature 2x the fab floor'.",
+  "_about": "Same intent as examples/rung1-zener-a1/checks.json with the SKiDL attempt's net names (+3V3, /SDA) and its jumper/test-point numbering. chain_boards 4 reproduces the design log's 'up to four boards' claim (R1-S1-F2); min_ratio 2.0 everywhere reproduces 'every feature 2x the fab floor'; gnd_via_max_mm 1.0 reproduces 'GND vias within 1 mm' (C1 at 1.21).",
   "project": "rung1-skidl-a1",
   "rails": {"+3V3": {"v": 3.3, "source": "Qwiic, no regulator"}, "GND": {}},
   "decoupling_max_mm": 2.0,
+  "gnd_via_max_mm": 1.0,
   "decoupling": [
     {"ic": "U1", "pin": "8", "cap": "C1", "max_mm": 2.0},
     {"ic": "U1", "pin": "5", "cap": "C2", "max_mm": 2.0},

@@ -1,0 +1,47 @@
+{
+  "_doc": [
+    "The replay corpus: archived boards under examples/ and, per board, the pcb runs the bench makes with a chosen commit's",
+    "tools. Each run writes one report that replay.py turns into lines (drc, check, regen, fab) and scores against labels.json.",
+    "kind 'designer': the designer's own config (what an agent sees at hand-off). kind 'review': rows the reviewer added.",
+    "verify_out: the file tools/verify_all.sh writes for the same run, so `replay.py --from-verify DIR` scores a verify run.",
+    "Boards: 'pcb' is relative to dir; 'tar' unpacks a .tar.gz into the scratch dir first (Plink: the full project, 4 MB)."
+  ],
+  "attempts": {
+    "rung1-zener-a1": {
+      "dir": "examples/rung1-zener-a1", "pcb": "board/qwiic_imu.kicad_pcb", "netlist": "board/qwiic_imu.xml",
+      "bringup": "board/BRINGUP.md", "reviewer": "R1-Z1", "findings": "R1-Z1",
+      "runs": [
+        {"id": "drc", "kind": "designer", "type": "drc", "args": ["--pack", "jlcpcb", "--no-floor"], "verify_out": "zdrc-raw/drc.json"},
+        {"id": "check", "kind": "designer", "type": "check", "config": "checks.json", "verify_out": "zcheck.json"},
+        {"id": "fab", "kind": "designer", "type": "fab", "verify_out": "zfab/fab.json"},
+        {"id": "regen", "kind": "designer", "type": "verify-only", "verify_out": "zregen/regen.json"}
+      ]
+    },
+    "rung1-skidl-a1": {
+      "dir": "examples/rung1-skidl-a1", "pcb": "board/qwiic_imu.kicad_pcb", "netlist": "board/qwiic_imu.xml",
+      "bringup": "board/BRINGUP.md", "reviewer": "R1-S1", "findings": "R1-S1",
+      "runs": [
+        {"id": "drc", "kind": "designer", "type": "drc", "args": ["--pack", "jlcpcb", "--no-floor"], "verify_out": "kdrc-raw/drc.json"},
+        {"id": "check", "kind": "designer", "type": "check", "config": "checks.json", "verify_out": "scheck.json"},
+        {"id": "fab", "kind": "designer", "type": "fab", "verify_out": null},
+        {"id": "regen", "kind": "designer", "type": "verify-only", "verify_out": "sregen/regen.json"}
+      ]
+    },
+    "plink-v1": {
+      "dir": "examples/plink", "tar": "v1-fb32540.tar.gz", "pcb": "v1-fb32540/motorgo_plink/motorgo_plink.kicad_pcb",
+      "netlist": "v1-fb32540/motorgo_plink/motorgo_plink.xml", "reviewer": "fab history", "findings": "P0-T9, P1-T18",
+      "runs": [
+        {"id": "drc", "kind": "designer", "type": "drc", "args": ["--pack", "jlcpcb", "--no-floor", "--no-parity"], "verify_out": null},
+        {"id": "check", "kind": "review", "type": "check", "config": "checks.json", "args": ["--only", "pinmaps,addresses,pullups"], "verify_out": null}
+      ]
+    },
+    "plink-fixed": {
+      "dir": "examples/plink", "tar": "fixed-0250d75.tar.gz", "pcb": "fixed-0250d75/motorgo_plink/motorgo_plink.kicad_pcb",
+      "netlist": "fixed-0250d75/motorgo_plink/motorgo_plink.xml", "reviewer": "fab history", "findings": "P0-T2, P1-T18",
+      "runs": [
+        {"id": "drc", "kind": "designer", "type": "drc", "args": ["--pack", "jlcpcb", "--no-floor", "--no-parity"], "verify_out": "mdrc/drc.json"},
+        {"id": "check", "kind": "review", "type": "check", "config": "checks.json", "args": ["--only", "pinmaps,addresses,pullups"], "verify_out": null}
+      ]
+    }
+  }
+}

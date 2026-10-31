@@ -10,13 +10,16 @@ Checks (v0):
   pullups      each bus line has a pull-up to the rail (through default-closed jumpers), sink current per line and
                with chain_boards in parallel against max_sink_ma (R1-S1-F2 "up to four boards")
   addresses    declared addresses unique per bus; an address strap resolves high/low through the jumpers to the declared address
-  connectors   declared pin map vs the netlist, undeclared connectors fail (Qwiic order, P0-T2 Plink IMU)
+  connectors   declared pin map vs the netlist, undeclared connectors fail (Qwiic order)
+  pinmaps      declared pin -> net for any reference (an IC's bus pins against the bus nets): the Plink v1.0 IMU had
+               SCL on the SDA net and SDA on SCL until the rework (P0-T2, P1-T18)
   jumpers      declared pad nets and default position; undeclared JP* fail
   test_points  declared net per TP, undeclared TP* fail, each TP named in the bring-up doc
   silk         every refdes the bring-up doc names is readable on silk (R1-Z1-F4)
   margin       min track width, via drill/diameter, setup clearance and hole clearance vs the fab pack floor, as ratios
                against min_ratio (R1-S1-F2 "every feature 2x the floor")
-Config keys: rails, decoupling, buses, connectors, jumpers, test_points, bringup, margin, accepted_warns, _notes.
+Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
+margin, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, os, re, subprocess, sys
@@ -29,8 +32,8 @@ import pcbq  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "jumpers", "test_points", "bringup", "margin", "accepted_warns",
-         "decoupling_max_mm", "project"}
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "accepted_warns",
+         "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
 
@@ -141,7 +144,10 @@ def check_decoupling(CFG, NL, B):
     comps, libparts, nets, padnet = NL
     fps = pcbq.fp_map(B)
     max_mm = float(CFG.get("decoupling_max_mm", 2.0))
+    via_max = CFG.get("gnd_via_max_mm")   # the designer's "GND vias within 1 mm" claim becomes a limit (R1-S1-F2)
     declared = {(d["ic"], d["pin"], d["cap"]): d for d in CFG.get("decoupling", [])}
+    vias = [t for t in B.GetTracks() if t.GetClass() == "PCB_VIA"]
+    via_rows = set()   # one GND-via row per cap, whichever pins it serves
     n_pins = 0
     for ref, c in sorted(comps.items()):
         pins = libparts.get(c["lib"], {})
@@ -161,7 +167,9 @@ def check_decoupling(CFG, NL, B):
                 ongnd = [p for p in cpins if gnd_like(padnet[(cref, p)])]
                 if onnet and ongnd and cref in fps and ref in fps:
                     cp = pcbq.pad_of(fps, f"{cref}.{onnet[0]}"); ip = pcbq.pad_of(fps, f"{ref}.{pin}")
-                    caps.append((cref, cc["value"], pcbq.cc(cp, ip), pcbq.pad_edge(cp, ip)))
+                    gp = pcbq.pad_of(fps, f"{cref}.{ongnd[0]}")
+                    gv = min((pcbq.cc(gp, v) for v in vias if v.GetNetname() == gp.GetNetname()), default=None)
+                    caps.append((cref, cc["value"], pcbq.cc(cp, ip), pcbq.pad_edge(cp, ip), gv))
             if not caps:
                 row("decoupling", "fail", f"decoupling:{ref}.{pin}", f"{ref}.{pin} {pname} on {net}: no capacitor between {net} and a GND net",
                     objects=[ref, net], finding="R1-S1-F2")
@@ -173,7 +181,7 @@ def check_decoupling(CFG, NL, B):
                 f"{ref}.{pin} {pname} on {net}: nearest cap {near[0]} ({near[1]}) at {near[2]:.3f} mm centre, {near[3]} mm edge"
                 + ("" if len(caps) == 1 else "; others " + ", ".join(f"{c[0]} {c[2]:.3f}" for c in caps[1:])),
                 value=round(near[2], 3), limit=max_mm, objects=[ref, near[0]], finding="R1-Z1-F3")
-            for cref, val, d, e in caps:
+            for cref, val, d, e, gv in caps:
                 key = (ref, pin, cref)
                 if key in declared:
                     lim = float(declared[key].get("max_mm", max_mm))
@@ -181,6 +189,13 @@ def check_decoupling(CFG, NL, B):
                         f"declared {cref} ({val}) to {ref}.{pin}: {d:.3f} mm centre, {e} mm edge", value=round(d, 3), limit=lim,
                         objects=[ref, cref], finding="R1-Z1-F3")
                     declared[key]["_seen"] = True
+                vlim = (declared.get(key) or {}).get("gnd_via_max_mm", via_max)
+                if gv is not None and (vlim is not None or key in declared) and cref not in via_rows:
+                    via_rows.add(cref)
+                    st = "pass" if vlim is None or gv <= float(vlim) else "fail"
+                    row("decoupling", st, f"decoupling:{cref}:gnd_via",
+                        f"{cref} GND pad to nearest GND via {gv:.3f} mm" + (f" (limit {vlim})" if vlim is not None else ""),
+                        value=round(gv, 3), limit=vlim, objects=[cref], finding="R1-S1-F2")
     for key, d in declared.items():
         if not d.get("_seen"):
             row("decoupling", "fail", f"decoupling:{key[0]}.{key[1]}:{key[2]}", f"declared row {d} matches no cap on that pin's net", objects=list(key))
@@ -284,6 +299,27 @@ def check_connectors(CFG, NL, B):
         if ref not in comps:
             row("connectors", "fail", f"connectors:{ref}", f"declared connector {ref} is not in the netlist", objects=[ref])
     COVERAGE.append(f"connectors: {len(declared)} declared pin maps checked against the netlist")
+
+
+def check_pinmaps(CFG, NL, B):
+    comps, libparts, nets, padnet = NL
+    declared = CFG.get("pinmaps", {})
+    for ref, pm in declared.items():
+        if ref not in comps:
+            row("pinmaps", "fail", f"pinmaps:{ref}", f"declared {ref} is not in the netlist", objects=[ref]); continue
+        pins = libparts.get(comps[ref]["lib"], {})
+        bad = []
+        for pin, want in pm.items():
+            got = padnet.get((ref, str(pin)))
+            name = pins.get(str(pin), ("", ""))[0]
+            if got != want:
+                bad.append(f"pin {pin} {name}: declared {want}, netlist {got}")
+        if bad:
+            row("pinmaps", "fail", f"pinmaps:{ref}", f"{ref} ({comps[ref]['value']}): " + "; ".join(bad), objects=[ref], finding="P1-T18")
+        else:
+            row("pinmaps", "pass", f"pinmaps:{ref}", f"{ref}: {len(pm)} pins on the declared nets "
+                + ", ".join(f"{p} {pins.get(str(p), ('', ''))[0]}={n}" for p, n in pm.items()), value=len(pm), objects=[ref])
+    COVERAGE.append(f"pinmaps: {len(declared)} references with declared pin nets")
 
 
 def check_jumpers(CFG, NL, B):
@@ -463,7 +499,8 @@ def main():
     bringup = read_bringup(CFG, cfg_dir, board)
     checks = [("rails", lambda: check_rails(CFG, NL, B)), ("decoupling", lambda: check_decoupling(CFG, NL, B)),
               ("pullups", lambda: check_pullups(CFG, NL, B)), ("addresses", lambda: check_addresses(CFG, NL, B)),
-              ("connectors", lambda: check_connectors(CFG, NL, B)), ("jumpers", lambda: check_jumpers(CFG, NL, B)),
+              ("connectors", lambda: check_connectors(CFG, NL, B)), ("pinmaps", lambda: check_pinmaps(CFG, NL, B)),
+              ("jumpers", lambda: check_jumpers(CFG, NL, B)),
               ("test_points", lambda: check_test_points(CFG, NL, B, bringup)), ("silk", lambda: check_silk(CFG, NL, B, bringup)),
               ("margin", lambda: check_margin(CFG, NL, B))]
     for name, fn in checks:

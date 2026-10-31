@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "qwiic_imu")(type "KiCad")(uri "${KIPRJMOD}/qwiic_imu.pretty")(options "")(descr "project footprints: test pad with 0.2 mm silk clearance"))
+)
