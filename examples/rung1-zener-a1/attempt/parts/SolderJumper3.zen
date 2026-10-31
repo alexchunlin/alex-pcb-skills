@@ -1,0 +1,41 @@
+"""3-pad solder jumper (KiCad stock Jumper symbols/footprints, 1.3 mm pitch, 1.0x1.5 mm pads).
+
+style = "Bridged12"  : pins 1-2 closed by a factory copper bridge (SPDT default position)
+style = "Bridged123" : pins 1-2 and 2-3 both closed (two independent cut-to-open links sharing pin 2)
+Pin 2 is the centre pad. Not a BOM item.
+"""
+
+
+Style = enum("Bridged12", "Bridged123")
+style = config(Style, default=Style("Bridged12"), help="Factory bridge pattern")
+
+P1 = io(Net)
+P2 = io(Net)
+P3 = io(Net)
+
+_sym = {
+    Style("Bridged12"): "SolderJumper_3_Bridged12",
+    Style("Bridged123"): "SolderJumper_3_Bridged123",
+}[style]
+_fp = {
+    Style("Bridged12"): "./footprints/SolderJumper-3_P1.3mm_Bridged12_Pad1.0x1.5mm.kicad_mod",
+    Style("Bridged123"): "./footprints/SolderJumper-3_P1.3mm_Bridged123_Pad1.0x1.5mm.kicad_mod",
+}[style]
+
+Component(
+    name="JP",
+    symbol=Symbol(library="./symbols/SolderJumper.kicad_sym", name=_sym),
+    footprint=File(_fp),
+    prefix="JP",
+    pins={
+        "A": P1,
+        "C": P2,
+        "B": P3,
+    },
+    properties={
+        "value": _sym,
+        "style": style,
+    },
+    skip_bom=True,
+    skip_pos=True,
+)

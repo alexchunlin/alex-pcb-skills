@@ -1,0 +1,133 @@
+"""Qwiic 6-DoF IMU breakout: ST LSM6DS3TR-C on a 1.0 x 1.0 in, 4-layer board with two daisy-chained
+Qwiic (JST SH 1.0 mm) connectors, SA0 address jumper, cut-to-disable 2.2k I2C pull-ups, and an
+unpopulated 0.1 in header for INT1/INT2/SDA/SCL. 3.3 V from Qwiic only; no regulator, no LED.
+
+Source of truth for the KiCad project under layout/qwiic_imu (regenerate with
+`pcb build qwiic_imu.zen && pcb layout --no-open qwiic_imu.zen && pcb apply schematic --no-open qwiic_imu.zen`).
+"""
+
+load(
+    "@stdlib/board_config.zen",
+    "BoardConfig",
+    "Constraints",
+    "Copper",
+    "DesignRules",
+    "Holes",
+    "NetClass",
+    "Silkscreen",
+    "ViaDimension",
+)
+
+Imu = Module("./parts/LSM6DS3TRC.zen")
+Qwiic = Module("./parts/QwiicConnector.zen")
+SolderJumper3 = Module("./parts/SolderJumper3.zen")
+Header1x04 = Module("./parts/PinHeader1x04.zen")
+Resistor = Module("./parts/Resistor.zen")
+Capacitor = Module("./parts/Capacitor.zen")
+TestPoint = Module("./parts/TestPoint.zen")
+MountingHole = Module("@stdlib/generics/MountingHole.zen")
+
+# ---------------------------------------------------------------------------------------------
+# Nets
+# ---------------------------------------------------------------------------------------------
+V3V3 = Power("3V3", voltage="3.3V")
+GND = Ground("GND")
+SDA = Net("SDA")
+SCL = Net("SCL")
+SA0 = Net("SA0")  # LSM6DS3TR-C SDO/SA0: address LSB. High (default) -> 0x6B, low -> 0x6A
+INT1 = Net("INT1")
+INT2 = Net("INT2")
+PU_SDA = Net("PU_SDA")  # top of the SDA pull-up, reaches 3V3 through JP2 pads 1-2
+PU_SCL = Net("PU_SCL")  # top of the SCL pull-up, reaches 3V3 through JP2 pads 3-2
+
+# ---------------------------------------------------------------------------------------------
+# Sensor + decoupling (datasheet section 7: 100 nF at VDD and at VDDIO as close as possible to
+# the pins; a 10 uF bulk on VDD as in the ST application figure)
+# ---------------------------------------------------------------------------------------------
+Imu(name="U1", VDD=V3V3, VDDIO=V3V3, GND=GND, SDA=SDA, SCL=SCL, SA0=SA0, INT1=INT1, INT2=INT2)
+
+Capacitor(name="C1", value="100nF", package="0603", voltage="50V", dielectric="X7R",
+          mpn="CL10B104KB8NNNC", manufacturer="Samsung Electro-Mechanics", lcsc="C14663",
+          datasheet="https://www.lcsc.com/datasheet/lcsc_datasheet_1810191212_Samsung-Electro-Mechanics-CL10B104KB8NNNC_C14663.pdf",
+          P1=V3V3, P2=GND)  # VDD, pin 8
+Capacitor(name="C2", value="100nF", package="0603", voltage="50V", dielectric="X7R",
+          mpn="CL10B104KB8NNNC", manufacturer="Samsung Electro-Mechanics", lcsc="C14663",
+          datasheet="https://www.lcsc.com/datasheet/lcsc_datasheet_1810191212_Samsung-Electro-Mechanics-CL10B104KB8NNNC_C14663.pdf",
+          P1=V3V3, P2=GND)  # VDDIO, pin 5
+Capacitor(name="C3", value="10uF", package="0603", voltage="10V", dielectric="X5R",
+          mpn="CL10A106KP8NNNC", manufacturer="Samsung Electro-Mechanics", lcsc="C96446",
+          datasheet="https://www.lcsc.com/datasheet/lcsc_datasheet_1810191216_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C96446.pdf",
+          P1=V3V3, P2=GND)  # bulk on VDD
+
+# ---------------------------------------------------------------------------------------------
+# I2C address select: JP1 centre pad = SA0. Factory bridge 1-2 ties SA0 to 3V3 -> 0x6B.
+# Cut 1-2 and bridge 2-3 for GND -> 0x6A.
+# ---------------------------------------------------------------------------------------------
+SolderJumper3(name="JP1", style="Bridged12", P1=V3V3, P2=SA0, P3=GND)
+
+# ---------------------------------------------------------------------------------------------
+# I2C pull-ups, 2.2k each, both bridged to 3V3 through JP2 (centre pad). Cut the 1-2 link to
+# drop the SDA pull-up, the 3-2 link to drop the SCL pull-up (for long Qwiic chains).
+# ---------------------------------------------------------------------------------------------
+Resistor(name="R1", value="2.2k", package="0603", mpn="0603WAF2201T5E", manufacturer="UNI-ROYAL(Uniroyal Elec)",
+         lcsc="C4190", datasheet="https://www.lcsc.com/datasheet/lcsc_datasheet_1811021520_UNI-ROYAL-Uniroyal-Elec-0603WAF2201T5E_C4190.pdf",
+         P1=PU_SDA, P2=SDA)
+Resistor(name="R2", value="2.2k", package="0603", mpn="0603WAF2201T5E", manufacturer="UNI-ROYAL(Uniroyal Elec)",
+         lcsc="C4190", datasheet="https://www.lcsc.com/datasheet/lcsc_datasheet_1811021520_UNI-ROYAL-Uniroyal-Elec-0603WAF2201T5E_C4190.pdf",
+         P1=PU_SCL, P2=SCL)
+SolderJumper3(name="JP2", style="Bridged123", P1=PU_SDA, P2=V3V3, P3=PU_SCL)
+
+# ---------------------------------------------------------------------------------------------
+# Connectors: two Qwiic (daisy chain, same nets), one 0.1 in header INT1 INT2 SDA SCL (DNP)
+# ---------------------------------------------------------------------------------------------
+Qwiic(name="J1", GND=GND, V3V3=V3V3, SDA=SDA, SCL=SCL)
+Qwiic(name="J2", GND=GND, V3V3=V3V3, SDA=SDA, SCL=SCL)
+Header1x04(name="J3", P1=INT1, P2=INT2, P3=SDA, P4=SCL)
+
+# ---------------------------------------------------------------------------------------------
+# Test points (bring-up: rail resistance, supply probe) and mechanicals
+# ---------------------------------------------------------------------------------------------
+TestPoint(name="TP1", power_source=True, P1=GND)  # ERC power source for GND
+TestPoint(name="TP2", power_source=True, P1=V3V3)  # ERC power source for 3V3
+MountingHole(name="H1", diameter="M2.5", plating="Mechanical")
+MountingHole(name="H2", diameter="M2.5", plating="Mechanical")
+
+# ---------------------------------------------------------------------------------------------
+# Board: 4 layers (F.Cu signal / In1 GND / In2 3V3 / B.Cu signal), JLCPCB stock stackup, 1 oz outer.
+# Design-margin rules: 0.2 mm track and clearance minimum, 0.6/0.3 mm vias (fab minimum is 0.09 mm
+# and 0.45/0.2 mm, JLCPCB.kicad_dru is the fab backstop).
+# ---------------------------------------------------------------------------------------------
+Board(
+    name="qwiic_imu",
+    layers=4,
+    path="layout/qwiic_imu",
+    schematic=True,
+    copper_finish="HAL lead-free",
+    track_widths=[0.2, 0.25, 0.3, 0.5],
+    via_dimensions=[ViaDimension(diameter=0.6, drill=0.3)],
+    config=BoardConfig(
+        design_rules=DesignRules(
+            constraints=Constraints(
+                copper=Copper(
+                    minimum_clearance=0.2,
+                    minimum_track_width=0.2,
+                    minimum_via_diameter=0.6,
+                    minimum_annular_width=0.15,
+                    copper_to_hole_clearance=0.3,
+                    copper_to_edge_clearance=0.4,
+                ),
+                holes=Holes(minimum_through_hole=0.3, hole_to_hole_clearance=0.5),
+                silkscreen=Silkscreen(minimum_item_clearance=0.15, minimum_text_height=1.0),
+            ),
+            netclasses=[
+                NetClass(
+                    name="Default",
+                    clearance=0.2,
+                    track_width=0.25,
+                    via_diameter=0.6,
+                    via_drill=0.3,
+                ),
+            ],
+        ),
+    ),
+)

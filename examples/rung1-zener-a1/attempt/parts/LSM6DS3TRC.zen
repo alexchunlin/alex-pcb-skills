@@ -1,0 +1,49 @@
+"""LSM6DS3TR-C 6-DoF IMU (ST), LGA-14 3x2.5 mm, wired for I2C slave mode (datasheet "Mode 1").
+
+Fixed inside the module (not exposed), per the ST pin table:
+  CS  -> VDDIO  (1 = I2C enabled / SPI idle)
+  SDx -> GND    ("Connect to VDDIO or GND" when the sensor-hub interface is unused)
+  SCx -> GND    (same)
+  OCS (10), NC (11): left unconnected (symbol marks them no_connect).
+Symbol: KiCad stock Sensor_Motion:LSM6DS3 (pinout identical to LSM6DS3TR-C), vendored into ./symbols.
+"""
+
+
+VDD = io(Power)
+VDDIO = io(Power)
+GND = io(Ground)
+SDA = io(Net)
+SCL = io(Net)
+SA0 = io(Net)
+INT1 = io(Net)
+INT2 = io(Net)
+
+Component(
+    name="U",
+    symbol=Symbol(library="./symbols/LSM6DS3.kicad_sym", name="LSM6DS3"),
+    footprint=File("./footprints/LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y.kicad_mod"),
+    prefix="U",
+    part=Part(
+        mpn="LSM6DS3TR-C",
+        manufacturer="STMicroelectronics",
+        datasheet="https://www.st.com/resource/en/datasheet/lsm6ds3tr-c.pdf",
+    ),
+    pins={
+        "SDO/SA0": SA0,
+        "SDX": GND,
+        "SCX": GND,
+        "INT1": INT1,
+        "VDDIO": VDDIO,
+        "GND": GND,
+        "VDD": VDD,
+        "INT2": INT2,
+        "CS": VDDIO,
+        "SCL": SCL,
+        "SDA": SDA,
+    },
+    properties={
+        "value": "LSM6DS3TR-C",
+        "package": "LGA-14 3x2.5x0.83mm",
+        "LCSC": "C967633",
+    },
+)

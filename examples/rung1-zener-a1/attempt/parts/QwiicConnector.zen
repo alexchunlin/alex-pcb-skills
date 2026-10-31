@@ -1,0 +1,37 @@
+"""Qwiic / STEMMA QT connector: JST SH SM04B-SRSS-TB, 1.00 mm, 4-pin, horizontal (side entry).
+
+Pin order per the SparkFun Qwiic standard: 1 GND, 2 3V3, 3 SDA, 4 SCL (pin 1 is the pad nearest the
+footprint's pin-1 marker; the stock KiCad footprint numbers the pads 1..4 left to right when the
+connector opening faces -Y).
+"""
+
+
+GND = io(Ground)
+V3V3 = io(Power)
+SDA = io(Net)
+SCL = io(Net)
+
+Component(
+    name="J",
+    symbol=Symbol(library="./symbols/Conn_01x04_MountingPin.kicad_sym", name="Conn_01x04_MountingPin"),
+    footprint=File("./footprints/JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal.kicad_mod"),
+    prefix="J",
+    part=Part(
+        mpn="SM04B-SRSS-TB(LF)(SN)",
+        manufacturer="JST",
+        datasheet="https://www.jst.com/wp-content/uploads/2021/01/eSH.pdf",
+    ),
+    pins={
+        "Pin_1": GND,
+        "Pin_2": V3V3,
+        "Pin_3": SDA,
+        "Pin_4": SCL,
+        "MountPin": GND,  # the two metal retention tabs, soldered to the top GND pour
+    },
+    properties={
+        "value": "Qwiic JST-SH 4p",
+        "package": "JST SH 1.00mm 4p horizontal",
+        "LCSC": "C160404",
+    },
+    type="connector",
+)

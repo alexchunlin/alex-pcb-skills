@@ -386,3 +386,10 @@ commands so the next reviewer runs them instead of rewriting them.
   The wrong claim: Diode 0.4.95 does write `(dnp yes)` for J3; "ignored DNP" in R1-Z1-T3 was about the
   designer's BOM path, so schfix's DNP step is a guard that did nothing here. Issue drafts for the four real gaps
   and the `pcb layout` GUI default are in `docs/upstream/`, unposted.
+- **P1-T17 Skills written (handoff item 6).** `skills/kicad-design/` (SKILL.md: tools table, 8-step workflow,
+  conventions; `reference/api.md`, `checks-config.md`, `footguns.md`, `front-end.md`; `templates/project/` with
+  checks.json, regen.sh, layout_board.py, log and bring-up skeletons) and `skills/pcb-design-review/` (SKILL.md,
+  rubric with the rung-1 scores as worked anchors, checklist). Every FINDINGS ID cited in the skills is checked
+  to exist (verify_all 20: 39 IDs). The reviewed Zener attempt's source is archived under
+  `examples/rung1-zener-a1/attempt/` so the worked example is in the repo. Not yet measured: whether a designer
+  on the skill reaches 9/9/9; that is handoff item 8 (rung-1 attempt 2).

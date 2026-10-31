@@ -1,0 +1,46 @@
+"""Chip resistor with an explicit sourced part (MPN/Manufacturer/LCSC) so every placed symbol and footprint
+carries the fields the brief requires. Thin wrapper around a Component; symbol and footprint come from the
+Diode stdlib copy of the KiCad libraries.
+"""
+
+
+Package = enum("0402", "0603", "0805")
+
+value = config(str, help="Resistance as printed on the schematic, e.g. 2.2k")
+package = config(Package, default=Package("0603"))
+mpn = config(str, help="Manufacturer part number")
+manufacturer = config(str, help="Manufacturer")
+lcsc = config(str, help="LCSC part number, e.g. C4190")
+datasheet = config(str, optional=True, help="Datasheet URL")
+tolerance = config(str, default="1%", optional=True)
+power = config(str, default="0.1W", optional=True)
+
+P1 = io(Net)
+P2 = io(Net)
+
+_fp = {
+    Package("0402"): "@stdlib/kicad-footprints/Resistor_SMD.pretty/R_0402_1005Metric.kicad_mod",
+    Package("0603"): "@stdlib/kicad-footprints/Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod",
+    Package("0805"): "@stdlib/kicad-footprints/Resistor_SMD.pretty/R_0805_2012Metric.kicad_mod",
+}[package]
+
+Component(
+    name="R",
+    symbol=Symbol("@stdlib/kicad-symbols/Device.kicad_symdir/R_Small.kicad_sym"),
+    footprint=File(_fp),
+    prefix="R",
+    part=Part(mpn=mpn, manufacturer=manufacturer, datasheet=datasheet) if mpn and manufacturer else None,
+    pins={
+        "1": P1,
+        "2": P2,
+    },
+    properties={
+        "value": value,
+        "package": package,
+        "resistance": value,
+        "tolerance": tolerance,
+        "power": power,
+        "LCSC": lcsc,
+    },
+    type="resistor",
+)

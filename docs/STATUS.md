@@ -1,4 +1,4 @@
-# Status (updated 2026-10-31, phase 1-3 items 1-5 done)
+# Status (updated 2026-10-31, phase 1-4 items 1-6 done)
 
 - Plan: `docs/GAMEPLAN.md`. Evidence: `docs/FINDINGS.md`. Survey with URLs: `docs/SURVEY-2026-10-31.md`. Handoff
   from the kickoff session: `docs/HANDOFF-2026-10-31.md` (its "Next" list is the work order).
@@ -14,10 +14,14 @@
   SWIG pcbnew, traps handled; the Zener layout ported to 107 lines with identical copper; P1-T14 found that a rule
   pack in the project dir shapes the zone fill; P1-T15). Item 5 done: `pcb schfix` (fields, DNP guard, global labels,
   symbol lib, PWR_FLAGs; ERC 2/32 to 0/1 on a raw Diode schematic; P1-T16) with five upstream issue drafts in
-  `docs/upstream/` awaiting Alex's go to post. `tools/verify_all.sh`: 107 checks on the two rung-1 boards and
-  Plink, about 8 min, all passing.
+  `docs/upstream/` awaiting Alex's go to post. Item 6 done: `skills/kicad-design/` (SKILL.md, reference/, templates/project/)
+  and `skills/pcb-design-review/` (SKILL.md, rubric.md, checklist.md); P1-T17. `tools/verify_all.sh`: 111 checks on
+  the two rung-1 boards and Plink, about 8 min, all passing.
 - Decisions (Alex): code is the source of truth; Zener provisional front end for rung 2; 4 layers by default with
   the phase-6 experiment deciding 6/8. Do not reopen.
-- Next, in order (handoff "Next"): 6 SKILL.md + review skill; 7 verify `--changed` selector + replay bench; 8 rung-1 attempt 2.
-- Not done: no SKILL.md yet (item 6), no `tools/bench/replay.py`, no workflow template. The
+- Next, in order (handoff "Next"): 7 `verify_all --changed` selector (port from alex-3d-skills) + `tools/bench/replay.py`
+  scoring the rung-1 attempts and the Plink pre/post-rework boards against `labels.json`; 8 rung-1 attempt 2 on the
+  tools (designers on Sonnet 5.5 and Fable, reviewers on Fable), then rung 2.
+- Not done: no `tools/bench/replay.py`, no workflow template, skills not yet linked into `~/.claude/skills`, upstream
+  issues not posted. The
   commits: phase 0, items 1-5.

@@ -1,3 +1,5 @@
+> Phase-0 protocol, kept for the record. The reviewer skill that supersedes it is `skills/pcb-design-review/` (tools: `pcb drc`, `pcb check`, `pcb q`, `pcb regen-check`).
+
 # Review protocol (phase 0, no tools)
 
 You are the reviewer, not the designer. Score an attempt 1-10 on three metrics with measured evidence. Every issue

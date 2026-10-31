@@ -1,0 +1,43 @@
+"""Ceramic chip capacitor with an explicit sourced part (MPN/Manufacturer/LCSC). See Resistor.zen."""
+
+
+Package = enum("0402", "0603", "0805")
+
+value = config(str, help="Capacitance as printed on the schematic, e.g. 100nF")
+package = config(Package, default=Package("0603"))
+mpn = config(str, help="Manufacturer part number")
+manufacturer = config(str, help="Manufacturer")
+lcsc = config(str, help="LCSC part number")
+datasheet = config(str, optional=True, help="Datasheet URL")
+voltage = config(str, default="50V", optional=True, help="Rated voltage")
+dielectric = config(str, default="X7R", optional=True)
+
+P1 = io(Net)
+P2 = io(Net)
+
+_fp = {
+    Package("0402"): "@stdlib/kicad-footprints/Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod",
+    Package("0603"): "@stdlib/kicad-footprints/Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod",
+    Package("0805"): "@stdlib/kicad-footprints/Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod",
+}[package]
+
+Component(
+    name="C",
+    symbol=Symbol("@stdlib/kicad-symbols/Device.kicad_symdir/C_Small.kicad_sym"),
+    footprint=File(_fp),
+    prefix="C",
+    part=Part(mpn=mpn, manufacturer=manufacturer, datasheet=datasheet) if mpn and manufacturer else None,
+    pins={
+        "1": P1,
+        "2": P2,
+    },
+    properties={
+        "value": value,
+        "package": package,
+        "capacitance": value,
+        "voltage": voltage,
+        "dielectric": dielectric,
+        "LCSC": lcsc,
+    },
+    type="capacitor",
+)

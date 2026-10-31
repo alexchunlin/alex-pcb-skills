@@ -285,6 +285,20 @@ if [ -d "$Z" ] && [ -x "$HOME/.local/bin/pcb" ]; then
 else echo "NOTE no $Z or no Diode pcb"; fi
 fi
 
+if want 20 "skills: every FINDINGS ID cited in skills/ and examples/ exists; templates and reference files present"; then
+  ids=$(grep -rhoIE --include='*.md' --include='*.py' --include='*.json' --include='*.sh' --include='pcb' '\b(P[0-9]-T[0-9]+|R[0-9]-[SZ][0-9]-[FTR][0-9]+)\b' "$ROOT"/skills "$ROOT"/examples/*/*.py "$ROOT"/examples/*/checks.json 2>/dev/null | sort -u)
+  missing=""; n=0
+  for id in $ids; do n=$((n+1)); grep -q "$id" "$ROOT/docs/FINDINGS.md" || missing="$missing $id"; done
+  [ -z "$missing" ] && ok "all $n FINDINGS IDs cited in skills/ and examples/ exist in docs/FINDINGS.md" || bad "IDs cited but not in FINDINGS:$missing"
+  missing=""
+  for f in skills/kicad-design/SKILL.md skills/kicad-design/reference/api.md skills/kicad-design/reference/checks-config.md skills/kicad-design/reference/footguns.md skills/kicad-design/reference/front-end.md skills/kicad-design/templates/project/checks.json skills/kicad-design/templates/project/tools/regen.sh skills/kicad-design/templates/project/tools/layout_board.py skills/pcb-design-review/SKILL.md skills/pcb-design-review/rubric.md skills/pcb-design-review/checklist.md; do
+    [ -s "$ROOT/$f" ] || missing="$missing $f"
+  done
+  [ -z "$missing" ] && ok "skill, reference, template and review files present" || bad "missing:$missing"
+  python3 -I -c "import json; json.load(open('$ROOT/skills/kicad-design/templates/project/checks.json'))" && ok "template checks.json parses" || bad "template checks.json"
+  head -3 "$ROOT/skills/kicad-design/SKILL.md" | grep -q "^name: kicad-design" && head -3 "$ROOT/skills/pcb-design-review/SKILL.md" | grep -q "^name: pcb-design-review" && ok "SKILL.md frontmatter names" || bad "frontmatter"
+fi
+
 if want 16 "every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"; then
   KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
   for py in python3 "$KPY"; do

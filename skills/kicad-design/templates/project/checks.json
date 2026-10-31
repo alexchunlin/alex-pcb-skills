@@ -1,0 +1,13 @@
+{
+  "_about": "Fill from the plan checkpoint before writing code. Keys: rails, decoupling, buses, connectors, jumpers, test_points, bringup, margin, accepted_warns. See <skill>/reference/checks-config.md.",
+  "project": "PROJECT",
+  "rails": {"3V3": {"v": 3.3, "source": ""}, "GND": {}},
+  "decoupling_max_mm": 2.0,
+  "decoupling": [],
+  "buses": {},
+  "connectors": {},
+  "jumpers": {},
+  "test_points": {},
+  "margin": {"pack": "jlcpcb", "default_ratio": 1.0, "min_ratio": {"track_width": 2.0, "clearance": 2.0, "via_drill": 2.0}},
+  "accepted_warns": []
+}

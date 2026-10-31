@@ -1,0 +1,6 @@
+[workspace]
+pcb-version = "0.4"
+
+[board]
+name = "qwiic_imu"
+path = "qwiic_imu.zen"

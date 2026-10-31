@@ -1,0 +1,34 @@
+"""0.1 in (2.54 mm) 1x4 through-hole pin header footprint. Shipped unpopulated (dnp) so the user can
+fit a header or solder wires; the fields still carry a sourceable part for anyone who wants it fitted.
+"""
+
+
+P1 = io(Net)
+P2 = io(Net)
+P3 = io(Net)
+P4 = io(Net)
+
+Component(
+    name="J",
+    symbol=Symbol(library="./symbols/Conn_01x04.kicad_sym", name="Conn_01x04"),
+    footprint=File("./footprints/PinHeader_1x04_P2.54mm_Vertical.kicad_mod"),
+    prefix="J",
+    part=Part(
+        mpn="PZ254V-11-04P",
+        manufacturer="XFCN",
+        datasheet="https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_XFCN-PZ254V-11-04P_C2894974.pdf",
+    ),
+    pins={
+        "Pin_1": P1,
+        "Pin_2": P2,
+        "Pin_3": P3,
+        "Pin_4": P4,
+    },
+    properties={
+        "value": "Header 1x4 2.54mm (DNP)",
+        "package": "1x4 2.54mm THT",
+        "LCSC": "C2894974",
+    },
+    type="connector",
+    dnp=True,
+)

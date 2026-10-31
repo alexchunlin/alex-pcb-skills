@@ -1,0 +1,28 @@
+"""SMD test point (1.5 mm round pad). With power_source=True the symbol pin is typed power_out, which marks the
+rail it sits on as driven for KiCad ERC. This board has no regulator: 3V3 and GND arrive through the passive
+Qwiic connector pins, and the rail test points are also where a bench supply is injected during bring-up, so
+they are the honest place for that flag. Not a BOM or pick-and-place item.
+"""
+
+power_source = config(bool, default=False, help="Type the pin power_out (acts as the ERC power source for its rail)")
+
+P1 = io(Net)
+
+_sym = "./symbols/TestPoint_PowerSource.kicad_sym" if power_source else "./symbols/TestPoint.kicad_sym"
+_name = "TestPoint_PowerSource" if power_source else "TestPoint"
+
+Component(
+    name="TP",
+    symbol=Symbol(library=_sym, name=_name),
+    footprint=File("./footprints/TestPoint_Pad_D1.5mm_Ring1.0.kicad_mod"),  # stock pad, silk ring at r=1.05 mm (JLCPCB pad-to-silk >= 0.15)
+    prefix="TP",
+    pins={
+        "1": P1,
+    },
+    properties={
+        "value": "TP 1.5mm",
+        "package": "Pad D1.5mm",
+    },
+    skip_bom=True,
+    skip_pos=True,
+)
