@@ -262,6 +262,29 @@ b.save()" > "$V/fromnet.txt" 2>&1); rc=$?
 else echo "NOTE no $K"; fi
 fi
 
+if want 19 "pcb schfix on a raw Diode schematic without the test-point power hack: fields, labels, symlib, PWR_FLAGs; ERC 2/32 -> 0/1 (P1-T16)"; then
+if [ -d "$Z" ] && [ -x "$HOME/.local/bin/pcb" ]; then
+  F2="$V/zfresh2"; rm -rf "$F2"; cp -R "$Z" "$F2"; rm -rf "$F2/layout" "$F2/fab" "$F2/review" "$F2/regen-check"
+  sed -i '' 's/TestPoint(name="TP1", power_source=True, P1=GND)/TestPoint(name="TP1", P1=GND)/; s/TestPoint(name="TP2", power_source=True, P1=V3V3)/TestPoint(name="TP2", P1=V3V3)/' "$F2/qwiic_imu.zen"
+  (cd "$F2" && "$HOME/.local/bin/pcb" build qwiic_imu.zen && "$HOME/.local/bin/pcb" layout --no-open qwiic_imu.zen && "$HOME/.local/bin/pcb" apply schematic --no-open qwiic_imu.zen) > "$V/zfresh2-build.txt" 2>&1
+  S2="$F2/layout/qwiic_imu/qwiic_imu.kicad_sch"
+  [ -f "$S2" ] && ok "raw schematic from pcb apply schematic --no-open" || bad "no schematic: $(tail -3 "$V/zfresh2-build.txt")"
+  cp "$S2" "$V/raw2.kicad_sch"
+  $PCB schfix "$S2" > "$V/schfix.txt"; rc=$?
+  [ "$rc" = 0 ] && ok "schfix exits 0" || bad "schfix rc $rc: $(cat "$V/schfix.txt")"
+  grep -q "fields +27, dnp 0, labels->global 20, PWR_FLAG \['GND', '3V3'\], symlib written; nets renamed 7, connectivity identical; ERC 2 errors / 32 warnings -> 0 errors / 1 warnings" "$V/schfix.txt" && ok "schfix: 27 fields, 20 labels, PWR_FLAG on GND and 3V3, 7 renames, ERC 2/32 -> 0/1" || bad "schfix line: $(cat "$V/schfix.txt")"
+  $PCB schfix "$S2" > "$V/schfix2.txt"; grep -q "no change; fields +0, dnp 0, labels->global 0, PWR_FLAG none" "$V/schfix2.txt" && ok "schfix idempotent" || bad "schfix second run: $(cat "$V/schfix2.txt")"
+  $PCB diff "$V/raw2.kicad_sch" "$S2" > "$V/schdiff.txt" && grep -q "identical connectivity, 7 renamed" "$V/schdiff.txt" && ok "pcb diff raw vs fixed: identical, 7 renamed (/SDA -> SDA ...)" || bad "schdiff: $(head -2 "$V/schdiff.txt")"
+  grep -q '(dnp yes)' "$V/raw2.kicad_sch" && ok "Diode 0.4.95 already writes (dnp yes) for J3 (R1-Z1-T3 'ignored DNP' does not hold for the schematic)" || bad "raw schematic has no dnp yes"
+  [ -f "$F2/layout/qwiic_imu/qwiic_imu_symbols.kicad_sym" ] && [ -f "$F2/layout/qwiic_imu/sym-lib-table" ] && ok "symbol library and sym-lib-table written next to the schematic" || bad "symlib files missing"
+  # the real flow: the pcblib layout script upper-cases Zener's Mpn/Lcsc footprint fields, then parity compares like with like
+  (cd "$F2" && $PCB py "$ROOT/examples/rung1-zener-a1/layout_board.py" layout/qwiic_imu/qwiic_imu.kicad_pcb > "$V/port3.txt" 2>&1)
+  $PCB drc "$F2/layout/qwiic_imu/qwiic_imu.kicad_pcb" --pack jlcpcb --out "$V/fixdrc" > "$V/fixdrc.txt"
+  [ "$(jq_ "$V/fixdrc/drc.json" "(d['plain']['parity'], d['plain']['errors'], d['plain']['unconnected'])")" = "(2, 12, 0)" ] && ok "after schfix + pcblib layout: parity 2 warnings (U1 NC pad naming only), 12 errors, 0 unconnected" || bad "parity/drc $(jq_ "$V/fixdrc/drc.json" "(d['plain']['parity'], d['plain']['errors'], d['plain']['unconnected'])")"
+  $PCB erc "$S2" --out "$V/fixerc.json" --list | grep -q "FLG01 Pin 1" && ok "the one ERC warning left is SDX (bidirectional) on the flagged GND net, a datasheet tie-off to accept" || bad "unexpected ERC after schfix"
+else echo "NOTE no $Z or no Diode pcb"; fi
+fi
+
 if want 16 "every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"; then
   KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
   for py in python3 "$KPY"; do

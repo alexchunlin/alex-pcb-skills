@@ -375,3 +375,14 @@ commands so the next reviewer runs them instead of rewriting them.
   copper (per-net length within 5 um, 74 tracks, 25 vias, 4 zones) on a board fresh from `pcb layout`.
   `Board.from_netlist` builds the SKiDL board from its netlist with pad nets, hidden fields and DNP in one call.
   `pcb py` now puts pcblib and the cwd on `sys.path` in-process, because `-I` ignores PYTHONPATH.
+- **P1-T16 `pcb schfix` (handoff item 5) closes R1-Z1-T3 in one idempotent pass, and one of its five claims was
+  wrong.** On a raw `pcb apply schematic` output of the rung-1 board with the test-point power hack removed
+  from the `.zen`: ERC 2 errors (power_pin_not_driven on 3V3 and GND) and 32 warnings (lib_symbol_issues). After
+  schfix: 0 errors, 1 warning (SDX bidirectional tied to the flagged GND, a datasheet tie-off). It copied 27
+  fields from the board's footprints onto 10 symbols, converted 20 local labels to global (7 nets renamed,
+  connectivity identical by `pcb diff`), wrote the symbol library and table, and added PWR_FLAG + global label
+  on the two undriven nets. A second run reports no change. With the pcblib layout script run after it (which
+  upper-cases Zener's `Mpn`/`Lcsc` footprint fields), schematic parity drops to the 2 NC-pad naming warnings.
+  The wrong claim: Diode 0.4.95 does write `(dnp yes)` for J3; "ignored DNP" in R1-Z1-T3 was about the
+  designer's BOM path, so schfix's DNP step is a guard that did nothing here. Issue drafts for the four real gaps
+  and the `pcb layout` GUI default are in `docs/upstream/`, unposted.

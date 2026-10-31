@@ -19,6 +19,9 @@
 #                                                                  regeneration twice; compare netlist, DRC, fab hashes and
 #                                                                  placement with the handed-in tree and between passes;
 #                                                                  defaults from DIR/regen.json (R1-Z1-F2)
+#   pcb schfix   x.kicad_sch [--board x.kicad_pcb] [--paper A3] [--no-global] [--no-flags] [--no-symlib]
+#                                                                  post-fix a `pcb apply schematic` output: fields, DNP, global
+#                                                                  labels, symbol lib, PWR_FLAGs; connectivity gate (R1-Z1-T3)
 #   pcb check    x.kicad_pcb [checks.json] [--out pcbcheck.json] [--only a,b] [--netlist x.xml] [--bringup F]
 #                                                                  intent checks (rails, decoupling, pull-ups, addresses,
 #                                                                  connectors, jumpers, test points, silk, margin); undeclared
@@ -54,6 +57,7 @@ cmd="${1:-}"; shift || true
 case "$cmd" in
   erc|drc|netlist|diff|render|svg|stats) exec python3 -I "$HERE/pcbcli.py" "$cmd" "$@" ;;
   fab|regen-check) exec python3 -I "$HERE/pcbcli.py" "$cmd" "$@" ;;
+  schfix) exec python3 -I "$HERE/pcbsch.py" "$@" ;;
   check) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbcheck.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
      kpy "$HERE/pcbcheck.py" "$@" ;;
   q) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbq.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
@@ -70,7 +74,7 @@ case "$cmd" in
      [ -n "$noopen" ] && set -- --no-open "$@"
      [ -n "${PCB_DRY:-}" ] && { echo "$DIODE $cmd $*"; exit 0; }
      exec "$DIODE" "$cmd" "$@" ;;
-  ""|-h|--help|help) sed -n '2,33p' "$0"; exit 0 ;;
+  ""|-h|--help|help) sed -n '2,36p' "$0"; exit 0 ;;
   *) [ -x "$DIODE" ] || { echo "pcb: unknown command '$cmd' and Diode pcb not found at $DIODE" >&2; exit 2; }
      [ -n "${PCB_DRY:-}" ] && { echo "$DIODE $cmd $*"; exit 0; }
      exec "$DIODE" "$cmd" "$@" ;;
