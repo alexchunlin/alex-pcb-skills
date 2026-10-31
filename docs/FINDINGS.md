@@ -358,3 +358,20 @@ commands so the next reviewer runs them instead of rewriting them.
 - **P1-T13 KiCad's Python is 3.9.** A nested same-quote f-string that python3 3.14 accepts crashed `pcbcheck`'s
   margin check when it imported `pcbcli` under KiCad's interpreter. verify_all now compiles every script under
   both interpreters (section 16).
+- **P1-T14 A rule pack in the project directory changes the copper, not just the verdict.** The zone filler asks
+  the DRC engine for clearances, and the engine reads `<project>.kicad_dru`. The same pcblib layout script on a
+  board fresh from `pcb layout --no-open`: without a pack the fills stop 0.3005 mm from the NPTH holes (the board
+  setup's 0.3) and plain DRC reports 12 errors; with the JLCPCB pack copied in, the fills stop at 0.2005 mm (the
+  pack's hole_clearance 0.2) and plain DRC reports 20 errors, the 8 extra being those holes. This is the second
+  half of R1-Z1-F2's "12 then 20": regen.sh copied the pack in at step 7, after the first pass's fill and before
+  the second's. Rule: never leave a raw pack in the project directory; `pcb drc --pack` applies it on a mirror.
+  The first half, the 4 isolated-copper warnings, is `BuildConnectivity()` missing before the fill: with it,
+  one fill pass on a fresh board gives 0 warnings (P1-T10 closed; `Board.fill()` does both).
+- **P1-T15 `pcblib.board` (handoff item 4).** One module over SWIG pcbnew: load or build from a kicadxml netlist,
+  setup, clear, place, orient by a pad predicate, route by waypoints or `REF.PAD`, via, zone, outline, text,
+  arrow, hidden fields, refdes, fill-save-reload, summary; the seven SWIG traps from R1-S1-T5, R1-Z1-T4 and
+  P1-T6 are handled inside it and listed in its docstring. The R1-Z1 designer's 280-line, 15 KB layout script
+  ported onto it is 107 lines, 6.3 KB, with the same placement (15 refs, position and rotation) and the same
+  copper (per-net length within 5 um, 74 tracks, 25 vias, 4 zones) on a board fresh from `pcb layout`.
+  `Board.from_netlist` builds the SKiDL board from its netlist with pad nets, hidden fields and DNP in one call.
+  `pcb py` now puts pcblib and the cwd on `sys.path` in-process, because `-I` ignores PYTHONPATH.

@@ -220,10 +220,52 @@ json.dump(c, open('$V/planted.json','w'))"
 else echo "NOTE no $ZB"; fi
 fi
 
+if want 17 "pcblib.board: the ported Zener layout on a board fresh from Diode pcb layout gives the designer's copper (P1-T14, P1-T15)"; then
+if [ -d "$Z" ] && [ -x "$HOME/.local/bin/pcb" ]; then
+  FR="$V/zfresh"; rm -rf "$FR"; cp -R "$Z" "$FR"; rm -rf "$FR/layout" "$FR/fab" "$FR/review" "$FR/regen-check"
+  (cd "$FR" && "$HOME/.local/bin/pcb" build qwiic_imu.zen > "$V/zfresh-build.txt" 2>&1 && "$HOME/.local/bin/pcb" layout --no-open qwiic_imu.zen >> "$V/zfresh-build.txt" 2>&1)
+  FB="$FR/layout/qwiic_imu/qwiic_imu.kicad_pcb"
+  [ -f "$FB" ] && ok "fresh board from pcb build + pcb layout --no-open" || bad "no fresh board: $(tail -3 "$V/zfresh-build.txt")"
+  cp -R "$FR/layout" "$FR/layout-pristine"
+  (cd "$FR" && $PCB py "$ROOT/examples/rung1-zener-a1/layout_board.py" "$FB" > "$V/port.txt" 2>&1); rc=$?
+  [ "$rc" = 0 ] && grep -q "'tracks': 74, 'vias': 25, 'zones': 4" "$V/port.txt" && ok "port: 74 tracks, 25 vias, 4 zones (the designer's counts)" || bad "port rc $rc: $(tail -2 "$V/port.txt")"
+  $PCB drc "$FB" --pack jlcpcb --out "$V/portdrc" --no-parity > "$V/portdrc.txt"
+  [ "$(jq_ "$V/portdrc/drc.json" "(d['plain']['errors'], d['plain']['warnings'])")" = "(12, 0)" ] && ok "port on a pack-free project: 12 errors, 0 warnings (no first-fill islands: BuildConnectivity, P1-T10)" || bad "port drc $(jq_ "$V/portdrc/drc.json" "(d['plain']['errors'], d['plain']['warnings'], d['plain']['by_type'])")"
+  $PCB q "$FB" fps --json > "$V/port-fps.json"; $PCB q "$ZB" fps --json > "$V/orig-fps.json"
+  python3 -I -c "
+import json; a=json.load(open('$V/port-fps.json'))['footprints']; b=json.load(open('$V/orig-fps.json'))['footprints']
+ka={r['ref']:(r['pos'],r['rot']) for r in a}; kb={r['ref']:(r['pos'],r['rot']) for r in b}; assert ka==kb, (ka, kb)" && ok "port placement identical to the designer's board (15 refs, position and rotation)" || bad "port placement differs"
+  $PCB q "$FB" nets --json > "$V/port-nets.json"; $PCB q "$ZB" nets --json > "$V/orig-nets.json"
+  python3 -I -c "
+import json; a={n['net']:(n['length_mm'],n['vias']) for n in json.load(open('$V/port-nets.json'))['nets']}; b={n['net']:(n['length_mm'],n['vias']) for n in json.load(open('$V/orig-nets.json'))['nets']}
+assert set(a)==set(b) and all(abs(a[k][0]-b[k][0])<=0.005 and a[k][1]==b[k][1] for k in a), (a,b)" && ok "port copper identical per net (length within 5 um, vias)" || bad "port copper differs"
+  # the rule pack in the project dir changes the fill: hole clearance 0.2 from the pack instead of 0.3 from the setup (P1-T14)
+  rm -rf "$FR/layout"; cp -R "$FR/layout-pristine" "$FR/layout"; cp "$REF/kicad-druid/JLCPCB/JLCPCB.kicad_dru" "$FR/layout/qwiic_imu/qwiic_imu.kicad_dru"
+  (cd "$FR" && $PCB py "$ROOT/examples/rung1-zener-a1/layout_board.py" "$FB" > "$V/port2.txt" 2>&1)
+  $PCB drc "$FB" --out "$V/portdrc2" --no-parity > "$V/portdrc2.txt"
+  [ "$(jq_ "$V/portdrc2/drc.json" "(d['plain']['errors'], d['plain']['by_type']['error'].get('hole_clearance'))")" = "(20, 8)" ] && ok "same script with the pack in the project dir: 20 errors, 8 hole_clearance (the filler read the pack, P1-T14)" || bad "pack-present fill $(jq_ "$V/portdrc2/drc.json" "d['plain']['by_type']")"
+  [ "$(wc -l < "$ROOT/examples/rung1-zener-a1/layout_board.py")" -lt 120 ] && ok "port is under 120 lines (designer: 280)" || bad "port grew"
+else echo "NOTE no $Z or no Diode pcb"; fi
+fi
+
+if want 18 "pcblib.board.from_netlist builds the SKiDL board from its kicadxml with pad nets and fields"; then
+if [ -d "$K" ]; then
+  (cd "$K" && $PCB py -c "
+from pcblib.board import Board
+b = Board.from_netlist('qwiic_imu.xml', '/tmp/alexpcb-verify/fromnet.kicad_pcb', libs={'qwiic_imu': 'qwiic_imu.pretty'})
+b.setup(layers=4); b.place('U1', 12.7, 12.7, 0); b.outline_rect(0, 0, 25.4, 25.4, r=2)
+s = b.summary(); nets = sorted({p.GetNetname() for f in b.b.GetFootprints() for p in f.Pads() if p.GetNetname()})
+print('FROMNET', s['footprints'], len(nets), b.field('U1', 'LCSC'), b.fp('J3').IsDNP(), b.pad_xy('U1', '1'))
+b.save()" > "$V/fromnet.txt" 2>&1); rc=$?
+  grep -q "^FROMNET 15 11 C967633 True" "$V/fromnet.txt" && ok "from_netlist: 15 footprints, 11 nets on pads, LCSC field read, J3 DNP, U1 pad 1 placed" || bad "from_netlist rc $rc: $(cat "$V/fromnet.txt")"
+  [ -s /tmp/alexpcb-verify/fromnet.kicad_pcb ] && ok "from_netlist board saved" || bad "from_netlist not saved"
+else echo "NOTE no $K"; fi
+fi
+
 if want 16 "every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"; then
   KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
   for py in python3 "$KPY"; do
-    "$py" -I -m py_compile "$ROOT"/skills/kicad-design/scripts/*.py 2> "$V/compile.txt" && ok "compiles under $("$py" -c 'import sys; print(sys.version.split()[0])')" || bad "compile: $(cat "$V/compile.txt")"
+    "$py" -I -m py_compile "$ROOT"/skills/kicad-design/scripts/*.py "$ROOT"/skills/kicad-design/scripts/pcblib/*.py "$ROOT"/examples/*/*.py 2> "$V/compile.txt" && ok "compiles under $("$py" -c 'import sys; print(sys.version.split()[0])')" || bad "compile: $(cat "$V/compile.txt")"
   done
 fi
 

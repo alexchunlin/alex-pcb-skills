@@ -39,7 +39,7 @@ DIODE="${DIODE_PCB:-$HOME/.local/bin/pcb}"
 # KiCad's Python prints a wxApp assert and a leak note on macOS on every start; keep the status, drop the noise
 kpy() {
   st="${TMPDIR:-/tmp}/pcbpy.$$.status"
-  { nice -n 10 "$KICAD_PY" -I "$@" 2>&1; echo $? > "$st"; } | grep -v -E 'wxApp|assert ""|memory leak|^$' || true
+  { nice -n 10 "$KICAD_PY" -I "$@" 2>&1; echo $? > "$st"; } | grep -v -E 'wxApp|assert ""|memory leak|Debug: Adding duplicate image handler|^$' || true
   rc=$(cat "$st" 2>/dev/null || echo 1); rm -f "$st"; return "$rc"
 }
 guard() {
@@ -58,7 +58,10 @@ case "$cmd" in
      kpy "$HERE/pcbcheck.py" "$@" ;;
   q) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbq.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
      kpy "$HERE/pcbq.py" "$@" ;;
-  py) guard; kpy "$@" ;;
+  py) # KiCad's Python with pcblib and the cwd importable (-I drops PYTHONPATH, so the path is set in-process)
+      guard
+      if [ "${1:-}" = "-c" ]; then kpy -c "import sys; sys.path[:0] = ['$HERE', '.']; exec(sys.argv[1])" "$2"
+      else s="$1"; shift; kpy -c "import sys, runpy; sys.path[:0] = ['$HERE', '.']; sys.argv = sys.argv[1:]; runpy.run_path(sys.argv[0], run_name='__main__')" "$s" "$@"; fi ;;
   guard) guard; echo "pcb: no KiCad GUI running" ;;
   open) echo "pcb: refusing to open the KiCad GUI from a script (P0-T6). Run '$DIODE open' yourself." >&2; exit 2 ;;
   layout|apply)
