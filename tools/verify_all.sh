@@ -398,6 +398,28 @@ $PCB check "$ROOT/examples/rung1-zener-a2-fable/board/qwiic_imu.kicad_pcb" "$ROO
 [ "$(jq_ "$V/a2fcheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['policy:clearance_mm', 'policy:silk_text_mm']" ] && ok "a2 fable pcbcheck: policy clearance 0.15 and silk text 0.8 (the reviewer's major)" || bad "a2 fable check: $(jq_ "$V/a2fcheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
 fi  #@ end 23
 
+if want 24; then  #@ watch: @check examples/rung1-zener-a1/board/**
+echo "== 24 calcs rows: IPC-2221 width vs declared current, thermal stitching vias, formula rows with netlist values (P1-T21)"
+cat > "$V/calcs.json" <<'EOC'
+{"currents": {"3V3": 0.005, "GND": 0.005}, "copper_oz": {"outer": 1.0, "inner": 0.5},
+ "thermal_vias": {"U1": {"pad": "6", "min": 1, "within_mm": 1.5}},
+ "calcs": [
+  {"id": "p_ldo", "expr": "(5.0 - 3.3) * 0.5", "unit": "W", "max": 1.0},
+  {"id": "tj_ldo", "expr": "40 + p_ldo * 90", "unit": "degC", "max": 125},
+  {"id": "buck_ripple_pct", "expr": "100 * 5.0 * (1 - 5.0/17.0) / (500e3 * 6.8e-6) / 3.0", "unit": "%", "min": 30, "max": 40},
+  {"id": "pullup_ma", "expr": "3.3 / R('R1') * 1000", "unit": "mA", "max": 3.0},
+  {"id": "c_bulk", "expr": "C('C3')", "unit": "F", "min": 1e-6}]}
+EOC
+$PCB check "$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pcb" "$V/calcs.json" --only currents,thermal_vias,calcs --out "$V/calcs1.json" > "$V/calcs1.txt"; rc=$?
+[ "$rc" = 0 ] && [ "$(jq_ "$V/calcs1.json" "d['summary']['passes']")" = 8 ] && ok "calcs: 8 rows pass (widths at 5 mA, 1 GND via within 1.5 mm of U1.6, LDO 0.85 W / 116.5 degC, ripple 34.6 %, pull-up 1.5 mA from R1's value, C3 from its value)" || bad "calcs sane: $(cat "$V/calcs1.txt")"
+[ "$(jq_ "$V/calcs1.json" "round([r['value'] for r in d['rows'] if r['id']=='calcs:buck_ripple_pct'][0], 1)")" = 34.6 ] && ok "calcs: buck ripple 34.6 % at 6.8 uH" || bad "calcs ripple $(jq_ "$V/calcs1.json" "[r['msg'] for r in d['rows'] if r['id']=='calcs:buck_ripple_pct']")"
+python3 -I -c "
+import json; d=json.load(open('$V/calcs.json')); d['currents']['3V3']=3.0; d['thermal_vias']['U1']['min']=5; d['calcs'][0]['expr']='(5.0 - 3.3) * 0.8'; d['calcs'][2]['expr']='100 * 5.0 * (1 - 5.0/17.0) / (500e3 * 4.7e-6) / 3.0'; json.dump(d, open('$V/calcs2.json','w'))"
+$PCB check "$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pcb" "$V/calcs2.json" --only currents,thermal_vias,calcs --out "$V/calcs2.json.out" > "$V/calcs2.txt"; rc=$?
+[ "$rc" = 1 ] && [ "$(jq_ "$V/calcs2.json.out" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['calcs:buck_ripple_pct', 'calcs:p_ldo', 'calcs:tj_ldo', 'currents:3V3', 'thermal_vias:U1']" ] && ok "calcs planted: 3 A on a 0.2 mm track (needs 0.898 mm outer by IPC-2221), 5 vias wanted with 1 present, LDO 1.36 W / 162 degC, ripple 50 % all fail" || bad "calcs planted: $(cat "$V/calcs2.txt")"
+grep -q "needs 0.898 mm outer (1.0 oz), 4.670 mm inner (0.5 oz)" "$V/calcs2.txt" && ok "calcs: IPC-2221 3 A at 20 degC = 0.898 mm at 1 oz outer, 4.670 mm at 0.5 oz inner" || bad "calcs width numbers: $(grep currents "$V/calcs2.txt")"
+fi  #@ end 24
+
 if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
 echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"
   KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"

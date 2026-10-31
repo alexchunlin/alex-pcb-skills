@@ -528,3 +528,11 @@ first" bet pays: the loop now fails on measured policy, not on reviewer judgment
   REGENERATES without its `canonical.py` (22, 23). (e) The wrapper appends `--no-open` after the Diode subcommand
   words (10). Bench after the fixes: 6 boards, 24 labels (17 scored), recall 12 fails + 3 warns, 0 false fails,
   35 untriaged DRC warnings as the noise baseline; the two misses are the non-catchable Plink items.
+- **P1-T21 `calcs`, `currents` and `thermal_vias` rows (for rung 2).** `currents` applies IPC-2221 (external k 0.048,
+  internal 0.024, 20 degC rise, copper weight per side) to each declared net against the narrowest track per
+  layer: 3 A at 1 oz needs 0.898 mm outer and 4.670 mm inner at 0.5 oz; a 0.2 mm track fails, a pour-fed net
+  passes with the pour named. `thermal_vias` counts vias on a pad's net within a radius (U1.6 on the rung-1 board:
+  1 within 1.5 mm). `calcs` evaluates formula rows in order with `R()`, `C()`, `L()` reading netlist values (the
+  rung-1 pull-up: 3.3 / R('R1') = 1.5 mA) and fails outside min/max: the LDO at 0.8 A is 1.36 W and 162 degC at
+  90 K/W; a 4.7 uH buck inductor at 500 kHz gives 50 % ripple against the brief's 30-40 (6.8 uH gives 34.6 %).
+  verify_all 24. The rows do not size pours or model the thermal pad's copper; those stay in the log.

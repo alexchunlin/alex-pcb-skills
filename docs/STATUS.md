@@ -17,7 +17,7 @@
   `docs/upstream/` awaiting Alex's go to post. Item 6 done: `skills/kicad-design/` (SKILL.md, reference/, templates/project/)
   and `skills/pcb-design-review/` (SKILL.md, rubric.md, checklist.md); P1-T17. Item 7 done: `tools/verify_all.sh --changed`
   (selector ported) and `tools/bench/replay.py` with 4 boards and 17 labels (recall 8/11 fails, 0 false fails;
-  P1-T18, P1-T19). `tools/verify_all.sh`: 149 checks, about 14 min, all passing.
+  P1-T18, P1-T19). `tools/verify_all.sh`: 153 checks, about 15 min, all passing.
 - Decisions (Alex): code is the source of truth; Zener provisional front end for rung 2; 4 layers by default with
   the phase-6 experiment deciding 6/8. Do not reopen.
 - Item 8 done: rung-1 attempt 2 on the skill. Sonnet 5.5 designer 9/9/8 in 42.9 min, Fable designer 9/8/8 in
@@ -30,7 +30,11 @@
   the stock libraries, P0-T8), current-vs-width rows and the 4-layer plane policy, none of which rung 1 touched.
   Before launching: a `calcs` row family (trace width vs current, LDO/buck dissipation) in pcbcheck, since rung 2's
   claims will be those. Handoff for the next session: `docs/HANDOFF-2026-10-31-session2.md`.
-- Not done: no workflow template (phase 5), no topology or silk-readability rows (the two Plink misses), no `calcs`
-  rows, skills not linked into `~/.claude/skills` (Alex's call), upstream issues in `docs/upstream/` not posted
-  (Alex's call). The
+- Decided 2026-10-31 (Alex): upstream drafts stay unposted (no posts to repos he does not own); skills linked into
+  `~/.claude/skills`; rung 2 after the `calcs` rows, with three designers at medium effort (Sonnet 5.5, Opus 5.5,
+  Fable) and reviewers on Fable.
+- `calcs`, `currents` and `thermal_vias` rows done (P1-T21, verify 24). Rung 2 launched 2026-10-31 evening: three
+  designers at medium effort (Sonnet 5.5, Opus 5.5, Fable) in `~/code-stuff/alex-pcb-runs/rung2-zener-a1-{sonnet,opus,fable}`,
+  reviewers on Fable after. No edits to `skills/` while they run.
+- Not done: no workflow template (phase 5), no topology or silk-readability rows (the two Plink misses). The
   commits: phase 0, items 1-5.

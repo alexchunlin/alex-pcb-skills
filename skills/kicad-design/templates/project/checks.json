@@ -32,5 +32,21 @@
     "via_dia_mm": 0.6,
     "hole_clearance_mm": 0.3,
     "silk_text_mm": 1.0
-  }
+  },
+  "currents": {},
+  "copper_oz": {
+    "outer": 1.0,
+    "inner": 0.5
+  },
+  "rise_c": 20,
+  "thermal_vias": {},
+  "calcs": [
+    {
+      "id": "example_p_ldo",
+      "expr": "(5.0 - 3.3) * 0.5",
+      "unit": "W",
+      "max": 1.0,
+      "note": "replace with the design's own calculations; R('R1') reads a value from the netlist"
+    }
+  ]
 }

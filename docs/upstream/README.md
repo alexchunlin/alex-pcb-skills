@@ -1,8 +1,8 @@
 # Upstream issue drafts for github.com/diodeinc/pcb (Zener, `pcb` 0.4.95)
 
 Each file is one issue, written from a measured reproduction on the rung-1 Qwiic IMU board (FINDINGS R1-Z1-T3,
-P0-T6, P1-T16). `pcb schfix` papers over 1-4 locally; the drafts ask for the fix at the source. Not posted yet:
-posting goes out under Alex's GitHub account, so he decides. Reproduction project: `~/code-stuff/alex-pcb-runs/rung1-zener-a1`.
+P0-T6, P1-T16). `pcb schfix` papers over 1-4 locally; the drafts ask for the fix at the source. Not posted, and not to be posted: Alex's rule (2026-10-31) is no posts to repositories he does not own; these
+stay as drafts for the day Diode asks or someone with their own account wants them. Reproduction project: `~/code-stuff/alex-pcb-runs/rung1-zener-a1`.
 
 | # | File | Gap | Local workaround |
 |---|---|---|---|

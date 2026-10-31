@@ -41,6 +41,9 @@ baseline went to long single generations (18 min of 49, R1-S1-T1): work in small
      `(rule "LGA-14 pad gap on U1" (condition "A.memberOfFootprint('U1') && B.memberOfFootprint('U1')") (constraint clearance (min 0.15mm)))`.
      `pcb drc` keeps project rules in both runs and applies the fab pack on top; a copied-in fab pack is detected
      and dropped from the plain run (P1-T20). Say why in the log and in `accepted_warns`.
+   - Every calculation in the log is a `calcs` row (buck ripple, LDO dissipation and junction temperature, sense
+     scaling, pull-up current), every rail current a `currents` entry (IPC-2221 width per net), every thermal pad
+     a `thermal_vias` entry. The row carries the number; the log cites the row (P1-T21).
    - Fetch the datasheet into `docs/` first (both attempt-2 designers lost 6 minutes to st.com timing out; a
      mirror with the same part number is fine, note the WHO_AM_I if the variant differs).
 2. **Scaffold.** Copy `<skill>/templates/project/` (or start from `<repo>/examples/rung1-zener-a1/attempt/`, the

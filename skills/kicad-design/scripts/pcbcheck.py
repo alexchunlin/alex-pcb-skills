@@ -18,6 +18,12 @@ Checks (v0):
   silk         every refdes the bring-up doc names is readable on silk (R1-Z1-F4)
   margin       min track width, via drill/diameter, setup clearance and hole clearance vs the fab pack floor, as ratios
                against min_ratio (R1-S1-F2 "every feature 2x the floor")
+  currents     declared amps per net -> required width by IPC-2221 (20 degC rise by default, outer and inner copper
+               weight from `copper_oz`) against the narrowest track on that net per layer; a net carried only by a
+               pour passes with the pour noted (rung 2: VIN 4 A, 5V 3 A, motor 2.5 A)
+  thermal_vias declared minimum stitching vias on a pad's net within `within_mm` of the pad (thermal pad to pour)
+  calcs        formula rows: {id, expr, vars, min, max}; `R("R5")`, `C("C3")`, `L("L1")` read values from the
+               netlist, earlier ids are variables; the brief's buck ripple, LDO dissipation and sense scaling
   fields       every BOM part (not DNP, not excluded from BOM) carries the required fields, default MPN, Manufacturer,
                LCSC, Datasheet (the brief's list; R1-A2S-1: Datasheet empty on 5 of 8 parts while the log said "every symbol")
   policy       the brief's numbers as a floor the board setup and the measured minima must meet: clearance, track,
@@ -25,7 +31,7 @@ Checks (v0):
                setting until plain DRC read 0 (clearance 0.14/0.15, silk text 0.8); the policy block makes that a
                fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
-margin, policy, fields, accepted_warns, _notes.
+margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, calcs, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, os, re, subprocess, sys
@@ -38,7 +44,7 @@ import pcbq  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "calcs", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -473,6 +479,117 @@ def check_margin(CFG, NL, B):
     COVERAGE.append(f"margin: floor from {os.path.basename(path)} (loosest min per constraint kind); clearances are the board-setup values the plain DRC enforces, not measured gaps")
 
 
+def parse_value(s):
+    """'4.7k' -> 4700, '2k2' -> 2200, '100nF' -> 1e-7, '4.7uH' -> 4.7e-6, '10R' -> 10, '0.01' -> 0.01."""
+    m = re.match(r"^\s*([\d.]+)\s*([pnumkKMGrR]?)\s*([\d]*)\s*(?:ohm|Ohm|OHM|Ω|R|F|H|V|A|W)?\s*$", s.strip())
+    if not m:
+        return None
+    whole, unit, frac = m.groups()
+    val = float(whole + ("." + frac if frac else "")) if whole.replace(".", "", 1).isdigit() else None
+    if val is None:
+        return None
+    return val * {"p": 1e-12, "n": 1e-9, "u": 1e-6, "m": 1e-3, "k": 1e3, "K": 1e3, "M": 1e6, "G": 1e9, "r": 1, "R": 1, "": 1}[unit]
+
+
+def ipc2221_width_mm(i_a, rise_c=20.0, oz=1.0, internal=False):
+    """IPC-2221 trace width for a current and temperature rise: A[mil^2] = (I / (k * dT^0.44))^(1/0.725),
+    k = 0.048 external, 0.024 internal; width = A / (1.378 * oz) mil."""
+    k = 0.024 if internal else 0.048
+    area = (i_a / (k * rise_c ** 0.44)) ** (1 / 0.725)
+    return area / (1.378 * oz) * 0.0254
+
+
+def check_currents(CFG, NL, B):
+    cur = CFG.get("currents", {})
+    if not cur:
+        NOT_CHECKED.append("currents: no currents block (amps per net) so trace widths were not checked against IPC-2221")
+        return
+    oz = CFG.get("copper_oz", {"outer": 1.0, "inner": 0.5})
+    rise = float(CFG.get("rise_c", 20.0))
+    outer = {pcbnew.F_Cu, pcbnew.B_Cu}
+    for net, amps in cur.items():
+        if B.FindNet(net) is None:
+            row("currents", "fail", f"currents:{net}", f"declared net {net} is not on the board", objects=[net]); continue
+        amps = float(amps)
+        need_o = ipc2221_width_mm(amps, rise, float(oz.get("outer", 1.0)), False)
+        need_i = ipc2221_width_mm(amps, rise, float(oz.get("inner", 0.5)), True)
+        tracks = [t for t in B.GetTracks() if t.GetClass() != "PCB_VIA" and t.GetNetname() == net]
+        zones = [z for z in B.Zones() if z.GetNetname() == net and z.IsFilled()]
+        wo = min((pcbnew.ToMM(t.GetWidth()) for t in tracks if t.GetLayer() in outer), default=None)
+        wi = min((pcbnew.ToMM(t.GetWidth()) for t in tracks if t.GetLayer() not in outer), default=None)
+        bad = []
+        if wo is not None and wo + 1e-6 < need_o:
+            bad.append(f"outer {wo:.3f} < {need_o:.3f}")
+        if wi is not None and wi + 1e-6 < need_i:
+            bad.append(f"inner {wi:.3f} < {need_i:.3f}")
+        if not tracks and not zones:
+            row("currents", "fail", f"currents:{net}", f"{net} {amps} A: no tracks and no filled zone on the net", objects=[net], finding="R2"); continue
+        msg = (f"{net} {amps} A at {rise} degC rise: needs {need_o:.3f} mm outer ({oz.get('outer', 1.0)} oz), {need_i:.3f} mm inner "
+               f"({oz.get('inner', 0.5)} oz); narrowest outer {wo if wo is None else round(wo, 3)}, inner {wi if wi is None else round(wi, 3)}"
+               + (f"; pour on {', '.join(B.GetLayerName(z.GetFirstLayer()) for z in zones)}" if zones else ""))
+        row("currents", "fail" if bad else "pass", f"currents:{net}", msg + ("; " + "; ".join(bad) if bad else ""),
+            value=wo if wo is not None else wi, limit=round(need_o, 3), objects=[net], finding="R2")
+    COVERAGE.append(f"currents: {len(cur)} nets by IPC-2221 external/internal formulas against the narrowest track per layer; pours noted, not sized")
+
+
+def check_thermal_vias(CFG, NL, B):
+    tv = CFG.get("thermal_vias", {})
+    if not tv:
+        NOT_CHECKED.append("thermal_vias: no thermal_vias block (ref, pad, min, within_mm) so stitching vias were not counted")
+        return
+    fps = pcbq.fp_map(B)
+    vias = [t for t in B.GetTracks() if t.GetClass() == "PCB_VIA"]
+    for ref, d in tv.items():
+        if ref not in fps:
+            row("thermal_vias", "fail", f"thermal_vias:{ref}", f"{ref} not on the board", objects=[ref]); continue
+        padnum = str(d.get("pad", "EP"))
+        pads = [p for p in fps[ref].Pads() if p.GetNumber() == padnum]
+        if not pads:
+            row("thermal_vias", "fail", f"thermal_vias:{ref}", f"{ref} has no pad {padnum}", objects=[ref]); continue
+        pad = pads[0]
+        within = float(d.get("within_mm", max(pcbnew.ToMM(pad.GetSize().x), pcbnew.ToMM(pad.GetSize().y)) / 2 + 0.3))
+        n = sum(1 for v in vias if v.GetNetname() == pad.GetNetname() and pcbq.cc(pad, v) <= within)
+        need = int(d.get("min", 1))
+        drills = sorted({round(pcbnew.ToMM(v.GetDrillValue()), 2) for v in vias if v.GetNetname() == pad.GetNetname() and pcbq.cc(pad, v) <= within})
+        row("thermal_vias", "pass" if n >= need else "fail", f"thermal_vias:{ref}",
+            f"{ref} pad {padnum} ({pad.GetNetname()}): {n} vias within {within:.2f} mm (min {need}), drills {drills}", value=n, limit=need, objects=[ref], finding="R2")
+    COVERAGE.append(f"thermal_vias: {len(tv)} pads; vias on the pad's net within within_mm of the pad centre")
+
+
+def check_calcs(CFG, NL, B):
+    rows = CFG.get("calcs", [])
+    if not rows:
+        NOT_CHECKED.append("calcs: no calcs rows (buck ripple, LDO dissipation, sense scaling) so the log's arithmetic was not re-done")
+        return
+    import math
+    comps = NL[0]
+    def val(ref):
+        if ref not in comps:
+            raise KeyError(f"no component {ref}")
+        v = parse_value(comps[ref]["value"])
+        if v is None:
+            raise ValueError(f"{ref} value {comps[ref]['value']!r} is not a number")
+        return v
+    ns = {k: getattr(math, k) for k in ("sqrt", "log", "log10", "exp", "pi", "floor", "ceil", "fabs")}
+    ns.update({"R": val, "C": val, "L": val, "min": min, "max": max, "abs": abs})
+    for r in rows:
+        rid = r.get("id") or r.get("expr", "?")[:20]
+        local = dict(ns); local.update(r.get("vars", {}))
+        try:
+            v = eval(r["expr"], {"__builtins__": {}}, local)
+        except Exception as e:
+            row("calcs", "fail", f"calcs:{rid}", f"{r.get('expr')}: {type(e).__name__}: {e}", finding=r.get("finding", "")); continue
+        ns[rid] = v
+        lo, hi = r.get("min"), r.get("max")
+        ok = (lo is None or v >= float(lo) - 1e-9) and (hi is None or v <= float(hi) + 1e-9)
+        unit = r.get("unit", "")
+        row("calcs", "pass" if ok else "fail", f"calcs:{rid}",
+            f"{rid} = {r['expr']} = {v:.4g} {unit}" + (f" (min {lo})" if lo is not None else "") + (f" (max {hi})" if hi is not None else "")
+            + (f"; {r['note']}" if r.get("note") else ""), value=round(v, 6) if isinstance(v, (int, float)) else v,
+            limit=hi if hi is not None else lo, finding=r.get("finding", ""))
+    COVERAGE.append(f"calcs: {len(rows)} formula rows evaluated in order with R()/C()/L() from the netlist values")
+
+
 def check_fields(CFG, NL, B):
     req = CFG.get("fields", ["MPN", "Manufacturer", "LCSC", "Datasheet"])
     if not req:
@@ -563,7 +680,8 @@ def main():
               ("jumpers", lambda: check_jumpers(CFG, NL, B)),
               ("test_points", lambda: check_test_points(CFG, NL, B, bringup)), ("silk", lambda: check_silk(CFG, NL, B, bringup)),
               ("margin", lambda: check_margin(CFG, NL, B)), ("policy", lambda: check_policy(CFG, NL, B)),
-              ("fields", lambda: check_fields(CFG, NL, B))]
+              ("fields", lambda: check_fields(CFG, NL, B)), ("currents", lambda: check_currents(CFG, NL, B)),
+              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("calcs", lambda: check_calcs(CFG, NL, B))]
     for name, fn in checks:
         if only and name not in only:
             continue
