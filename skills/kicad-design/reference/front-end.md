@@ -32,6 +32,19 @@ the netlist-only fallback, and `Board.from_netlist` takes that netlist.
   (it leaves a `pin_to_pin` warning); `pcb schfix` adds a PWR_FLAG per undriven net.
 - `(dnp yes)` is written correctly for `dnp=True` components; R1-Z1-T3's "ignored DNP" was about the BOM path.
 
+## Gaps the attempt-2 designers met (R1-A2-T4; each cost a build cycle)
+
+- `properties={"Mpn": ...}` is rejected on stdlib generics: use `Part()` with its own properties, or vendor the part.
+- The stdlib generics drop `Lcsc`; a vendored `parts/R.zen` keeps it.
+- A 2-pad solder jumper has no `Bridged<digits>` in its footprint name, so `pcb check` cannot read its shipped
+  state; use the 3-pad `SolderJumper-3_..._Bridged12` family or declare `default` and accept the jumper row.
+- `Board()` needs `schematic=True` and `path=` for `pcb apply schematic` to produce the file.
+- `pcb apply schematic` updates incrementally: a renamed net leaves a stale label; delete `layout/x/x.kicad_sch`
+  and re-apply when nets change (then `pcb schfix` again).
+- NC pads are named `unconnected-(U1.U:10)` on the board and `unconnected-(U1-NC-Pad10)` in the schematic: the
+  two parity warnings are permanent and go in the log.
+- `pcb apply schematic x.zen --no-open`: the flag goes last (the wrapper does this; R1-A2-T1).
+
 ## Traps
 
 - `CopperFinish("HASL Lead-free")` is rejected; the string is `"HAL lead-free"` (R1-Z1-T5).

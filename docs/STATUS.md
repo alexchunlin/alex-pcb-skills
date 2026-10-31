@@ -1,4 +1,4 @@
-# Status (updated 2026-10-31, phase 1-4 items 1-7 done)
+# Status (updated 2026-10-31, phase 1-4 items 1-8 done)
 
 - Plan: `docs/GAMEPLAN.md`. Evidence: `docs/FINDINGS.md`. Survey with URLs: `docs/SURVEY-2026-10-31.md`. Handoff
   from the kickoff session: `docs/HANDOFF-2026-10-31.md` (its "Next" list is the work order).
@@ -17,13 +17,20 @@
   `docs/upstream/` awaiting Alex's go to post. Item 6 done: `skills/kicad-design/` (SKILL.md, reference/, templates/project/)
   and `skills/pcb-design-review/` (SKILL.md, rubric.md, checklist.md); P1-T17. Item 7 done: `tools/verify_all.sh --changed`
   (selector ported) and `tools/bench/replay.py` with 4 boards and 17 labels (recall 8/11 fails, 0 false fails;
-  P1-T18, P1-T19). `tools/verify_all.sh`: 136 checks, about 10 min, all passing.
+  P1-T18, P1-T19). `tools/verify_all.sh`: 149 checks, about 14 min, all passing.
 - Decisions (Alex): code is the source of truth; Zener provisional front end for rung 2; 4 layers by default with
   the phase-6 experiment deciding 6/8. Do not reopen.
-- Next (handoff "Next" item 8): rung-1 attempt 2 on the tools, two designers (Sonnet 5.5 and Fable) on the
-  `kicad-design` skill, reviewers on Fable with `pcb-design-review`, same brief, compared with 9/8/8 and 8/8/8 and
-  the token counts in FINDINGS; then rung 2 (`bench/design/rung2-motor-channel/BRIEF.md`). Before that: link the
-  skills into `~/.claude/skills`, decide on posting `docs/upstream/`.
-- Not done: no workflow template (phase 5), no topology or silk-readability rows (the two Plink misses), skills not
-  linked into `~/.claude/skills`, upstream issues not posted. The
+- Item 8 done: rung-1 attempt 2 on the skill. Sonnet 5.5 designer 9/9/8 in 42.9 min, Fable designer 9/8/8 in
+  43.9 min (attempt 1: 9/8/8 and 8/8/8 in 49 and 57 min); both attempt-1 majors gone; the new majors were a
+  lowered board setup and a gerber-order false alarm, both fixed as tools (P1-T20: `policy` and `fields` rows,
+  scoped exception rules in `pcb drc`, canonical gerber hashes). FINDINGS "Rung 1, attempt 2". Both attempt-2
+  boards are in `examples/` and the bench (6 boards, 24 labels).
+- Next: rung 2 (`bench/design/rung2-motor-channel/BRIEF.md`) on the skill, one designer first (Sonnet 5.5, the
+  cheaper of the two at the same score), reviewer on Fable; it exercises part import (DRV8874, TPS54620 are not in
+  the stock libraries, P0-T8), current-vs-width rows and the 4-layer plane policy, none of which rung 1 touched.
+  Before launching: a `calcs` row family (trace width vs current, LDO/buck dissipation) in pcbcheck, since rung 2's
+  claims will be those. Handoff for the next session: `docs/HANDOFF-2026-10-31-session2.md`.
+- Not done: no workflow template (phase 5), no topology or silk-readability rows (the two Plink misses), no `calcs`
+  rows, skills not linked into `~/.claude/skills` (Alex's call), upstream issues in `docs/upstream/` not posted
+  (Alex's call). The
   commits: phase 0, items 1-5.

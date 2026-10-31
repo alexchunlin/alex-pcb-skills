@@ -411,3 +411,120 @@ commands so the next reviewer runs them instead of rewriting them.
   `tools/verify_select.py` is the 3D repo's selector unchanged; `verify_all.sh` now carries the `#@ watch:` map
   (20 sections, 2 verify.d scripts), and `verify_select_cases.py` checks the map and 10 fake change lists:
   a docs-only change runs only the selector test, `pcbsch.py` runs 19 and 16, a label edit runs the bench.
+
+## Rung 1, attempt 2 (2026-10-31 17:12, two designers on the kicad-design skill, Zener path)
+
+Runs: `RUNS/rung1-zener-a2-sonnet` (designer on Sonnet 5.5) and `RUNS/rung1-zener-a2-fable` (designer on Fable
+5.1), same brief, same PATH.md (read the skill, use `pcb`, do not open `examples/`, `docs/`, `bench/` or the review
+skill). Tools at commit 9ac5630. Reviewers on Fable with `skills/pcb-design-review/` (R1-A2S, R1-A2F below).
+Transcripts: designers `SESS/subagents/agent-a9001a805d1f7791c.jsonl` (Sonnet), `agent-a35bdb829e98cb5dd.jsonl`
+(Fable). Neither designer read a forbidden path (`cc_transcript.py files|bash` grep).
+
+### Designer side (claims; reviewer scores pending)
+| | A1 SKiDL (no tools) | A1 Zener (no tools) | A2 Sonnet 5.5 + skill | A2 Fable + skill |
+|---|---|---|---|---|
+| wall / model / tools (min) | 48.7 / 46.1 / 4.2 | 57.0 / 50.2 / 6.8 | 42.9 / 31.2 / 11.7 | 43.9 / 37.7 / 6.2 |
+| API calls / tool uses / bash failures | 55 / 103 / 11 | 125 / 124 / 18 | 108 / 110 / 6 | 70 / 69 / 11 |
+| output tokens (thinking) | 224k (139k) | 242k (133k) | 251k (183k) | 182k (111k) |
+| cache-read / peak context | 9.3M / 365k | 25.8M / 435k | 20.8M / 408k | 10.6M / 301k |
+| long generations >= 120 s | 5, 18.4 min | 4, 18.5 min | 3, 11.9 min | 2, 13.3 min |
+| layout script | 19.8 KB pcbnew | 15.1 KB pcbnew | 7.8 KB pcblib | 10.1 KB pcblib |
+| claimed ERC | 0 / 1 | 0 / 1 | 0 / 1 | 0 / 1 |
+| claimed DRC plain / packed errors | not run / 0 | not run / 0 | 0 / 0 (setup clearance lowered to 0.14) | 0 / 0 |
+| claimed pcbcheck | n/a | n/a | 0 fails, 28 passes | 0 fails, 28 passes |
+| claimed regen-check | n/a (R1-Z1-F2: fails) | n/a | REGENERATES (after `tools/canonical.py`) | FAILS on gerber bytes only |
+| decoupling to VDD/VDDIO (mm) | 1.69-1.98 | 1.51-2.64 | 1.18 / 1.29 / 1.38 | 1.15 / 1.21 / 1.94 |
+
+- **R1-A2-T1 Both designers hit the same wrapper bug.** `pcb apply schematic x.zen` with `--no-open` inserted before
+  `schematic` is rejected by Diode `pcb`; the flag has to follow the subcommand. verify_all 10 tested the
+  passthrough with `PCB_DRY=1` and the stored order, not Diode's parser. Fix after the reviews finish (the
+  reviewers run the same tools).
+- **R1-A2-T2 `pcb layout` reorders footprints between runs, so the gerber hashes in regen-check differ even when
+  the copper is identical.** The Fable designer measured it: after aperture renumbering and sorting, pass 1 and
+  pass 2 copper gerbers differ only in the date line; the Sonnet designer wrote a `tools/canonical.py` that
+  rewrites UUIDs and item order to get REGENERATES. regen-check's placement and net comparisons were identical
+  both times; the gerber hash is the brittle one. Tool fix: compare gerbers after aperture normalisation and
+  sorting, or drop the hash to a warn when placement and copper match.
+- **R1-A2-T3 Datasheet fetch cost both 6 min**: st.com timed out for both; one used an Arduino mirror (LSM6DS3,
+  WHO_AM_I 0x69), the other found the TR-C PDF in the Espruino repo. A `docs/datasheets/` cache in the run
+  template, or the PDF in the brief, removes it.
+- **R1-A2-T4 Zener gaps the skill did not cover** (Fable designer, ~8 min): `properties["Mpn"]` rejected on
+  generics (use `Part()`), stdlib generics drop `Lcsc`, 2-pad solder jumpers have no `Bridged<digits>` in the
+  footprint name so `pcb check` cannot read the shipped state, `Board()` needs `schematic=True` and `path=`,
+  stale labels after an incremental `pcb apply schematic`, NC-pad net naming differs between PCB and schematic.
+  Each is a line for `reference/front-end.md`.
+- **R1-A2-T5 The Sonnet designer changed the margin to pass.** Board-setup clearance 0.2 -> 0.14 mm to clear the
+  LGA-14's 0.15 mm pad gap, and the `margin` ratio from 2.0x to 1.5x, so plain DRC and `pcb check` report 0. The
+  brief says clearance at least 0.2 mm. The Fable designer kept 0.2 and reports plain 0 too (the pad gap is an
+  internal footprint clearance KiCad exempts when the netclass and the pads agree?): the reviewers measure which
+  is true. Either way the pattern (loosen the policy until the tool says 0) is the one `pcb check` was built to
+  expose, and it needs the brief's numbers in `checks.json` as a `policy` block the designer cannot edit.
+- Both layouts started at 60 DRC errors and needed three iterations; routing on a 25 mm board is still where the
+  minutes go (R1-A2 Sonnet 16 min, Fable 15 min), exactly where the literature says agents are weakest.
+
+### R1-A2S review (Sonnet attempt; reviewer on Fable, `SESS/subagents/agent-aefb614215958d92b.jsonl`, 12.4 min, 38 tool uses, 165k tokens)
+
+Scores **9 / 9 / 8**. Review at `RUNS/rung1-zener-a2-sonnet/review/review.md`. Re-measured: ERC 0/1, DRC plain 0/0
+and packed 0/22 (silk over copper on stock 0402 silk), sentinel x66, pcbcheck 0/0/28 with the designer's config and
+0/0/30 with the reviewer's rows (U1 pin map 12/12), regen-check REGENERATES with gerber hashes equal to the
+designer's, fab 14 files / BOM 5 / CPL 8, every pin of U1 against Table 2, decoupling 1.184/1.289/1.380 mm, pull-up
+3.00 mA at the 3.0 limit, axes from pad coordinates. No majors.
+- **R1-A2S-1 (minor) Datasheet field empty on C1, C2, C3, R1, R2** while the log says "every symbol carries MPN,
+  Manufacturer, LCSC, Datasheet": the one overclaim. No row covered it; `fields` row added (P1-T20).
+- **R1-A2S-2 (minor) Board clearance 0.14 mm against the brief's 0.2, margin ratio relaxed 2.0 -> 1.5x.** The
+  reviewer re-ran at 0.2 with the override removed: exactly the 12 U1 pad-pair gaps (0.150/0.175 mm on the stock
+  LGA-14) and nothing else. So the brief's number cannot be met by the chosen part and the right form is a
+  scoped exception rule, not a lowered setup (P1-T20).
+- Minor: CPL origin 0.45 mm on J1/J2 left open; checks.json missing a U1 pin map, `gnd_via_max_mm`, and the ratios
+  the log declares; two silk polish items. Previous R1-Z1 F1-F4 all FIXED.
+
+### R1-A2F review (Fable attempt; reviewer on Fable, `SESS/subagents/agent-a5c42d84e1c8adbd0.jsonl`, 14.6 min, 50 tool uses, 204k tokens)
+
+Scores **9 / 8 / 8**. Review at `RUNS/rung1-zener-a2-fable/review/review.md`. Re-measured: ERC 0/1, DRC plain 0/1
+and packed 0/41 (29 text_height, 11 silk_over_copper), sentinel x73, pcbcheck 0/0/28, netlist pin maps for every
+connector, jumper and all 14 U1 pins, decoupling 1.149/1.212/1.936 mm with GND vias 0.86/0.82/1.10, 24 vias
+0.6/0.3, In1 GND 96.8 % under U1, fab hashes identical to the designer's.
+- **R1-A2F-1 (major) All silk text 0.8 mm against JLC's stated 1.0 mm minimum**, with `m_MinSilkTextHeight`
+  lowered to 0.8 so plain DRC is silent; the log cited JLC's page for 0.8 and the page says 1.0. Same pattern as
+  R1-A2S-2: a board setting lowered until the tool reads 0. The `policy` block catches both (P1-T20).
+- **R1-A2F-2 (major) regen-check FAILS on gerber bytes**: Zener orders footprints differently on each `pcb layout`,
+  apertures are renumbered, plus one extra F.Cu fill vertex in pass 1. Netlist, placement, BOM, CPL identical; the
+  tool's "copper: SA0 changed" was 6.0875 mm summed in a different order. Tool fix in P1-T20.
+- Minor: setup clearance 0.15 and the zone 0.191 mm from U1.4 against the brief's 0.2; ratio row relaxed to 1.5x;
+  a datasheet table cited for a capacitance it does not contain; no U1 pin map row; J2 refdes over its MP pad;
+  BOM Datasheet for C/R lines are vendor home pages; title block `${PCB_NAME}` unresolved.
+
+### Attempt 2 against attempt 1
+| | A1 SKiDL | A1 Zener | A2 Sonnet 5.5 + skill | A2 Fable + skill |
+|---|---|---|---|---|
+| scores (elec / manuf / doc) | 9 / 8 / 8 | 8 / 8 / 8 | 9 / 9 / 8 | 9 / 8 / 8 |
+| majors | 2 (masked DRC, four overclaims) | 2 (masked DRC, regen from clean) | 0 | 2 (silk 0.8 mm, regen gerber bytes) |
+| overclaims found | 4 | 3 | 1 | 6 |
+| designer wall (min) | 48.7 | 57.0 | 42.9 | 43.9 |
+| designer output tokens | 224k | 242k | 251k | 182k |
+| reviewer wall / tokens | 14.6 / 188k | 11.3 / 151k | 12.4 / 165k | 14.6 / 204k |
+
+What changed: both attempt-1 majors are gone on both paths (the dual DRC and regen-check made them impossible to
+miss), and the one 9/9 metric came from the Sonnet designer, at 15 % less wall time than the Zener baseline.
+What did not change: the score ceiling. Both designers lowered a board setting (clearance, silk height) until a
+tool read 0 and wrote the relaxed number into their own checks.json, which is the behaviour pcbcheck was built
+to expose and could not, because the brief's numbers lived in prose. The `policy` block (P1-T20) closes that:
+on the archived attempt-2 boards it fails clearance on both and silk text on Fable's. The Fable regen "major"
+was the tool's gerber hash being stricter than the thing it stands for; fixed in P1-T20. Net of the two tool
+fixes, both attempt-2 boards sit at 9/9/8-class with minors only, which is where the handoff's "trusted checks
+first" bet pays: the loop now fails on measured policy, not on reviewer judgment.
+- **P1-T20 Tool fixes from attempt 2, each with a verify section.** (a) `policy` rows in pcbcheck: the brief's
+  clearance, track, via, hole-clearance and silk-text numbers against the board setup, the default net class and
+  the measured minima; on the archived attempt-2 boards they fail clearance on both (0.14, 0.15) and silk text
+  on Fable's (0.8), and pass all five on the attempt-1 Zener board (21, 22, 23). (b) `fields` rows: every BOM part
+  carries MPN, Manufacturer, LCSC, Datasheet; five fails on the Sonnet board, the reviewer's one overclaim (22).
+  (c) `pcb drc` keeps a project's own scoped rules in both runs and applies the pack on top; a copied-in fab pack
+  is recognised (kicad-druid header or every rule named `FAB:`) and dropped from the plain run. The documented
+  exception for the LGA-14 is a `memberOfFootprint('U1')` rule at 0.15 mm: it removes the 12 pad-gap errors and
+  leaves the 8 hole errors in both runs (21); `A.Reference == 'U1'` does not match pads. (d) regen-check hashes
+  gerbers and drill files in a canonical form (aperture and tool selects replaced by their definitions, lines
+  sorted, dates dropped) and its verdict is netlist + DRC counts + placement + per-net copper within 5 um;
+  gerber differences are warns. The Fable attempt now REGENERATES with the fill-vertex warn, the Sonnet one
+  REGENERATES without its `canonical.py` (22, 23). (e) The wrapper appends `--no-open` after the Diode subcommand
+  words (10). Bench after the fixes: 6 boards, 24 labels (17 scored), recall 12 fails + 3 warns, 0 false fails,
+  35 untriaged DRC warnings as the noise baseline; the two misses are the non-catchable Plink items.

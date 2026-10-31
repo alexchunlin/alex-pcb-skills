@@ -1,26 +1,109 @@
 {
   "_about": "Intent for the rung-1 Qwiic IMU brief (bench/design/rung1-qwiic-imu/BRIEF.md), net names as the Zener attempt wrote them. Expected on the R1-Z1 board: C3 over 2 mm (R1-Z1-F3), 10 refdes hidden (R1-Z1-F4), the rest passing.",
   "project": "rung1-zener-a1",
-  "rails": {"3V3": {"v": 3.3, "source": "Qwiic, no regulator"}, "GND": {}},
+  "rails": {
+    "3V3": {
+      "v": 3.3,
+      "source": "Qwiic, no regulator"
+    },
+    "GND": {}
+  },
   "decoupling_max_mm": 2.0,
   "decoupling": [
-    {"ic": "U1", "pin": "8", "cap": "C1", "max_mm": 2.0},
-    {"ic": "U1", "pin": "5", "cap": "C2", "max_mm": 2.0},
-    {"ic": "U1", "pin": "8", "cap": "C3", "max_mm": 2.0}
+    {
+      "ic": "U1",
+      "pin": "8",
+      "cap": "C1",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U1",
+      "pin": "5",
+      "cap": "C2",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U1",
+      "pin": "8",
+      "cap": "C3",
+      "max_mm": 2.0
+    }
   ],
   "buses": {
-    "I2C": {"sda": "SDA", "scl": "SCL", "rail": "3V3", "max_sink_ma": 3.0, "chain_boards": 2,
-            "devices": {"U1": {"address": "0x6B", "strap": {"pin": "1", "high": "0x6B", "low": "0x6A"}}}}
+    "I2C": {
+      "sda": "SDA",
+      "scl": "SCL",
+      "rail": "3V3",
+      "max_sink_ma": 3.0,
+      "chain_boards": 2,
+      "devices": {
+        "U1": {
+          "address": "0x6B",
+          "strap": {
+            "pin": "1",
+            "high": "0x6B",
+            "low": "0x6A"
+          }
+        }
+      }
+    }
   },
   "connectors": {
-    "J1": {"1": "GND", "2": "3V3", "3": "SDA", "4": "SCL"},
-    "J2": {"1": "GND", "2": "3V3", "3": "SDA", "4": "SCL"},
-    "J3": {"1": "INT1", "2": "INT2", "3": "SDA", "4": "SCL"}
+    "J1": {
+      "1": "GND",
+      "2": "3V3",
+      "3": "SDA",
+      "4": "SCL"
+    },
+    "J2": {
+      "1": "GND",
+      "2": "3V3",
+      "3": "SDA",
+      "4": "SCL"
+    },
+    "J3": {
+      "1": "INT1",
+      "2": "INT2",
+      "3": "SDA",
+      "4": "SCL"
+    }
   },
   "jumpers": {
-    "JP1": {"pads": {"1": "3V3", "2": "SA0", "3": "GND"}, "default": "1-2"},
-    "JP2": {"pads": {"1": "PU_SDA", "2": "3V3", "3": "PU_SCL"}, "default": "1-2-3"}
+    "JP1": {
+      "pads": {
+        "1": "3V3",
+        "2": "SA0",
+        "3": "GND"
+      },
+      "default": "1-2"
+    },
+    "JP2": {
+      "pads": {
+        "1": "PU_SDA",
+        "2": "3V3",
+        "3": "PU_SCL"
+      },
+      "default": "1-2-3"
+    }
   },
-  "test_points": {"TP1": "GND", "TP2": "3V3"},
-  "margin": {"pack": "jlcpcb", "default_ratio": 1.0, "min_ratio": {"track_width": 2.0, "clearance": 2.0, "via_drill": 2.0}}
+  "test_points": {
+    "TP1": "GND",
+    "TP2": "3V3"
+  },
+  "margin": {
+    "pack": "jlcpcb",
+    "default_ratio": 1.0,
+    "min_ratio": {
+      "track_width": 2.0,
+      "clearance": 2.0,
+      "via_drill": 2.0
+    }
+  },
+  "policy": {
+    "clearance_mm": 0.2,
+    "track_mm": 0.2,
+    "via_drill_mm": 0.3,
+    "via_dia_mm": 0.6,
+    "silk_text_mm": 1.0
+  }
 }

@@ -32,3 +32,14 @@ IDs point into `<repo>/docs/FINDINGS.md`. "Caught" means the tool flags it on th
 | P1-T2 | kicad-cli caps each violation type at 199 | `pcb drc` lists `capped_types` (3) |
 | P0-T5, P1-T4 | a rejected rule file makes DRC exit 0 silently | sentinel rule; exit 2 (4) |
 | R1-S1-T6, R1-Z1-T7 | pack margins bite the design (silk clearance on test points, JST tabs vs edge) | declare per-footprint exceptions in `accepted_warns` with the reason; not yet a row |
+
+## Attempt 2 (both designers on this skill; what the reviewers still found)
+
+| ID | Mistake | Catch |
+|---|---|---|
+| R1-A2S-2, R1-A2F-1, R1-A2F-3 | board setup lowered (clearance 0.14/0.15, silk text 0.8) until plain DRC read 0, and the relaxed number written into checks.json | `policy` rows against the brief's numbers; a scoped exception rule for the one footprint that cannot meet them (21, 22, 23) |
+| R1-A2S-1 | "every symbol carries Datasheet" with five empty | `fields` row (22) |
+| R1-A2F-2 | regen-check failed on gerber bytes that Zener's footprint order changes every run | canonical gerber hashes; the verdict is netlist + DRC + placement + copper, gerbers warn (23) |
+| R1-A2-T1 | `--no-open` before `schematic` rejected by Diode `pcb` | wrapper appends it (10) |
+| R1-A2-T3 | 6 min each fetching the datasheet from a timing-out st.com | fetch into `docs/` first; a mirror is fine |
+| R1-A2-T4 | six Zener gaps, one build cycle each | `reference/front-end.md` "Gaps the attempt-2 designers met" |

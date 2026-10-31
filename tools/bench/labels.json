@@ -6,7 +6,8 @@
   "is caught by a line whose status (fail/warn/info) the scoring reads; `partial: true` marks a locator that covers only part",
   "of the issue. `process: true` labels (overclaims, a wrong clock) are out of every denominator.",
   "`known_true_positives`: fails the tools report that no reviewer raised but which are right; they excuse false_fails and credit nothing.",
-  "`negatives`: boards that must NOT fail a given row (plink-fixed: the rework); a fail there counts as a false fail."
+  "`negatives`: boards that must NOT fail a given row (plink-fixed: the rework); a fail there counts as a false fail.",
+  "regen lines: 'regen pass verdict REGENERATES' is the intended line for R1-A2F-2 (the tool now warns on gerber order instead of failing): the label's first locator matches pass or fail so it is caught either way, and the partial warn locator records that the gerbers were reported."
  ],
  "labels": [
   {
@@ -261,6 +262,116 @@
     }
    ],
    "source": "docs/FINDINGS.md P0-T2"
+  },
+  {
+   "attempt": "rung1-zener-a2-sonnet",
+   "id": "R1-A2S-1",
+   "severity": "minor",
+   "metric": "documentation",
+   "tool_catchable": true,
+   "summary": "Datasheet field empty on C1, C2, C3, R1, R2 while the log says every symbol carries it",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail fields:C1: .*missing Datasheet"
+    }
+   ],
+   "source": "docs/FINDINGS.md R1-A2S-1"
+  },
+  {
+   "attempt": "rung1-zener-a2-sonnet",
+   "id": "R1-A2S-2",
+   "severity": "minor",
+   "metric": "manufacturability",
+   "tool_catchable": true,
+   "summary": "board clearance lowered to 0.14 mm against the brief's 0.2 (only the LGA-14 pad gaps fail at 0.2)",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail policy:clearance_mm: .*setup 0\\.14"
+    }
+   ],
+   "source": "docs/FINDINGS.md R1-A2S-2"
+  },
+  {
+   "attempt": "rung1-zener-a2-sonnet",
+   "id": "R1-A2S-3",
+   "severity": "minor",
+   "metric": "manufacturability",
+   "tool_catchable": true,
+   "summary": "CPL origin 0.45 mm off the JST body on J1/J2, left open",
+   "locators": [
+    {
+     "report": "fab",
+     "pattern": "^fab warn cpl_offset J[12] 0\\.45"
+    }
+   ],
+   "source": "docs/FINDINGS.md R1-A2S review minors"
+  },
+  {
+   "attempt": "rung1-zener-a2-fable",
+   "id": "R1-A2F-1",
+   "severity": "major",
+   "metric": "manufacturability",
+   "tool_catchable": true,
+   "summary": "all silk text 0.8 mm against JLC's 1.0 mm minimum; m_MinSilkTextHeight lowered to 0.8",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail policy:silk_text_mm: .*smallest silk text 0\\.8"
+    }
+   ],
+   "source": "docs/FINDINGS.md R1-A2F-1"
+  },
+  {
+   "attempt": "rung1-zener-a2-fable",
+   "id": "R1-A2F-2",
+   "severity": "major",
+   "metric": "documentation",
+   "tool_catchable": true,
+   "summary": "regen-check FAILS on gerber bytes (footprint order, aperture numbering, one fill vertex); netlist, placement, copper identical",
+   "locators": [
+    {
+     "report": "regen",
+     "pattern": "^regen (pass|fail) verdict "
+    },
+    {
+     "report": "regen",
+     "pattern": "^regen warn gerber",
+     "partial": true
+    }
+   ],
+   "source": "docs/FINDINGS.md R1-A2F-2"
+  },
+  {
+   "attempt": "rung1-zener-a2-fable",
+   "id": "R1-A2F-3",
+   "severity": "minor",
+   "metric": "manufacturability",
+   "tool_catchable": true,
+   "summary": "setup clearance 0.15 against the brief's 0.2; zone 0.191 mm from U1.4",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail policy:clearance_mm: .*setup 0\\.15"
+    }
+   ],
+   "source": "docs/FINDINGS.md R1-A2F review minors"
+  },
+  {
+   "attempt": "rung1-zener-a2-fable",
+   "id": "R1-A2F-4",
+   "severity": "minor",
+   "metric": "manufacturability",
+   "tool_catchable": true,
+   "summary": "CPL origin 0.45 mm off on J1/J2",
+   "locators": [
+    {
+     "report": "fab",
+     "pattern": "^fab warn cpl_offset J[12] 0\\.45"
+    }
+   ],
+   "source": "docs/FINDINGS.md R1-A2F review"
   }
  ],
  "known_true_positives": [
@@ -311,6 +422,12 @@
    "report": "check",
    "pattern": "^check fail decoupling:C[23]:gnd_via",
    "why": "the same 'GND vias within 1 mm' claim on the other caps (C2 at 1.10)"
+  },
+  {
+   "attempt": "rung1-zener-a2-sonnet",
+   "report": "check",
+   "pattern": "^check fail fields:(C2|C3|R1|R2):",
+   "why": "the same missing Datasheet on the other four parts (R1-A2S-1)"
   }
  ],
  "negatives": [

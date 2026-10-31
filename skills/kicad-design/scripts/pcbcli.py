@@ -60,18 +60,53 @@ def copper_layers(board):
 DATE_LINE = re.compile(rb"CreationDate|DRILL file .* date |G04 Created by KiCad .* date ")
 
 
+GERBER_EXT = (".gtl", ".gbl", ".gts", ".gbs", ".gto", ".gbo", ".gtp", ".gbp", ".gm1", ".gbr") + tuple(f".g{i}" for i in range(1, 31))
+AP_DEF = re.compile(rb"^%ADD(\d+)(.*)\*%$")
+AP_USE = re.compile(rb"^D(\d+)\*$")
+TOOL_DEF = re.compile(rb"^T(\d+)(C.*)$")
+TOOL_USE = re.compile(rb"^T(\d+)$")
+
+
+def canonical_lines(path, data):
+    """Order- and numbering-independent form of a gerber or drill file: aperture/tool selects are replaced by their
+    definitions, date lines dropped, and the lines sorted. `pcb layout` reorders footprints between runs and
+    pcbnew renumbers apertures to match, so the raw bytes differ while the copper is identical (R1-A2-T2)."""
+    lines = [l.rstrip(b"\r\n") for l in data.splitlines()]
+    lines = [l for l in lines if not DATE_LINE.search(l)]
+    if path.endswith(GERBER_EXT):
+        defs = {m.group(1): m.group(2) for l in lines for m in [AP_DEF.match(l)] if m}
+        out = []
+        for l in lines:
+            m = AP_USE.match(l)
+            if m and m.group(1) in defs:
+                out.append(b"D" + defs[m.group(1)] + b"*")
+            elif not AP_DEF.match(l):
+                out.append(l)
+        return sorted(out)
+    if path.endswith(".drl"):
+        defs = {m.group(1): m.group(2) for l in lines for m in [TOOL_DEF.match(l)] if m}
+        out = []
+        for l in lines:
+            m = TOOL_USE.match(l)
+            if m and m.group(1) in defs:
+                out.append(b"T" + defs[m.group(1)])
+            elif not TOOL_DEF.match(l):
+                out.append(l)
+        return sorted(out)
+    return lines
+
+
 def sha256(path):
-    """sha256 of the file with its timestamp lines dropped (gerber %TF.CreationDate, drill '; ... date', gbrjob
-    "CreationDate"), so two regenerations of the same board hash the same (P1-T9)."""
+    """sha256 of the canonical form (canonical_lines) for gerber and drill files; timestamp lines dropped for other
+    text files; raw bytes for png/zip (P1-T9, R1-A2-T2)."""
     h = hashlib.sha256()
     with open(path, "rb") as f:
         data = f.read()
     if path.endswith((".png", ".zip")):
         h.update(data)
     else:
-        for line in data.splitlines(True):
-            if not DATE_LINE.search(line):
-                h.update(line)
+        for line in canonical_lines(path, data):
+            h.update(line + b"\n")
     return h.hexdigest()
 
 
@@ -126,11 +161,22 @@ def setup_rules(board):
         return {}, pro
 
 
+def is_fab_pack(path):
+    """A kicad-druid style fab pack (every rule named 'FAB: ...', generated header) rather than project intent."""
+    try:
+        head = open(path, errors="replace").read(4000)
+    except OSError:
+        return False
+    names = re.findall(r'\(rule\s+"([^"]+)"', open(path, errors="replace").read())
+    return "generate_dru.py" in head or (bool(names) and all(re.match(r"(JLCPCB|PCBWay|Generic):", n) for n in names))
+
+
 def resolve_pack(spec, board):
-    """--pack FILE | jlcpcb | pcbway | generic (variant by copper count from kicad-druid) | None (project's own)."""
+    """--pack FILE | jlcpcb | pcbway | generic (variant by copper count from kicad-druid) | None (the project's own
+    .kicad_dru when it is a copied-in fab pack; otherwise no pack)."""
     if spec is None:
         own = sibling(board, ".kicad_dru")
-        return own
+        return own if own and is_fab_pack(own) else None
     if os.path.exists(spec):
         return os.path.abspath(spec)
     fab = {"jlcpcb": "JLCPCB", "pcbway": "PCBWay", "generic": "Generic"}.get(spec.lower())
@@ -248,10 +294,19 @@ def cmd_drc(a):
     result = {"board": board, "project": pro, "pack": pack, "parity": parity, "floor": not a.no_floor,
               "board_segments": segs, "setup": setup}
     try:
-        # plain: the project's own board-setup constraints, no custom rule file at all
+        # plain: the board setup plus the project's own rules. A fab pack copied in as <name>.kicad_dru is not
+        # project intent (both baseline designers did that, R1-S1-F1) and is removed; scoped exception rules
+        # (an LGA pad-to-pad clearance on U1) are intent and stay in both runs (R1-A2-T5)
         own = os.path.join(os.path.dirname(b_plain), stem(board) + ".kicad_dru")
+        project_rules = ""
         if os.path.exists(own):
-            os.remove(own)
+            if is_fab_pack(own):
+                os.remove(own)
+                result["project_dru"] = "fab pack, removed from the plain run"
+            else:
+                project_rules = open(own).read()
+                names = re.findall(r'\(rule\s+"([^"]+)"', project_rules)
+                result["project_dru"] = f"project rules kept in both runs: {names}"
         common = ["pcb", "drc", "--format", "json", "--severity-all"] + (["--schematic-parity"] if parity else [])
         rc, log = kicad(*common, "-o", os.path.join(out, "drc-plain.json"), b_plain)
         if not os.path.exists(os.path.join(out, "drc-plain.json")):
@@ -263,7 +318,8 @@ def cmd_drc(a):
                 sys.exit(f"drc: {pack} does not start with (version 1); KiCad would reject it silently")
             new, relaxed, raised = floor_pack(text, setup, not a.no_floor)
             with open(own, "w") as f:
-                f.write(new + SENTINEL)
+                # project rules after the pack: later rules win in KiCad, so a scoped exception beats the pack
+                f.write(new + ("\n# project rules (kept from the project's own .kicad_dru)\n" + project_rules.replace("(version 1)", "", 1) if project_rules else "") + SENTINEL)
             shutil.copy(own, os.path.join(out, "pack-used.kicad_dru"))
             rc, log = kicad(*common, "-o", os.path.join(out, "drc-packed.json"), b_plain)
             if not os.path.exists(os.path.join(out, "drc-packed.json")):
@@ -299,7 +355,8 @@ def cmd_drc(a):
     def line(tag, c):
         return (f"  {tag:7} {c['errors']:4} errors {c['warnings']:4} warnings  unconnected {c['unconnected']}"
                 f"  parity {c['parity']}  -> {rel(c['file'])}")
-    print(f"DRC {os.path.basename(board)}  parity={'on' if parity else 'off'}  setup={'yes' if setup else 'none'}")
+    print(f"DRC {os.path.basename(board)}  parity={'on' if parity else 'off'}  setup={'yes' if setup else 'none'}"
+          + (f"  project .kicad_dru: {result['project_dru']}" if result.get("project_dru") else ""))
     print(line("plain", result["plain"]) + "   (board setup only)")
     if result["packed"]:
         print(line("packed", result["packed"]) + f"   ({os.path.basename(pack)}, "
@@ -615,7 +672,11 @@ def compare(a, b):
                 if ka != kb:
                     diffs.append(f"{key}: {len(ka - kb)} only in first, {len(kb - ka)} only in second")
             else:
-                ch = [k for k in ka & kb if a[key][k] != b[key][k]]
+                def same(x, y):   # copper lengths are sums over segments in file order: 5 um of rounding is not a change
+                    if key == "copper" and isinstance(x, list) and isinstance(y, list) and len(x) == len(y) == 3:
+                        return abs((x[0] or 0) - (y[0] or 0)) <= 0.005 and x[1] == y[1] and x[2] == y[2]
+                    return x == y
+                ch = [k for k in ka & kb if not same(a[key][k], b[key][k])]
                 if ka != kb or ch:
                     diffs.append(f"{key}: {len(ka ^ kb)} items added/removed, {len(ch)} changed ({', '.join(sorted(ch)[:6])})")
         elif (key in a) != (key in b):
@@ -630,7 +691,7 @@ def compare(a, b):
         ga, gb = a["fab"]["gerbers"], b["fab"]["gerbers"]
         bad = sorted(f for f in set(ga) | set(gb) if ga.get(f) != gb.get(f))
         if bad:
-            diffs.append(f"fab gerbers differ: {', '.join(bad)}")
+            diffs.append(f"fab gerbers differ (canonical form): {', '.join(bad)}")
         bad = sorted(f for f in set(a["fab"]["csv"]) | set(b["fab"]["csv"]) if a["fab"]["csv"].get(f) != b["fab"]["csv"].get(f))
         if bad:
             diffs.append(f"fab csv differ: {', '.join(bad)}")
@@ -697,8 +758,14 @@ def cmd_regen_check(a):
     res["pass1"], res["pass2"] = passes
     res["diff_ref_pass1"] = compare(res["ref"], passes[0])
     res["diff_pass1_pass2"] = compare(passes[0], passes[1])
+    # the verdict is on what "code is the source of truth" means: the regeneration runs, and netlist, DRC counts,
+    # placement and copper come out the same twice and as handed in. Gerber differences are reported (they are
+    # real: a fill vertex, R1-A2-T2) but do not fail the verdict on their own, since the zone filler is not
+    # bit-stable and the copper comparison already covers what the gerbers encode.
+    hard = lambda diffs: [d for d in diffs if not d.startswith("fab gerbers differ")]
     ok = (passes[0]["cmd_exit"] == 0 and passes[1]["cmd_exit"] == 0 and not passes[0]["missing"]
-          and not res["diff_ref_pass1"] and not res["diff_pass1_pass2"] and not passes[0]["gui_appeared"])
+          and not hard(res["diff_ref_pass1"]) and not hard(res["diff_pass1_pass2"]) and not passes[0]["gui_appeared"])
+    res["gerber_warns"] = [d for d in res["diff_ref_pass1"] + res["diff_pass1_pass2"] if d.startswith("fab gerbers differ")]
     res["verdict"] = "REGENERATES" if ok else "FAILS"
     json.dump(res, open(os.path.join(out, "regen.json"), "w"), indent=1)
     print(f"  removed before pass 1: {', '.join(removed) or 'nothing (no --generated list)'}")
@@ -708,6 +775,8 @@ def cmd_regen_check(a):
         d = m.get("drc", {})
         print(f"  pass {n}: exit {m['cmd_exit']}, DRC plain {d.get('plain_errors', '?')} err / {d.get('plain_warnings', '?')} warn, "
               f"packed {d.get('packed_errors', '?')} err, fab {'ok' if 'fab' in m else 'MISSING'}")
+    for w in res["gerber_warns"]:
+        print(f"  warn: {w} (not part of the verdict)")
     print(f"  {res['verdict']} -> {rel(os.path.join(out, 'regen.json'))}")
     return 0 if ok else 1
 

@@ -9,6 +9,10 @@ test points `TP*`), the same rule cadcheck applies. Net names are the project's 
 {
   "_about": "notes start with _",
   "project": "rung1-zener-a1",
+  "policy": {"clearance_mm": 0.2, "track_mm": 0.2, "via_drill_mm": 0.3, "via_dia_mm": 0.6, "hole_clearance_mm": 0.3,
+             "silk_text_mm": 1.0},                                    // the brief's numbers; never lowered (R1-A2-T5)
+  "fields": ["MPN", "Manufacturer", "LCSC", "Datasheet"],              // required on every BOM part (default when absent)
+  "pinmaps": {"U1": {"13": "SCL", "14": "SDA"}},                       // pin -> net for any reference (the Plink IMU swap, P1-T18)
   "rails": {"3V3": {"v": 3.3, "source": "Qwiic"}, "GND": {}},        // every net with a power pin or GND-like name
   "decoupling_max_mm": 2.0,                                             // nearest cap to every power_in pin (netlist pin types)
   "decoupling": [{"ic": "U1", "pin": "8", "cap": "C3", "max_mm": 2.0}], // named rows: the cap to that pin, measured (R1-Z1-F3)
@@ -34,6 +38,9 @@ test points `TP*`), the same rule cadcheck applies. Net names are the project's 
 | test_points | one per `TP*`, one warn per rail without a TP | undeclared; wrong net; not named in the bring-up doc | |
 | silk | one row | a refdes the bring-up doc names has no visible Reference or silk text | R1-Z1-F4 |
 | margin | one per feature | actual / fab floor below `min_ratio` (track width and vias measured; clearances are the setup values) | R1-S1-F2 |
+| policy | one per brief number | the board setup, the default net class or a measured minimum (narrowest track, smallest via, smallest silk text) is below the policy | R1-A2-T5 |
+| fields | one per BOM part | a required field is empty on the footprint | R1-A2S-1 |
+| pinmaps | one per declared reference | a declared pin is on another net | P1-T18 |
 
 `pcb check x.kicad_pcb checks.json --only connectors,rails` runs a subset; `--netlist x.xml` and `--bringup F`
 override the defaults (`<stem>.xml`, exported from `<stem>.kicad_sch` when missing). The report is `pcbcheck.json`:

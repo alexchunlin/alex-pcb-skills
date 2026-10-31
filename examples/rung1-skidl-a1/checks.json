@@ -1,27 +1,105 @@
 {
   "_about": "Same intent as examples/rung1-zener-a1/checks.json with the SKiDL attempt's net names (+3V3, /SDA) and its jumper/test-point numbering. chain_boards 4 reproduces the design log's 'up to four boards' claim (R1-S1-F2); min_ratio 2.0 everywhere reproduces 'every feature 2x the fab floor'; gnd_via_max_mm 1.0 reproduces 'GND vias within 1 mm' (C1 at 1.21).",
   "project": "rung1-skidl-a1",
-  "rails": {"+3V3": {"v": 3.3, "source": "Qwiic, no regulator"}, "GND": {}},
+  "rails": {
+    "+3V3": {
+      "v": 3.3,
+      "source": "Qwiic, no regulator"
+    },
+    "GND": {}
+  },
   "decoupling_max_mm": 2.0,
   "gnd_via_max_mm": 1.0,
   "decoupling": [
-    {"ic": "U1", "pin": "8", "cap": "C1", "max_mm": 2.0},
-    {"ic": "U1", "pin": "5", "cap": "C2", "max_mm": 2.0},
-    {"ic": "U1", "pin": "8", "cap": "C3", "max_mm": 2.0}
+    {
+      "ic": "U1",
+      "pin": "8",
+      "cap": "C1",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U1",
+      "pin": "5",
+      "cap": "C2",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U1",
+      "pin": "8",
+      "cap": "C3",
+      "max_mm": 2.0
+    }
   ],
   "buses": {
-    "I2C": {"sda": "/SDA", "scl": "/SCL", "rail": "+3V3", "max_sink_ma": 3.0, "chain_boards": 4,
-            "devices": {"U1": {"address": "0x6B", "strap": {"pin": "1", "high": "0x6B", "low": "0x6A"}}}}
+    "I2C": {
+      "sda": "/SDA",
+      "scl": "/SCL",
+      "rail": "+3V3",
+      "max_sink_ma": 3.0,
+      "chain_boards": 4,
+      "devices": {
+        "U1": {
+          "address": "0x6B",
+          "strap": {
+            "pin": "1",
+            "high": "0x6B",
+            "low": "0x6A"
+          }
+        }
+      }
+    }
   },
   "connectors": {
-    "J1": {"1": "GND", "2": "+3V3", "3": "/SDA", "4": "/SCL"},
-    "J2": {"1": "GND", "2": "+3V3", "3": "/SDA", "4": "/SCL"},
-    "J3": {"1": "/INT1", "2": "/INT2", "3": "/SDA", "4": "/SCL"}
+    "J1": {
+      "1": "GND",
+      "2": "+3V3",
+      "3": "/SDA",
+      "4": "/SCL"
+    },
+    "J2": {
+      "1": "GND",
+      "2": "+3V3",
+      "3": "/SDA",
+      "4": "/SCL"
+    },
+    "J3": {
+      "1": "/INT1",
+      "2": "/INT2",
+      "3": "/SDA",
+      "4": "/SCL"
+    }
   },
   "jumpers": {
-    "JP1": {"pads": {"1": "/PU_SDA", "2": "+3V3", "3": "/PU_SCL"}, "default": "1-2-3"},
-    "JP2": {"pads": {"1": "+3V3", "2": "/SA0", "3": "GND"}, "default": "1-2"}
+    "JP1": {
+      "pads": {
+        "1": "/PU_SDA",
+        "2": "+3V3",
+        "3": "/PU_SCL"
+      },
+      "default": "1-2-3"
+    },
+    "JP2": {
+      "pads": {
+        "1": "+3V3",
+        "2": "/SA0",
+        "3": "GND"
+      },
+      "default": "1-2"
+    }
   },
-  "test_points": {"TP1": "+3V3", "TP2": "GND"},
-  "margin": {"pack": "jlcpcb", "default_ratio": 2.0}
+  "test_points": {
+    "TP1": "+3V3",
+    "TP2": "GND"
+  },
+  "margin": {
+    "pack": "jlcpcb",
+    "default_ratio": 2.0
+  },
+  "policy": {
+    "clearance_mm": 0.2,
+    "track_mm": 0.2,
+    "via_drill_mm": 0.3,
+    "via_dia_mm": 0.6,
+    "silk_text_mm": 1.0
+  }
 }

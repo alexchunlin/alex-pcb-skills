@@ -1,6 +1,6 @@
 #!/bin/sh
 # Re-prove every tool in this repo against the rung-1 attempts and the reference boards. Writes only under
-# /tmp/alexpcb-verify/run-<pid> (latest: /tmp/alexpcb-verify/latest). About 8 minutes.
+# /tmp/alexpcb-verify/run-<pid> (latest: /tmp/alexpcb-verify/latest). About 14 minutes.
 #   sh tools/verify_all.sh                       # everything
 #   sh tools/verify_all.sh 1 5 7                 # only these sections
 #   sh tools/verify_all.sh --changed [BASE] [--dry-run]   # only what the change since merge-base(BASE, HEAD) affects
@@ -194,8 +194,9 @@ fi  #@ end 9
 
 if want 10; then  #@ watch: skills/kicad-design/scripts/pcb
 echo "== 10 GUI guards (P0-T6): layout/apply get --no-open, open is refused, guard runs"
-  [ "$(PCB_DRY=1 $PCB layout foo.zen)" = "$HOME/.local/bin/pcb layout --no-open foo.zen" ] && ok "layout injects --no-open" || bad "layout: $(PCB_DRY=1 $PCB layout foo.zen)"
+  [ "$(PCB_DRY=1 $PCB layout foo.zen)" = "$HOME/.local/bin/pcb layout foo.zen --no-open" ] && ok "layout appends --no-open" || bad "layout: $(PCB_DRY=1 $PCB layout foo.zen)"
   [ "$(PCB_DRY=1 $PCB apply schematic --no-open foo.zen)" = "$HOME/.local/bin/pcb apply schematic --no-open foo.zen" ] && ok "apply keeps a single --no-open" || bad "apply: $(PCB_DRY=1 $PCB apply schematic --no-open foo.zen)"
+  [ "$(PCB_DRY=1 $PCB apply schematic foo.zen)" = "$HOME/.local/bin/pcb apply schematic foo.zen --no-open" ] && ok "apply schematic appends --no-open after the subcommand (R1-A2-T1)" || bad "apply: $(PCB_DRY=1 $PCB apply schematic --no-open foo.zen)"
   [ "$(PCB_DRY=1 $PCB build foo.zen)" = "$HOME/.local/bin/pcb build foo.zen" ] && ok "build passes through" || bad "build passthrough"
   $PCB open x > /dev/null 2>&1; [ $? = 2 ] && ok "open refused" || bad "open not refused"
   $PCB guard > /dev/null; rc=$?; [ "$rc" = 0 ] && ok "guard: no GUI running" || echo "NOTE guard reports a KiCad GUI running (rc $rc); not counted"
@@ -236,7 +237,7 @@ if [ -f "$ZB" ]; then
   [ "$(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['id']=='addresses:I2C:U1'][0]")" = "U1 strap pin 1 (SA0) resolves high through ['JP1'] -> 0x6b; declared 0x6b" ] && ok "zener address strap resolves 0x6B through JP1" || bad "zener address $(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['check']=='addresses']")"
   [ "$(jq_ "$V/zcheck.json" "[r['value'] for r in d['rows'] if r['id']=='pullups:I2C:sda'][0]")" = 3.0 ] && ok "zener pull-up chain: 2 boards = 3.0 mA, at the limit (review R1-S1-F2 arithmetic)" || bad "zener pullups $(jq_ "$V/zcheck.json" "[r['msg'] for r in d['rows'] if r['check']=='pullups']")"
   [ "$(jq_ "$V/zcheck.json" "sum(1 for r in d['rows'] if r['check']=='connectors' and r['status']=='pass')")" = 3 ] && ok "zener J1/J2/J3 pin maps pass" || bad "zener connectors"
-  [ "$(jq_ "$V/zcheck.json" "d['summary']['passes']")" = 25 ] && ok "zener 25 passes" || bad "zener passes $(jq_ "$V/zcheck.json" "d['summary']")"
+  [ "$(jq_ "$V/zcheck.json" "d['summary']['passes']")" = 38 ] && ok "zener 38 passes (incl. 5 policy and 8 fields rows)" || bad "zener passes $(jq_ "$V/zcheck.json" "d['summary']")"
 else nochecks "no $ZB"; fi
 fi  #@ end 13
 
@@ -353,6 +354,49 @@ echo "== 20 skills: every FINDINGS ID cited in skills/ and examples/ exists; tem
   python3 -I -c "import json; json.load(open('$ROOT/skills/kicad-design/templates/project/checks.json'))" && ok "template checks.json parses" || bad "template checks.json"
   head -3 "$ROOT/skills/kicad-design/SKILL.md" | grep -q "^name: kicad-design" && head -3 "$ROOT/skills/pcb-design-review/SKILL.md" | grep -q "^name: pcb-design-review" && ok "SKILL.md frontmatter names" || bad "frontmatter"
 fi  #@ end 20
+
+if want 21; then  #@ watch: @cli @check examples/rung1-zener-a1/board/** examples/rung1-zener-a1/checks.json
+echo "== 21 project exception rules stay in both DRC runs; policy rows catch a lowered board setup (R1-A2-T5)"
+E="$V/exc"; rm -rf "$E"; mkdir -p "$E"; cp "$ROOT"/examples/rung1-zener-a1/board/* "$E"/
+printf '(version 1)\n(rule "LGA-14 pad gap on U1" (condition "A.memberOfFootprint(%sU1%s) && B.memberOfFootprint(%sU1%s)") (constraint clearance (min 0.15mm)))\n' "'" "'" "'" "'" > "$E/qwiic_imu.kicad_dru"
+$PCB drc "$E/qwiic_imu.kicad_pcb" --pack jlcpcb --out "$V/excdrc" > "$V/excdrc.txt"
+grep -q "project rules kept in both runs: \['LGA-14 pad gap on U1'\]" "$V/excdrc.txt" && ok "a scoped project rule is recognised as intent, not a fab pack" || bad "exception: $(head -1 "$V/excdrc.txt")"
+[ "$(jq_ "$V/excdrc/drc.json" "(d['plain']['by_type']['error'], d['packed']['by_type']['error'])")" = "({'hole_clearance': 8}, {'hole_clearance': 8})" ] && ok "the U1 pad-pad exception removes the 12 clearance errors in both runs, the 8 hole errors stay" || bad "exception errors $(jq_ "$V/excdrc/drc.json" "(d['plain']['by_type'], d['packed']['by_type'])")"
+cp "$REF/kicad-druid/JLCPCB/JLCPCB.kicad_dru" "$E/qwiic_imu.kicad_dru"
+$PCB drc "$E/qwiic_imu.kicad_pcb" --out "$V/excdrc2" > "$V/excdrc2.txt"
+grep -q "fab pack, removed from the plain run" "$V/excdrc2.txt" && [ "$(jq_ "$V/excdrc2/drc.json" "d['plain']['errors']")" = 20 ] && ok "a copied-in fab pack is dropped from the plain run (20 errors) and used as the pack" || bad "pack detection: $(head -2 "$V/excdrc2.txt")"
+rm -f "$E/qwiic_imu.kicad_dru"
+$PCB check "$E/qwiic_imu.kicad_pcb" "$ROOT/examples/rung1-zener-a1/checks.json" --only policy --out "$V/pol1.json" > "$V/pol1.txt" && [ "$(jq_ "$V/pol1.json" "d['summary']['passes']")" = 5 ] && ok "policy: the a1 board meets the brief's 5 numbers" || bad "policy a1: $(cat "$V/pol1.txt")"
+python3 -I -c "
+import json; p='$E/qwiic_imu.kicad_pro'; d=json.load(open(p)); d['board']['design_settings']['rules']['min_clearance']=0.14; d['board']['design_settings']['rules']['min_text_height']=0.8; json.dump(d, open(p,'w'), indent=1)"
+$PCB check "$E/qwiic_imu.kicad_pcb" "$ROOT/examples/rung1-zener-a1/checks.json" --only policy --out "$V/pol2.json" > "$V/pol2.txt"; rc=$?
+[ "$rc" = 1 ] && [ "$(jq_ "$V/pol2.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['policy:clearance_mm', 'policy:silk_text_mm']" ] && ok "policy: a board setup lowered to 0.14 mm clearance and 0.8 mm text fails both rows (what both attempt-2 designers did)" || bad "policy planted: $(cat "$V/pol2.txt")"
+fi  #@ end 21
+
+if want 22; then  #@ watch: @cli @q examples/rung1-zener-a2-sonnet/**
+echo "== 22 attempt-2 Sonnet board: regen-check REGENERATES; pcbcheck with the policy block fails clearance 0.14 and 5 Datasheet fields (R1-A2S)"
+A="$RUNS/rung1-zener-a2-sonnet"
+if [ -d "$A" ] && [ -x "$HOME/.local/bin/pcb" ]; then
+  rm -rf "$V/a2s"; cp -R "$A" "$V/a2s"; rm -rf "$V/a2s/review"
+  $PCB regen-check "$V/a2s" --cmd tools/regen.sh --board layout/qwiic_imu/qwiic_imu.kicad_pcb --generated layout fab reports --out "$V/a2sregen" > "$V/a2sregen.txt"; rc=$?
+  [ "$rc" = 0 ] && grep -q REGENERATES "$V/a2sregen.txt" && ok "a2 sonnet regen-check REGENERATES" || bad "a2 sonnet regen: $(tail -3 "$V/a2sregen.txt")"
+else nochecks "no $A or no Diode pcb"; fi
+$PCB check "$ROOT/examples/rung1-zener-a2-sonnet/board/qwiic_imu.kicad_pcb" "$ROOT/examples/rung1-zener-a2-sonnet/checks.json" --out "$V/a2scheck.json" > "$V/a2scheck.txt"
+[ "$(jq_ "$V/a2scheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['fields:C1', 'fields:C2', 'fields:C3', 'fields:R1', 'fields:R2', 'policy:clearance_mm']" ] && ok "a2 sonnet pcbcheck: policy clearance 0.14 and the five empty Datasheet fields (the reviewer's one overclaim)" || bad "a2 sonnet check: $(jq_ "$V/a2scheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+fi  #@ end 22
+
+if want 23; then  #@ watch: @cli @q examples/rung1-zener-a2-fable/**
+echo "== 23 attempt-2 Fable board: regen-check REGENERATES with gerber warns (R1-A2-T2); policy fails clearance 0.15 and silk 0.8 (R1-A2F-1)"
+A="$RUNS/rung1-zener-a2-fable"
+if [ -d "$A" ] && [ -x "$HOME/.local/bin/pcb" ]; then
+  rm -rf "$V/a2f"; cp -R "$A" "$V/a2f"; rm -rf "$V/a2f/review"
+  $PCB regen-check "$V/a2f" --cmd tools/regen.sh --board layout/qwiic_imu/qwiic_imu.kicad_pcb --generated layout fab --out "$V/a2fregen" > "$V/a2fregen.txt"; rc=$?
+  [ "$rc" = 0 ] && grep -q REGENERATES "$V/a2fregen.txt" && ok "a2 fable regen-check REGENERATES on netlist, DRC, placement and copper" || bad "a2 fable regen: $(tail -4 "$V/a2fregen.txt")"
+  grep -q "warn: fab gerbers differ (canonical form)" "$V/a2fregen.txt" && ok "a2 fable: gerber differences reported as a warn, not the verdict (the zone filler is not bit-stable)" || echo "NOTE a2 fable: no gerber warn this run"
+else nochecks "no $A or no Diode pcb"; fi
+$PCB check "$ROOT/examples/rung1-zener-a2-fable/board/qwiic_imu.kicad_pcb" "$ROOT/examples/rung1-zener-a2-fable/checks.json" --out "$V/a2fcheck.json" > "$V/a2fcheck.txt"
+[ "$(jq_ "$V/a2fcheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['policy:clearance_mm', 'policy:silk_text_mm']" ] && ok "a2 fable pcbcheck: policy clearance 0.15 and silk text 0.8 (the reviewer's major)" || bad "a2 fable check: $(jq_ "$V/a2fcheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+fi  #@ end 23
 
 if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
 echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"

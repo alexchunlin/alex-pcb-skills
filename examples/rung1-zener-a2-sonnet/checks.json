@@ -1,0 +1,117 @@
+{
+  "_about": "The attempt-2 (sonnet) designer's own checks.json plus the brief's policy block (R1-A2-T5). Reviewed 9/9/8 (sonnet=sonnet) or 9/8/8 (fable); see FINDINGS R1-A2.",
+  "project": "qwiic_imu",
+  "rails": {
+    "3V3": {
+      "v": 3.3,
+      "source": "Qwiic J1/J2 pin 2"
+    },
+    "GND": {}
+  },
+  "decoupling_max_mm": 2.0,
+  "decoupling": [
+    {
+      "ic": "U1",
+      "pin": "8",
+      "cap": "C1",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U1",
+      "pin": "5",
+      "cap": "C2",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U1",
+      "pin": "8",
+      "cap": "C3",
+      "max_mm": 2.0
+    }
+  ],
+  "buses": {
+    "I2C": {
+      "sda": "SDA",
+      "scl": "SCL",
+      "rail": "3V3",
+      "max_sink_ma": 3.0,
+      "chain_boards": 2,
+      "devices": {
+        "U1": {
+          "address": "0x6B",
+          "strap": {
+            "pin": "1",
+            "high": "0x6B",
+            "low": "0x6A"
+          }
+        }
+      }
+    }
+  },
+  "connectors": {
+    "J1": {
+      "1": "GND",
+      "2": "3V3",
+      "3": "SDA",
+      "4": "SCL"
+    },
+    "J2": {
+      "1": "GND",
+      "2": "3V3",
+      "3": "SDA",
+      "4": "SCL"
+    },
+    "J3": {
+      "1": "INT1",
+      "2": "INT2",
+      "3": "SDA",
+      "4": "SCL"
+    }
+  },
+  "jumpers": {
+    "JP1": {
+      "pads": {
+        "1": "3V3",
+        "2": "SA0",
+        "3": "GND"
+      },
+      "default": "1-2"
+    },
+    "JP2": {
+      "pads": {
+        "1": "3V3",
+        "2": "SDA_PU"
+      },
+      "default": "1-2"
+    },
+    "JP3": {
+      "pads": {
+        "1": "3V3",
+        "2": "SCL_PU"
+      },
+      "default": "1-2"
+    }
+  },
+  "test_points": {
+    "TP1": "3V3",
+    "TP2": "GND"
+  },
+  "bringup": "BRINGUP.md",
+  "margin": {
+    "pack": "jlcpcb",
+    "default_ratio": 1.0,
+    "min_ratio": {
+      "track_width": 2.0,
+      "clearance": 1.5,
+      "via_drill": 2.0
+    }
+  },
+  "accepted_warns": [],
+  "policy": {
+    "clearance_mm": 0.2,
+    "track_mm": 0.2,
+    "via_drill_mm": 0.3,
+    "via_dia_mm": 0.6,
+    "silk_text_mm": 1.0
+  }
+}

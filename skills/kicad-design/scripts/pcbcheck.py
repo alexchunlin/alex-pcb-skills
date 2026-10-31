@@ -18,8 +18,14 @@ Checks (v0):
   silk         every refdes the bring-up doc names is readable on silk (R1-Z1-F4)
   margin       min track width, via drill/diameter, setup clearance and hole clearance vs the fab pack floor, as ratios
                against min_ratio (R1-S1-F2 "every feature 2x the floor")
+  fields       every BOM part (not DNP, not excluded from BOM) carries the required fields, default MPN, Manufacturer,
+               LCSC, Datasheet (the brief's list; R1-A2S-1: Datasheet empty on 5 of 8 parts while the log said "every symbol")
+  policy       the brief's numbers as a floor the board setup and the measured minima must meet: clearance, track,
+               via drill and diameter, hole clearance, silk text height. Both attempt-2 designers lowered a board
+               setting until plain DRC read 0 (clearance 0.14/0.15, silk text 0.8); the policy block makes that a
+               fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
-margin, accepted_warns, _notes.
+margin, policy, fields, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, os, re, subprocess, sys
@@ -32,7 +38,7 @@ import pcbq  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -467,6 +473,60 @@ def check_margin(CFG, NL, B):
     COVERAGE.append(f"margin: floor from {os.path.basename(path)} (loosest min per constraint kind); clearances are the board-setup values the plain DRC enforces, not measured gaps")
 
 
+def check_fields(CFG, NL, B):
+    req = CFG.get("fields", ["MPN", "Manufacturer", "LCSC", "Datasheet"])
+    if not req:
+        NOT_CHECKED.append("fields: disabled (fields: [])"); return
+    n = 0
+    for f in sorted(B.GetFootprints(), key=lambda f: f.GetReference()):
+        if f.IsDNP() or (f.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_BOM):
+            continue
+        n += 1
+        ref = f.GetReference()
+        missing = [k for k in req if not pcbq.field(f, k).strip()]
+        if missing:
+            row("fields", "fail", f"fields:{ref}", f"{ref} ({f.GetValue()}): missing {', '.join(missing)}", objects=[ref], finding="R1-A2S-1")
+        else:
+            row("fields", "pass", f"fields:{ref}", f"{ref}: {', '.join(req)} present", objects=[ref])
+    COVERAGE.append(f"fields: {n} BOM parts checked for {', '.join(req)} on the footprint (what pcb fab and parity read)")
+
+
+def check_policy(CFG, NL, B):
+    pol = CFG.get("policy")
+    if not pol:
+        NOT_CHECKED.append("policy: no policy block (the brief's clearance/track/via/silk numbers) so board-setup relaxations were not checked")
+        return
+    ds = B.GetDesignSettings()
+    tracks = [t for t in B.GetTracks() if t.GetClass() != "PCB_VIA"]
+    vias = [t for t in B.GetTracks() if t.GetClass() == "PCB_VIA"]
+    silk = [d for d in B.GetDrawings() if d.GetClass() == "PCB_TEXT" and d.GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS)]
+    refs = [f.Reference() for f in B.GetFootprints() if f.Reference().IsVisible() and f.Reference().GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS)]
+    mm = pcbnew.ToMM
+    actual = {
+        "clearance_mm": [("setup", mm(ds.m_MinClearance)), ("default netclass", mm(ds.m_NetSettings.GetDefaultNetclass().GetClearance()))],
+        "track_mm": [("setup", mm(ds.m_TrackMinWidth))] + ([("narrowest track", min(mm(t.GetWidth()) for t in tracks))] if tracks else []),
+        "via_drill_mm": [("setup", mm(ds.m_MinThroughDrill))] + ([("smallest via drill", min(mm(v.GetDrillValue()) for v in vias))] if vias else []),
+        "via_dia_mm": [("setup", mm(ds.m_ViasMinSize))] + ([("smallest via", min(mm(v.GetWidth()) for v in vias))] if vias else []),
+        "hole_clearance_mm": [("setup", mm(ds.m_HoleClearance))],
+        "edge_clearance_mm": [("setup", mm(ds.m_CopperEdgeClearance))],
+        "silk_text_mm": [("setup", mm(ds.m_MinSilkTextHeight))] + ([("smallest silk text", min(mm(x.GetTextHeight()) for x in silk + refs))] if silk or refs else []),
+    }
+    for key, want in pol.items():
+        if key.startswith("_"):
+            continue
+        if key not in actual:
+            CONFIG_WARNS.append(f"policy key {key!r} unknown (known: {', '.join(actual)})"); continue
+        want = float(want)
+        low = [(src, round(v, 4)) for src, v in actual[key] if v + 1e-6 < want]
+        if low:
+            row("policy", "fail", f"policy:{key}", f"{key} policy {want} mm; below it: " + ", ".join(f"{s} {v}" for s, v in low),
+                value=min(v for _, v in low), limit=want, finding="R1-A2-T5")
+        else:
+            row("policy", "pass", f"policy:{key}", f"{key} policy {want} mm met: " + ", ".join(f"{s} {round(v, 4)}" for s, v in actual[key]),
+                value=min(v for _, v in actual[key]), limit=want)
+    COVERAGE.append(f"policy: {sum(1 for k in pol if not k.startswith('_'))} brief numbers against the board setup, the default net class and the measured minima")
+
+
 # ------------------------------------------------------------------------------------------------ main
 def main():
     out = arg("--out")
@@ -502,7 +562,8 @@ def main():
               ("connectors", lambda: check_connectors(CFG, NL, B)), ("pinmaps", lambda: check_pinmaps(CFG, NL, B)),
               ("jumpers", lambda: check_jumpers(CFG, NL, B)),
               ("test_points", lambda: check_test_points(CFG, NL, B, bringup)), ("silk", lambda: check_silk(CFG, NL, B, bringup)),
-              ("margin", lambda: check_margin(CFG, NL, B))]
+              ("margin", lambda: check_margin(CFG, NL, B)), ("policy", lambda: check_policy(CFG, NL, B)),
+              ("fields", lambda: check_fields(CFG, NL, B))]
     for name, fn in checks:
         if only and name not in only:
             continue

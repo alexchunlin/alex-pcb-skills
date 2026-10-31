@@ -31,8 +31,18 @@ baseline went to long single generations (18 min of 49, R1-S1-T1): work in small
    budget per rail, the bus map (addresses, pull-up value with the bus-capacitance arithmetic), the connector pin
    maps as tables, the parts with MPN and LCSC, the floor plan (what sits where and why), the stackup and the
    design-margin numbers (clearance, track, via, hole clearance; the fab floor is 0.09/0.09/0.45/0.2 at JLC).
-   Then write `checks.json` from those tables before any code (`reference/checks-config.md`). Done when
-   `pcb check` would have a row for every claim the log makes.
+   Then write `checks.json` from those tables before any code (`reference/checks-config.md`), starting with the
+   `policy` block: the brief's clearance, track, via, hole-clearance and silk-text numbers, copied once and never
+   lowered. Both attempt-2 designers lowered a board setting (clearance to 0.14 and 0.15, silk text to 0.8) until
+   plain DRC read 0 and then wrote the relaxed number into their own config; the `policy` row fails that
+   (R1-A2-T5). Done when `pcb check` would have a row for every claim the log makes.
+   - A stock footprint that cannot meet a policy number (the LGA-14's 0.15 mm pad gap against 0.2 mm clearance)
+     gets a **scoped exception rule** in `layout/x/x.kicad_dru`, not a lowered setup:
+     `(rule "LGA-14 pad gap on U1" (condition "A.memberOfFootprint('U1') && B.memberOfFootprint('U1')") (constraint clearance (min 0.15mm)))`.
+     `pcb drc` keeps project rules in both runs and applies the fab pack on top; a copied-in fab pack is detected
+     and dropped from the plain run (P1-T20). Say why in the log and in `accepted_warns`.
+   - Fetch the datasheet into `docs/` first (both attempt-2 designers lost 6 minutes to st.com timing out; a
+     mirror with the same part number is fine, note the WHO_AM_I if the variant differs).
 2. **Scaffold.** Copy `<skill>/templates/project/` (or start from `<repo>/examples/rung1-zener-a1/attempt/`, the
    reviewed rung-1 source: `qwiic_imu.zen`, one `parts/*.zen` per part with its symbol and footprint, `tools/`).
    Zener is the front end (`reference/front-end.md`); SKiDL is the fallback and `Board.from_netlist` takes its netlist.
@@ -52,6 +62,8 @@ baseline went to long single generations (18 min of 49, R1-S1-T1): work in small
      regeneration, P1-T14). `pcb drc --pack` applies the pack on a mirror.
    - `Board.fill()` saves, reloads, builds connectivity and fills twice; do not call `ZONE_FILLER` yourself
      (in-memory boards segfault it and the first fill leaves islands, R1-S1-T5, P1-T10).
+   - Silk text 1.0 mm high, 0.15 mm stroke: JLC's stated minimum is 1.0 mm (R1-A2F-1 shipped 0.8 citing the
+     page for 0.8; the page says 1.0). The `policy` row reads the smallest silk text on the board.
    - Keep the refdes visible on every part the bring-up doc names (`hide_refdes(keep=[...])`); `pcb check`'s silk
      row fails the rest (R1-Z1-F4: 10 of 11 hidden).
    - A decoupling cap's distance is measured to the supply pin, and pcbnew cannot tell a supply pin from a strap
@@ -66,7 +78,9 @@ baseline went to long single generations (18 min of 49, R1-S1-T1): work in small
 7. **Prove regeneration.** Write `tools/regen.sh` (build, layout, layout script, apply schematic, schfix, erc, drc,
    check, fab) and run `pcb regen-check . --cmd tools/regen.sh --board layout/x/x.kicad_pcb --generated layout fab`.
    It must say REGENERATES: both baseline regenerations diverged on the first pass from a clean tree and one
-   exited 1 (R1-Z1-F2, P1-T10). Put the verdict line in `SUMMARY.md`.
+   exited 1 (R1-Z1-F2, P1-T10). The verdict is on netlist, DRC counts, placement and per-net copper; gerber
+   differences from Zener's footprint ordering or a fill vertex are reported as warns (R1-A2-T2). Put the
+   verdict line in `SUMMARY.md`.
 8. **Report evidence, not verdicts.** `SUMMARY.md` carries the numbers: ERC errors/warnings, DRC plain and packed,
    pcbcheck fails/warns/passes, regen-check verdict, fab file count, the wall clock from the transcript (the
    designer's own clock was off by 2 h in R1-Z1). Every claim in the log cites a check row or a `pcb q` line
