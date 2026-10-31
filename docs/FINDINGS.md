@@ -261,3 +261,65 @@ schematic exporter (fields, labels, PWR_FLAG) and its docs, both fixable by us o
 Starlark language and a VC-backed vendor; mitigation is that the KiCad files and the fab package are the
 deliverable, `pcb import` is the way back, and `pcblib` is front-end-agnostic. SKiDL stays as the fallback and
 rung 2 will say whether the choice holds at 30 parts.
+
+## Phase 1: `pcb` wrapper and `pcb q` (2026-10-31, second session)
+
+Built `skills/kicad-design/scripts/pcb` (sh) over `pcbcli.py` (plain python3, drives kicad-cli) and `pcbq.py`
+(KiCad's Python 3.9, SWIG pcbnew). Commands: `erc`, `drc`, `netlist`, `diff`, `render`, `svg`, `stats`, `fab`,
+`q`, `py`, `guard`, and passthrough to Diode's `pcb` with `--no-open` forced on `layout`/`apply` and `open` refused.
+`tools/verify_all.sh` re-proves all of it on the two rung-1 attempts and the Plink board: 59 checks, 1 min 40 s.
+
+**Why not the existing code.** kicad-cli already does ERC, DRC, netlist, renders, SVG, stats and every fab export,
+so the wrapper calls it and adds only what the rung-1 reviews showed was missing: the second DRC run, the sentinel,
+the pack-vs-setup comparison, a temporary mirror so the project is never touched, and one JSON summary per
+command. `kct check --mfr jlcpcb` was the candidate for the fab-rule run and crashes on both reference boards
+(P0-T4); `kct audit` misreports the board size. pace-racer's `verify_netlist.py` is ported as `pcb diff` with
+rename listing and `.kicad_sch` inputs. The pcbnew measurements are the reviewers' `measure.py` turned into
+commands so the next reviewer runs them instead of rewriting them.
+
+- **P1-T1 DRC runs on a mirror, not the project.** `pcb drc` copies the project directory into a temp tree that
+  keeps two ancestor directory names and symlinks every sibling at each level, so `${KIPRJMOD}/../x` and
+  `${KIPRJMOD}/../../.pcb/...` library paths (Zener writes the second form) still resolve. Check: Plink in the
+  mirror reports the same 86 `lib_footprint_mismatch` warnings as in place; the attempt's `.kicad_pcb` is
+  byte-identical after the run. Cost: dual run 5 s on the rung-1 boards, 33 s on Plink (16 s per DRC with parity).
+- **P1-T2 kicad-cli caps each violation type at 199.** The sentinel fired 199 times on Plink's 1,613 tracks, and
+  `silk_overlap` and `silk_over_copper` both came back as exactly 199 with the JLCPCB pack (45 and 47 plain).
+  `--all-track-errors` is about several errors per track, not this cap. So any count of 199 is a floor, and
+  `pcb drc` lists such types under `capped_types` and says so. Confirms the "to confirm" in P0-T5.
+- **P1-T3 Floored pack = plain errors plus fab-only errors; raw pack masks.** The JLCPCB 4-layer pack has 19
+  constraint minimums below the Zener board setup (clearance 0.127/0.15/0.1/0.09 vs 0.2, hole_clearance 0.2/0.28
+  vs 0.3, via_diameter 0.45 vs 0.6, annular 0.05 vs 0.15, edge 0.2 vs 0.4, ...), 18 below the SKiDL setup and 6
+  below Plink's. With the raw pack the packed run reports 0 errors on both rung-1 boards while the plain run
+  reports 20 and 18 (R1-Z1-F1, R1-S1-F1 reproduced exactly: clearance 12 + hole_clearance 8, clearance 12 +
+  hole_clearance 6). `pcb drc` raises every such minimum to the setup value before running (`--no-floor` keeps
+  the raw pack and lists the masked errors instead): the floored packed run reports the same 20 and 18, and on
+  Plink it adds 11 errors the setup cannot see (hole_to_hole 4, clearance 2 under pad-specific rules,
+  assertion_failure 5 for pad size) and 310 warnings. Rule for the loop: the headline number is `errors_total`
+  = max(plain, floored packed); "0 with the pack" is never reported alone.
+- **P1-T4 A rejected rule file is detectable only by the sentinel.** A pack with `(layer "No.Such")` makes
+  kicad-cli exit 0 with a report that silently omits every custom rule; the appended `track_width min 99mm`
+  sentinel then fires 0 times on a board with tracks, and `pcb drc` exits 2 with "RULE PACK REJECTED". A pack
+  without a `(version 1)` header is refused before the run.
+- **P1-T5 pcbnew has no pin types, so "distance to the supply pin" needs the pin named.** `pcb q decoupling`
+  picks the nearest IC pad on the cap's net: for C3 (10 uF) that is U1.12 (CS strapped to 3V3) at 2.357 mm, not
+  VDD pin 8 at 2.639 mm that the reviewer measured. The command now lists every IC pad on the net with its
+  distance; the pcbcheck row (phase 2) will declare the pin. Also: plane coverage under U1 on In1.Cu is 96.1 %
+  by polygon intersection against the courtyard box, vs the reviewer's 93.1 % on a 40 x 40 point grid; both
+  say "plane present", and the polygon number is the one the check will use.
+- **P1-T6 SWIG footguns, third batch (handled in pcbq.py).** `BOX2I.Merge()` into a bbox returned by
+  `GetBoundingBox()` aborts the interpreter (Abort trap 6); copy it into an own `BOX2I(origin, size)` first.
+  `LSET(layer)` has no single-layer constructor in 10.0.1 (use `LSET.Seq()` on the item's own set). Footprint
+  fields are read by case-insensitive name because Zener writes `Lcsc`/`Mpn` on footprints (R1-Z1 layout script
+  renamed them by hand).
+- **P1-T7 `pcb fab` reproduces R1-S1-F4 automatically.** It measures each footprint's origin against the centre
+  of its `F.Fab` outline and flags offsets over 0.1 mm: J1 and J2 (JST SH horizontal) at 0.45 mm, the exact
+  figure the reviewer found by hand. Gerbers are plotted from an explicit layer list derived from the board's
+  copper count, never `--board-plot-params` (R1-S1-F3's drill-mark flashes came from the stored plot settings);
+  the Edge.Cuts gerber has 0 flashes. Package: 11 layers + merged PTH/NPTH drill + map + job = 14 files, Protel
+  extensions; BOM grouped by (value, LCSC, footprint) from footprint fields with the designators lacking an LCSC
+  number listed; CPL with JLC headers in KiCad's frame (absolute origin, Y negated as kicad-cli exports it);
+  `fab.json` carries a sha256 per gerber member so the regen-check (phase 1 item 2) can compare packages
+  without zip timestamps. 21 s, of which 18 s are the two high-quality renders.
+- **P1-T8 Diode `pcb` name collision turned into a guardrail.** The wrapper is also called `pcb`; any subcommand
+  it does not own goes to `~/.local/bin/pcb`, with `--no-open` inserted on `layout` and `apply` (P0-T6) and
+  `open` refused. `PCB_DRY=1` prints the command instead of running it, which is how verify_all tests it.

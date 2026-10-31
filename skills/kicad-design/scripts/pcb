@@ -1,0 +1,63 @@
+#!/bin/sh
+# pcb: thin wrapper around kicad-cli, KiCad's bundled Python (pcbnew) and Diode's `pcb` for the kicad-design skill.
+#   pcb erc      x.kicad_sch [--out erc.json]                       ERC, JSON, counts by severity and type; exit 1 on errors
+#   pcb drc      x.kicad_pcb [--pack FILE|jlcpcb|pcbway|generic] [--out DIR] [--no-parity] [--no-floor] [--keep]
+#                                                                  DRC twice on a copy: plain (board setup only) and with the
+#                                                                  fab rule pack + sentinel; pack minimums below the board setup
+#                                                                  are raised to the setup value (--no-floor keeps the raw pack
+#                                                                  and reports what it masks). exit 1 on errors, 2 if the pack
+#                                                                  was rejected (R1-S1-F1, R1-Z1-F1, P0-T5)
+#   pcb netlist  x.kicad_sch [out.xml]                             kicadxml netlist
+#   pcb diff     a.{xml|kicad_sch} b.{xml|kicad_sch} [--json F]     connectivity diff as (ref, pin) sets; exit 1 on change (P0-T3)
+#   pcb render   x.kicad_pcb [--out DIR] [--side top,bottom] [--size N]
+#   pcb svg      x.kicad_pcb|x.kicad_sch [--out DIR]               layer SVG (board) or per-sheet SVG (schematic)
+#   pcb stats    x.kicad_pcb                                       board statistics (JSON from kicad-cli, short summary)
+#   pcb fab      x.kicad_pcb [--out DIR]                           gerbers + drill zip, JLC BOM/CPL from footprint fields, renders,
+#                                                                  fab.json manifest with member hashes (R1-S1-F3, R1-S1-F4)
+#   pcb q        x.kicad_pcb <cmd ...>                             one measurement over pcbnew (`pcb q` alone lists them)
+#   pcb py       script.py [args] | -c "code"                      KiCad's Python with pcbnew (GUI guard first)
+#   pcb guard                                                      exit 1 if a KiCad GUI process is running
+#   pcb build|layout|apply|dfm|bom|test|...                        passthrough to Diode's pcb; `layout` and `apply` always get
+#                                                                  --no-open; `open` is refused (P0-T6)
+# Env: KICAD_CLI, KICAD_PY, DIODE_PCB, KICAD_DRUID (rule packs, default /tmp/pcb-ref/kicad-druid), PCB_ALLOW_GUI=1.
+set -e
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export PCB_SKILL="${PCB_SKILL:-$(dirname "$HERE")}"
+export KICAD_CLI="${KICAD_CLI:-/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli}"
+export KICAD_PY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
+export KICAD_DRUID="${KICAD_DRUID:-/tmp/pcb-ref/kicad-druid}"
+DIODE="${DIODE_PCB:-$HOME/.local/bin/pcb}"
+# KiCad's Python prints a wxApp assert and a leak note on macOS on every start; keep the status, drop the noise
+kpy() {
+  st="${TMPDIR:-/tmp}/pcbpy.$$.status"
+  { nice -n 10 "$KICAD_PY" -I "$@" 2>&1; echo $? > "$st"; } | grep -v -E 'wxApp|assert ""|memory leak|^$' || true
+  rc=$(cat "$st" 2>/dev/null || echo 1); rm -f "$st"; return "$rc"
+}
+guard() {
+  [ "${PCB_ALLOW_GUI:-}" = 1 ] && return 0
+  p=$(pgrep -fl 'MacOS/(pcbnew|eeschema|kicad)$' 2>/dev/null || true)
+  if [ -n "$p" ]; then
+    echo "pcb: a KiCad GUI is running; it rewrites files from memory on save, so scripted edits can be lost (P0-T6). Close it or set PCB_ALLOW_GUI=1:" >&2
+    echo "$p" >&2; return 1
+  fi
+}
+cmd="${1:-}"; shift || true
+case "$cmd" in
+  erc|drc|netlist|diff|render|svg|stats) exec python3 -I "$HERE/pcbcli.py" "$cmd" "$@" ;;
+  fab) exec python3 -I "$HERE/pcbcli.py" fab "$@" ;;
+  q) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbq.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
+     kpy "$HERE/pcbq.py" "$@" ;;
+  py) guard; kpy "$@" ;;
+  guard) guard; echo "pcb: no KiCad GUI running" ;;
+  open) echo "pcb: refusing to open the KiCad GUI from a script (P0-T6). Run '$DIODE open' yourself." >&2; exit 2 ;;
+  layout|apply)
+     guard
+     noopen=1; for a in "$@"; do [ "$a" = "--no-open" ] && noopen=""; done
+     [ -n "$noopen" ] && set -- --no-open "$@"
+     [ -n "${PCB_DRY:-}" ] && { echo "$DIODE $cmd $*"; exit 0; }
+     exec "$DIODE" "$cmd" "$@" ;;
+  ""|-h|--help|help) sed -n '2,24p' "$0"; exit 0 ;;
+  *) [ -x "$DIODE" ] || { echo "pcb: unknown command '$cmd' and Diode pcb not found at $DIODE" >&2; exit 2; }
+     [ -n "${PCB_DRY:-}" ] && { echo "$DIODE $cmd $*"; exit 0; }
+     exec "$DIODE" "$cmd" "$@" ;;
+esac
