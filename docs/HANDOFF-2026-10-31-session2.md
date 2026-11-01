@@ -22,11 +22,39 @@ first handoff (`docs/HANDOFF-2026-10-31.md`) still holds the decisions Alex made
 - Post the five issue drafts in `docs/upstream/` to github.com/diodeinc/pcb.
 - Link the skills into `~/.claude/skills` (README has the two `ln -s` lines).
 
+## Decisions from Alex after rung 2 (2026-11-01)
+- **Default designer: Opus 5.5 at medium effort** (rung 2: 8/6/7 in 38.7 min and 189k output tokens, the cheapest and
+  the only 8 on electrical). Reviewers stay on Fable at default effort. Fable at medium is not a verdict on Fable:
+  one 14-minute generation hit the 64k thinking cap and emitted nothing (R2-T3); if a Fable designer runs again,
+  run it at default effort.
+- **Next structural idea, not yet built:** a hierarchical schematic with one Sonnet 5.5 sub-agent per sub-sheet
+  (power_in, buck, ldo, driver, connectors), the way the 3D loop runs one builder per subsystem. The plan agent
+  writes the sheet contract (nets at the sheet boundary, the checks.json rows for that sheet); each sheet agent
+  builds its `.zen` module and must pass `pcb check --only` on its rows before hand-back; the layout stays one
+  agent. Zener modules already map one to one onto sheets (all three rung-2 designers wrote five modules).
+
 ## Update after rung 2 (same day, later)
 Rung 2 ran with three designers at medium effort (Alex's choice): Sonnet 7/8/8, Opus 8/6/7, Fable 4/4/6 unfinished.
 FINDINGS "Rung 2, attempt 1" has the harvest; P1-T22 the tool fixes. The bench is 9 boards and 37 labels. The next
 item is phase 6 routing, not more rows: all three designers spent their time at the DRV8874's 0.65 mm pitch (R2-T2).
 Memory holds Alex's rules: no posts to repos he does not own; rung-2 designers at medium effort.
+
+## Next, in order
+1. **Phase 6 routing.** All three rung-2 designers lost most of their time at the DRV8874's 0.65 mm pitch (R2-T2;
+   Sonnet wrote its own maze router). Measure before wrapping: freerouting 2.5.0 (native macOS binary, CLI; export
+   DSN from pcbnew via `pcblib`, import SES) and KiCadRoutingTools (reads/writes `.kicad_pcb`, no DSN round trip)
+   on the three archived rung-2 boards with their copper stripped (`Board.clear(tracks=True)` keeps placement):
+   clean-route rate, DRC errors after `pcb drc`, via count, total length, wall time. Then `pcb route` wrapping
+   whichever wins, with the DRC fix loop and the sentinel. GAMEPLAN section 3 has the URLs and the 1,157-board
+   benchmark numbers to compare against.
+2. **Rows the rung-2 reviews asked for** (P1-T22 end): pour-neck width (erode the filled polygon by half the IPC
+   width and test the pad stays connected), a sourcing-attributes row (JLC part pin count vs footprint pads; the
+   Opus blocker), capacitor ripple-current rating against the PWM ripple (calcs can do it once the rating is a
+   field), bring-up text against PINMAP (the Fable major), thermal pads counted with in-pad PTH.
+3. **Rung-2 attempt 2** with Opus at medium on the routing tool, reviewer on Fable; compare with 8/6/7.
+4. **The per-sheet loop** (the decision above): a `templates/pcb-loop.workflow.js` only if Alex opts into the
+   Workflow tool; otherwise the plan/sheet/layout/review roles as Agent calls, like the 3D loop's roles.
+5. Phase 5 loop template, the two Plink rows (topology, silk readability), as they come up.
 
 ## Next (as planned before rung 2; items 1-3 are done, see above)
 1. `calcs` rows in pcbcheck (trace width vs current per declared net current, copper pour thermal, LDO and buck

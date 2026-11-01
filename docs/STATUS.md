@@ -30,6 +30,8 @@
   the stock libraries, P0-T8), current-vs-width rows and the 4-layer plane policy, none of which rung 1 touched.
   Before launching: a `calcs` row family (trace width vs current, LDO/buck dissipation) in pcbcheck, since rung 2's
   claims will be those. Handoff for the next session: `docs/HANDOFF-2026-10-31-session2.md`.
+- Decided 2026-11-01 (Alex): default designer is Opus 5.5 at medium effort; reviewers Fable. Next structural idea:
+  hierarchical schematic with one Sonnet sub-agent per sub-sheet (handoff session 2).
 - Decided 2026-10-31 (Alex): upstream drafts stay unposted (no posts to repos he does not own); skills linked into
   `~/.claude/skills`; rung 2 after the `calcs` rows, with three designers at medium effort (Sonnet 5.5, Opus 5.5,
   Fable) and reviewers on Fable.
