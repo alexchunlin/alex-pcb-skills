@@ -455,7 +455,8 @@ grep -q "currents:VIN_RAW: .*no tracks: carried by pours only" "$V/r2opus.txt" &
 $PCB drc "$ROOT/examples/rung2-zener-a1-fable/board/motor_channel.kicad_pcb" --pack jlcpcb --out "$V/r2fdrc" > "$V/r2fdrc.txt"
 # 67 here against the designer's 62: the archived board sits without its vendored footprint library (59 lib_footprint_issues), which
 # moves five clearance/mask errors; the shorts, courtyards and unconnected counts are the reviewer's
-[ "$(jq_ "$V/r2fdrc/drc.json" "(d['plain']['by_type']['error'].get('shorting_items'), d['plain']['by_type']['error'].get('courtyards_overlap'), d['plain']['unconnected'])")" = "(20, 14, 6)" ] && ok "r2 fable drc: 20 shorts, 14 courtyard overlaps, 6 unconnected (the reviewer's blockers)" || bad "r2 fable drc $(jq_ "$V/r2fdrc/drc.json" "(d['plain']['errors'], d['plain']['by_type'])")"
+# shorting_items is 20 or 21 run to run: the shorts sit on fill boundaries and the fill is multithreaded (P6-T5, seen twice in full runs)
+[ "$(jq_ "$V/r2fdrc/drc.json" "(d['plain']['by_type']['error'].get('shorting_items') in (20, 21), d['plain']['by_type']['error'].get('courtyards_overlap'), d['plain']['unconnected'])")" = "(True, 14, 6)" ] && ok "r2 fable drc: 20 or 21 shorts (P6-T5), 14 courtyard overlaps, 6 unconnected (the reviewer's blockers)" || bad "r2 fable drc $(jq_ "$V/r2fdrc/drc.json" "(d['plain']['errors'], d['plain']['by_type'])")"
 $PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$ROOT/examples/rung2-zener-a2-opus/checks.json" --out "$V/r2a2ocheck.json" > "$V/r2a2opus.txt"
 [ "$(jq_ "$V/r2a2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['feeds:C17.1', 'feeds:J3.1']" ] && ok "r2 attempt-2 opus: feeds J3.1 and C17.1 at 0.00 A (the reviewer's two electrical majors, R2A2-O-1/2); the designer's own 147 rows pass" || bad "r2a2 opus: $(jq_ "$V/r2a2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
 fi  #@ end 26

@@ -720,7 +720,8 @@ calls and no new exporter.
   `shorting_items`; in the full `--changed` run after phase 6 it reported 21 (the other counts unchanged), and the same
   section alone, a minute later, 20 again. Nothing in the phase touches `pcbcli.py` or the archived board. The pour
   shorts on that board sit on fill boundaries, and the zone fill is multithreaded, so a count on a board with
-  overlapping pours is a floor, not a constant. The check stays as it is; a second flake makes it a range.
+  overlapping pours is a floor, not a constant. It flaked again in the next full run (21) and passed alone (20) again, so
+  the check now accepts 20 or 21.
 
 ## Rung 2, attempt 2 (2026-11-01 09:45, one designer on Opus 5.5 at medium effort, Zener path, with `pcb route auto`)
 
