@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""Route bench: the autorouters measured against the designers' own copper on the archived rung-2 boards (phase 6).
+
+For each board (examples/rung2-zener-a1-{sonnet,opus,fable}/board/) and variant, the copper is stripped with placement
+kept (`pcb route strip`; `tracks` keeps the zones, `all` deletes them too), each router runs on the stripped board, the
+zones are refilled and the result is measured with `pcb route measure --drc`:
+
+  airwires        connections still open after the run (pad clusters, P6-T1); clean = 0 airwires and 0 plain DRC errors
+  errors          plain / packed DRC errors (`pcb drc --pack jlcpcb`, the headline is errors_total); errors_start is the
+                  same on the stripped input, so errors the placement and pours carry are not charged to the router
+  vias, length    via count and total track length in mm; `part` is the same for the DRV8874's nets (R2-T2)
+  wall_s          router wall time (export/import and refill are `overhead_s`)
+  setup_changed   the board-setup minimums differ from the input's (a router that loosened the rules to read 0, R1-A2-T5)
+
+Routers (env paths): freerouting 2.5.0 jar (`FREEROUTING_JAR`, `JAVA`; DSN out of pcbnew, SES back in), KiCadRoutingTools
+(`KRT_DIR`, `KRT_PY`; reads and writes the .kicad_pcb), kct (`KCT`), and `designer` = the archived copper as handed in.
+
+  python3 -I tools/bench/route_bench.py                        # every board, variant, router at its configs (about 25 min)
+  python3 -I tools/bench/route_bench.py --boards opus --variants tracks --routers krt,freerouting --configs default
+  python3 -I tools/bench/route_bench.py --reps 3               # repeat each run (spread of a nondeterministic router)
+  python3 -I tools/bench/route_bench.py table [--results F]    # one line per (board, variant, router, config, rep)
+Scratch: /tmp/alexpcb-route/run-<pid>. Results append to tools/bench/results/route.jsonl. Plain python3, standard library.
+"""
+from __future__ import annotations
+
+import argparse, datetime as dt, glob, json, os, shutil, subprocess, sys, time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+RESULTS = ROOT / "tools/bench/results/route.jsonl"
+SCRATCH = Path("/tmp/alexpcb-route")
+PCB = os.environ.get("PCB", str(ROOT / "skills/kicad-design/scripts/pcb"))
+FR_JAR = os.environ.get("FREEROUTING_JAR", "/tmp/pcb-ref/freerouting/freerouting-2.5.0.jar")
+JAVA = os.environ.get("JAVA", "/opt/homebrew/opt/openjdk/bin/java")
+KRT_DIR = os.environ.get("KRT_DIR", "/tmp/pcb-ref/KiCadRoutingTools")
+KRT_PY = os.environ.get("KRT_PY", os.path.join(KRT_DIR, ".venv/bin/python"))
+KCT = os.environ.get("KCT", "kct")
+BOARDS = {a: f"examples/rung2-zener-a1-{a}/board" for a in ("sonnet", "opus", "fable")}
+VARIANTS = {"tracks": [], "all": ["--zones"]}
+# router -> config name -> extra arguments. KRT: --no-fix-drc-settings keeps the board setup as the designer set it (its
+# default rewrites the .kicad_pro floors to the routed values, R1-A2-T5 as a feature); --escalation off keeps the net-class
+# widths and clearances exact. freerouting: the optimizer threshold is the only documented quality knob.
+CONFIGS = {
+    "freerouting": {"default": [], "precision": ["--router.optimizer.improvement_threshold=0.5"]},
+    "krt": {"default": ["--no-fix-drc-settings", "--escalation", "off"], "board": ["--no-fix-drc-settings", "--escalation", "board"],
+            "raw": []},
+    "kct": {"default": [], "negotiated": ["--strategy", "negotiated"]},
+}
+
+
+def sh(cmd, cwd=None, timeout=None, log=None, env=None):
+    t = time.time()
+    try:
+        p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout, env=env)
+        rc, out, err, to = p.returncode, p.stdout, p.stderr, False
+    except subprocess.TimeoutExpired as e:
+        rc, out, err, to = -1, (e.stdout or b"").decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or ""), \
+            (e.stderr or b"").decode(errors="replace") if isinstance(e.stderr, bytes) else (e.stderr or ""), True
+    wall = time.time() - t
+    if log:
+        Path(log).write_text("$ " + " ".join(map(str, cmd)) + f"\nrc={rc} wall={wall:.1f}s timeout={to}\n--- stdout\n{out}\n--- stderr\n{err}")
+    return rc, out, err, wall, to
+
+
+def pcb_json(*args, cwd=None):
+    rc, out, err, _, _ = sh([PCB, *args, "--json"], cwd=cwd)
+    if rc != 0:
+        raise RuntimeError(f"pcb {' '.join(map(str, args))}: rc {rc}\n{out[-500:]}\n{err[-500:]}")
+    return json.loads(out.strip().splitlines()[-1])
+
+
+def prep(board: str, variant: str, run: Path) -> tuple[Path, dict]:
+    """Copy the archived project, strip its copper, measure the start state."""
+    src = ROOT / BOARDS[board]
+    d = run / board / variant / "input"
+    d.mkdir(parents=True, exist_ok=True)
+    pcb = None
+    for f in src.iterdir():
+        if f.suffix in (".kicad_pcb", ".kicad_pro", ".kicad_prl"):
+            shutil.copy(f, d / f.name)
+            if f.suffix == ".kicad_pcb":
+                pcb = d / f.name
+    strip = pcb_json("route", "strip", str(pcb), *VARIANTS[variant])
+    start = pcb_json("route", "measure", str(pcb), "--drc")
+    d = start.get("drc", {})
+    return pcb, {"strip": {k: strip[k] for k in ("before", "after")}, "airwires_start": start["ratsnest"]["airwires"],
+                 "settings": start["settings"], "errors_start": (d.get("plain_errors"), d.get("packed_errors")),
+                 "plain_by_type_start": d.get("plain_by_type")}
+
+
+def run_router(router: str, cfg: str, pcb: Path, out_dir: Path, timeout: int) -> dict:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for f in pcb.parent.iterdir():
+        if f.suffix in (".kicad_pro", ".kicad_prl"):
+            shutil.copy(f, out_dir / f.name)
+    routed = out_dir / pcb.name
+    extra = CONFIGS[router][cfg]
+    r = {"rc": None, "wall_s": None, "overhead_s": 0.0, "timeout": False, "log": str(out_dir / "router.log")}
+    if router == "freerouting":
+        t = time.time()
+        dsn = out_dir / (pcb.stem + ".dsn")
+        pcb_json("route", "export-dsn", str(pcb), "--out", str(dsn))
+        r["overhead_s"] += time.time() - t
+        ses = out_dir / (pcb.stem + ".ses")
+        cmd = [JAVA, "-Djava.awt.headless=true", "-jar", FR_JAR, "-de", str(dsn), "-do", str(ses), "-mt", "4", "-da",
+               "--gui.enabled=false", "--logging.file.enabled=false", *extra]
+        rc, out, err, wall, to = sh(cmd, cwd=out_dir, timeout=timeout, log=r["log"])
+        r.update(rc=rc, wall_s=round(wall, 1), timeout=to)
+        for line in out.splitlines():
+            if "Auto-routing stage completed" in line or "Stopping the auto-router" in line:
+                r["router_says"] = line.split("INFO", 1)[-1].strip()[:200]
+        if ses.exists():
+            t = time.time()
+            pcb_json("route", "import-ses", str(pcb), str(ses), "--out", str(routed))
+            r["overhead_s"] += time.time() - t
+        else:
+            r["error"] = "no .ses written"
+    elif router == "krt":
+        cmd = [KRT_PY, os.path.join(KRT_DIR, "py_router/route.py"), str(pcb), str(routed), "--json-out", str(out_dir / "krt.json"), *extra]
+        rc, out, err, wall, to = sh(cmd, cwd=KRT_DIR, timeout=timeout, log=r["log"])
+        r.update(rc=rc, wall_s=round(wall, 1), timeout=to)
+        try:
+            j = json.load(open(out_dir / "krt.json"))
+            r["router_says"] = {k: j.get(k) for k in ("successful", "failed", "total_vias", "pad_pairs_connected", "pad_pairs_total", "min_clearance_used")}
+            r["router_says"]["design_rules_narrowed"] = len((j.get("design_rules") or {}).get("narrowed") or [])
+        except Exception:  # noqa: BLE001
+            pass
+        if not routed.exists():
+            r["error"] = "no board written"
+    elif router == "kct":
+        cmd = [KCT, "route", str(pcb), "-o", str(routed), *extra]
+        rc, out, err, wall, to = sh(cmd, cwd=out_dir, timeout=timeout, log=r["log"])
+        r.update(rc=rc, wall_s=round(wall, 1), timeout=to)
+        for line in out.splitlines()[-30:]:
+            if "routed" in line.lower() and ("/" in line or "%" in line):
+                r["router_says"] = line.strip()[:200]
+        if not routed.exists():
+            r["error"] = "no board written"
+    else:
+        raise ValueError(router)
+    r["board"] = str(routed) if routed.exists() else None
+    return r
+
+
+def measure(routed: str, settings_before: dict) -> dict:
+    t = time.time()
+    try:
+        pcb_json("route", "fill", routed)
+    except RuntimeError as e:
+        return {"error": f"fill: {e}"[:400]}
+    m = pcb_json("route", "measure", routed, "--drc")
+    m["overhead_s"] = round(time.time() - t, 1)
+    m["setup_changed"] = {k: (settings_before.get(k), v) for k, v in m["settings"].items() if settings_before.get(k) != v} or False
+    return m
+
+
+def row_of(board, variant, router, cfg, rep, start, rr, m):
+    r = {"ts": dt.datetime.now().isoformat(timespec="seconds"), "board": board, "variant": variant, "router": router, "config": cfg,
+         "rep": rep, "airwires_start": start.get("airwires_start"), "errors_start": start.get("errors_start"),
+         "plain_by_type_start": start.get("plain_by_type_start"),
+         **{k: rr.get(k) for k in ("rc", "wall_s", "timeout", "error", "router_says", "log")}}
+    r["overhead_s"] = round((rr.get("overhead_s") or 0) + (m.get("overhead_s") or 0), 1)
+    if "error" in m:
+        r["error"] = (r.get("error") or "") + " " + m["error"]
+        return r
+    d = m.get("drc", {})
+    r.update(airwires=m["ratsnest"]["airwires"], open_nets=m["open"], vias=m["vias"], tracks=m["tracks"], length_mm=m["length_mm"],
+             min_width_mm=m["min_width_mm"], via_sizes=m["via_sizes"], plain_errors=d.get("plain_errors"), packed_errors=d.get("packed_errors"),
+             errors_total=d.get("errors_total"), plain_by_type=d.get("plain_by_type"), setup_changed=m.get("setup_changed", False),
+             part=m.get("part"), board_file=m["board"])
+    r["clean"] = bool(r["airwires"] == 0 and r["plain_errors"] == 0 and r["packed_errors"] == 0)
+    return r
+
+
+def fmt_row(r):
+    p = r.get("part") or {}
+    say = r.get("router_says")
+    say = (json.dumps(say) if isinstance(say, dict) else str(say or ""))[:60]
+    if r.get("error") and "airwires" not in r:
+        return f"{r['board']:7} {r['variant']:7} {r['router']:11} {r['config']:10} {r.get('rep', 0):>2}  ERROR {r['error'][:80]}"
+    return (f"{r['board']:7} {r['variant']:7} {r['router']:11} {r['config']:10} {r.get('rep', 0):>2}  "
+            f"{'CLEAN' if r.get('clean') else 'open ' if r.get('airwires') else 'drc  ':5} "
+            f"air {r.get('airwires_start', '?'):>3}->{r.get('airwires', '?'):<3} err {str(r.get('plain_errors')):>3}/{str(r.get('packed_errors')):<3} "
+            f"vias {str(r.get('vias')):>3} len {str(r.get('length_mm')):>7} minw {str(r.get('min_width_mm')):<6} "
+            f"part air {p.get('airwires', '?')} vias {p.get('vias', '?')} len {p.get('length_mm', '?')}  "
+            f"wall {str(r.get('wall_s')):>6}s +{r.get('overhead_s', 0)}s  setup {'CHANGED' if r.get('setup_changed') else 'kept'}  {say}")
+
+
+def table(results: Path, md=False):
+    rows = [json.loads(l) for l in results.read_text().splitlines() if l.strip()]
+    if not md:
+        for r in rows:
+            print(fmt_row(r))
+        return
+    print("| board | variant | router / config | airwires start -> end | DRC plain / packed (start) | vias | length mm | DRV8874 nets: open / vias / mm | min width | router wall s | setup |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|")
+    for r in rows:
+        if r.get("error") and "airwires" not in r:
+            print(f"| {r['board']} | {r['variant']} | {r['router']} / {r['config']} | ERROR {r['error'][:60]} | | | | | | | |")
+            continue
+        p = r.get("part") or {}
+        st = r.get("errors_start")
+        st = f" ({st[0]})" if st and st[0] else ""
+        print(f"| {r['board']} | {r['variant']} | {r['router']} / {r['config']} | {r.get('airwires_start')} -> **{r.get('airwires')}** | "
+              f"**{r.get('plain_errors')}** / {r.get('packed_errors')}{st} | {r.get('vias')} | {r.get('length_mm'):.0f} | "
+              f"{p.get('airwires', '')} / {p.get('vias', '')} / {p.get('length_mm', 0):.0f} | {r.get('min_width_mm')} | "
+              f"{r.get('wall_s') if r.get('wall_s') is not None else ''} | {'changed' if r.get('setup_changed') else 'kept'} |")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("cmd", nargs="?", default="run", choices=["run", "table"])
+    ap.add_argument("--boards", default="opus,sonnet,fable")
+    ap.add_argument("--variants", default="tracks,all")
+    ap.add_argument("--routers", default="designer,freerouting,krt", help="kct is available but off by default: it did not finish the Opus board in 20 min (P6-T3)")
+    ap.add_argument("--configs", default="all", help="'all' or a comma list of config names applied to every router that has them")
+    ap.add_argument("--reps", type=int, default=1)
+    ap.add_argument("--timeout", type=int, default=900, help="seconds per router run")
+    ap.add_argument("--results", default=str(RESULTS))
+    ap.add_argument("--tag", default="", help="free text stored with every row (which commit, which experiment)")
+    ap.add_argument("--md", action="store_true", help="table: markdown for FINDINGS")
+    a = ap.parse_args()
+    if a.cmd == "table":
+        table(Path(a.results), a.md)
+        return
+    run = SCRATCH / f"run-{os.getpid()}"
+    run.mkdir(parents=True, exist_ok=True)
+    results = Path(a.results)
+    results.parent.mkdir(parents=True, exist_ok=True)
+    commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short=9", "HEAD"], capture_output=True, text=True).stdout.strip()
+    print(f"route bench: scratch {run}, results {results}, tools {commit}")
+    routers = a.routers.split(",")
+    with results.open("a") as fh:
+        for board in a.boards.split(","):
+            if "designer" in routers:
+                src = glob.glob(str(ROOT / BOARDS[board] / "*.kicad_pcb"))[0]
+                d = run / board / "designer"
+                d.mkdir(parents=True, exist_ok=True)
+                for f in Path(src).parent.iterdir():
+                    if f.suffix in (".kicad_pcb", ".kicad_pro", ".kicad_prl"):
+                        shutil.copy(f, d / f.name)
+                m = pcb_json("route", "measure", str(d / Path(src).name), "--drc")
+                m["overhead_s"] = 0
+                m["setup_changed"] = False
+                r = row_of(board, "as-is", "designer", "designer", 0, {"airwires_start": m["ratsnest"]["airwires"]}, {"wall_s": None, "rc": 0}, m)
+                r["tag"], r["commit"] = a.tag, commit
+                fh.write(json.dumps(r) + "\n"); fh.flush()
+                print(fmt_row(r), flush=True)
+            for variant in a.variants.split(","):
+                if not any(x in routers for x in CONFIGS):
+                    continue
+                pcb, start = prep(board, variant, run)
+                print(f"-- {board} {variant}: stripped to {start['strip']['after']['tracks']} tracks, {start['strip']['after']['vias']} vias, "
+                      f"{start['strip']['after']['zones']} zones; {start['airwires_start']} airwires to route; DRC errors before routing "
+                      f"(placement and pours only) plain/packed {start['errors_start']} {start['plain_by_type_start']}", flush=True)
+                for router in routers:
+                    if router not in CONFIGS:
+                        continue
+                    cfgs = list(CONFIGS[router]) if a.configs == "all" else [c for c in a.configs.split(",") if c in CONFIGS[router]]
+                    for cfg in cfgs:
+                        for rep in range(1, a.reps + 1):
+                            out_dir = run / board / variant / router / cfg / f"rep{rep}"
+                            try:
+                                rr = run_router(router, cfg, pcb, out_dir, a.timeout)
+                                m = measure(rr["board"], start["settings"]) if rr.get("board") else {"error": rr.get("error", "no output")}
+                            except Exception as e:  # noqa: BLE001
+                                rr, m = {"error": f"{type(e).__name__}: {e}"[:400]}, {"error": "crashed"}
+                            r = row_of(board, variant, router, cfg, rep, start, rr, m)
+                            r["tag"], r["commit"] = a.tag, commit
+                            fh.write(json.dumps(r) + "\n"); fh.flush()
+                            print(fmt_row(r), flush=True)
+    print(f"route bench: done, {results}")
+
+
+if __name__ == "__main__":
+    main()

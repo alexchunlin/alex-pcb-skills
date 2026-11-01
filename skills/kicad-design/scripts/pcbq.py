@@ -12,6 +12,8 @@
   holes                        every hole: ref, pad, PTH/NPTH, drill, position
   silk                         board text and footprint reference visibility per side (R1-Z1-F4)
   settings                     board design-settings minimums (what the plain DRC run enforces)
+  ratsnest                     unrouted connections: multi-pad nets, nets left open, airwires (pad clusters minus
+                               one per net, through tracks, vias and filled zones), per-net list (P6-T1)
   edge                         board bbox from Edge.Cuts, size, corner arcs, copper layer count
   fabdata                      footprint fields (MPN/Manufacturer/LCSC/Datasheet, any case), DNP/exclusion flags,
                                origin-to-fab-outline-centre offset (feeds `pcb fab`; R1-S1-F4)
@@ -206,6 +208,53 @@ def q_vias(b, fps, args):
         per[v.GetNetname()] = per.get(v.GetNetname(), 0) + 1
     say("PCBQ vias", len(vs), "sizes(dia,drill)", sizes, "per net", per)
     return {"count": len(vs), "sizes": sizes, "per_net": per}
+
+
+def ratsnest(b):
+    """Airwires still needed, by pad clusters: RN_NET is not wrapped in 10.0.1 and RunOnUnconnectedEdges refuses a
+    Python callable, so for each multi-pad net the pads are grouped by GetConnectedItems (tracks, vias and filled
+    zones count) and a net needs clusters-1 airwires. GetUnconnectedCount is reported alongside as KiCad's own total."""
+    b.BuildConnectivity()
+    c = b.GetConnectivity()
+    c.RecalculateRatsnest()
+    rows, multi, open_nets, airwires = [], 0, 0, 0
+    for code, ni in sorted(b.GetNetInfo().NetsByNetcode().items()):
+        name = ni.GetNetname()
+        if code == 0 or not name:
+            continue
+        pads = [p for f in b.GetFootprints() for p in f.Pads() if p.GetNetCode() == code]
+        if len(pads) < 2:
+            continue
+        multi += 1
+        seen, groups = set(), []
+        for p in pads:
+            if p.m_Uuid.AsString() in seen:
+                continue
+            group = []
+            for it in c.GetConnectedItems(p):
+                if it.Type() == pcbnew.PCB_PAD_T and it.m_Uuid.AsString() not in seen:
+                    seen.add(it.m_Uuid.AsString())
+                    group.append(f"{it.GetParentFootprint().GetReference()}.{it.GetNumber()}")
+            if p.m_Uuid.AsString() not in seen:
+                seen.add(p.m_Uuid.AsString())
+                group.append(f"{p.GetParentFootprint().GetReference()}.{p.GetNumber()}")
+            groups.append(sorted(group))
+        e = len(groups) - 1
+        airwires += e
+        if e:
+            open_nets += 1
+        rows.append({"net": name, "pads": len(pads), "airwires": e, "clusters": sorted(groups, key=len, reverse=True) if e else None})
+    return {"multi_pad_nets": multi, "open_nets": open_nets, "airwires": airwires,
+            "kicad_unconnected": c.GetUnconnectedCount(False), "nets": rows}
+
+
+def q_ratsnest(b, fps, args):
+    r = ratsnest(b)
+    say("PCBQ ratsnest nets", r["multi_pad_nets"], "open", r["open_nets"], "airwires", r["airwires"], "kicad_unconnected", r["kicad_unconnected"])
+    for x in r["nets"]:
+        if x["airwires"]:
+            say("PCBQ open", x["net"], "pads", x["pads"], "airwires", x["airwires"], "clusters", x["clusters"][1:])
+    return r
 
 
 def q_coverage(b, fps, args):

@@ -641,3 +641,83 @@ in generations that emitted nothing and did not finish; Sonnet finished by writi
   verify_all 25, 26. Bench: 9 boards, 37 labels, 0 false fails. Not rows yet: pour-neck width (a polygon-erosion
   test is the plan), a sourcing-attributes row (JLC part pins vs footprint pads), capacitor ripple rating, a
   bring-up-vs-pinmap consistency row, thermal pads counted with in-pad PTH.
+
+## Phase 6: routing (2026-11-01, third session)
+
+Handoff item 1: measure freerouting 2.5.0 and KiCadRoutingTools on the three archived rung-2 boards with their copper
+stripped and placement kept, against the designers' own copper, before wrapping either. Tools at commit 3cf67f7 plus
+`pcb route` (`skills/kicad-design/scripts/pcbroute.py`: `strip`, `export-dsn`, `import-ses`, `fill`, `measure`) and
+`tools/bench/route_bench.py` (rows in `tools/bench/results/route.jsonl`). Router installs under `REF`:
+`freerouting/freerouting-2.5.0.jar` (run with Homebrew OpenJDK 27 at `/opt/homebrew/opt/openjdk/bin/java`),
+`KiCadRoutingTools/` (the v0.23.7 PCM zip's `plugins/` tree with its `grid_router-macos-arm64.so`, a `.venv` of
+numpy 2.5.4, scipy 1.18.1, shapely 2.2.0, Pillow). Scratch `/tmp/alexpcb-route/run-<pid>/<board>/<variant>/<router>/<config>/`.
+
+**Why not the existing code.** Diode `pcb` 0.4.95 has no `route` subcommand (`Unknown command 'route'`), so the survey's
+"`pcb route` via freerouting" is wrong for the installed version; kct 0.26.0 `route` is on the machine and is measured as
+the third candidate. pcbnew ships `ExportSpecctraDSN` and `ImportSpecctraSES`, so the freerouting round trip is two
+calls and no new exporter.
+
+- **P6-T1 Airwires as a number: `pcb q ratsnest` and `pcb route measure`.** `RN_NET` is not wrapped in 10.0.1 and
+  `RunOnUnconnectedEdges` refuses a Python callable, so the count is pad clusters per multi-pad net via
+  `GetConnectedItems` (tracks, vias and filled zones all count), clusters minus one per net, with the cluster members
+  listed. On the archived rung-2 boards: Opus 0, Sonnet 0, Fable 6 (GND 3, 5V 1, 3V3 1, nSLEEP 1), the reviewer's
+  "6 unconnected" (R2-F) exactly, and `GetUnconnectedCount` agrees on all three. `pcb route measure` adds tracks, vias
+  with sizes, total and per-layer length, min width, the board-setup minimums (to catch a router that loosened them),
+  the DRV8874's nets as their own row (R2-T2), and with `--drc` the dual DRC. Stripping with placement kept is
+  `Board.clear(tracks=True, zones=False, drawings=False)`: the Opus board goes from 137 tracks and 71 vias to 58
+  airwires with its 13 zones in place; the rung-1 board from 74 tracks and 25 vias to 23 airwires.
+- **P6-T2 Installing the routers, what broke.** (a) The freerouting 2.5.0 native macOS arm64 CLI
+  (`freerouting-cli-2.5.0-macos-arm64.tar.gz`, GraalVM image) throws
+  `UnsupportedFeatureError: SerializationConstructorAccessor class not found for ... ComponentOutline` from
+  `BoardSnapshotManager.serialize` on the first autoroute pass of the Opus DSN and then hangs (killed after 2 min, no
+  `.ses`). The jar on OpenJDK 27 routes the same DSN in 10 s. The wrapper uses the jar. (b) Passing `-drc report.json`
+  turns the CLI into a DRC-only run (0.7 s, no routing, 2-byte report): it is a mode, not an extra output. (c) `-mp` is
+  deprecated for `--router.autorouter.max_passes=`. (d) KiCadRoutingTools' release zip is the PCM plugin; the CLI is its
+  `plugins/` tree, the Rust module is `abi3-py39` and is copied to `rust_router/grid_router.so` by the package
+  `__init__` only when imported as a package, so a CLI venv needs the copy made once. KiCad 10's own Python has no
+  numpy, so the venv is separate from `pcb py`. (e) KRT's defaults rewrite the project's board-setup floors to the
+  routed values (`--no-fix-drc-settings` keeps them) and may neck a net below its class width (`--escalation off`
+  keeps sizes exact): both are the R1-A2-T5 pattern as a feature, so the bench runs KRT with both flags and reports
+  `setup_changed` for every router.
+- **P6-T3 The routers measured (route bench, `tools/bench/results/route.jsonl`, one rep each; freerouting is
+  deterministic, two settings gave byte-identical copper on every board).** Boards stripped with placement kept, `tracks`
+  keeps the designers' pours, `all` deletes them too. Errors the stripped input already carries (placement and pours,
+  not the router's): Fable 25 plain / 26 packed (3 shorts between pours, 5 clearance, 14 courtyard overlaps, 3 mask
+  bridges), Sonnet `tracks` 1 (a starved thermal), the rest 0. Reading the table: KRT at `default` (setup kept, sizes
+  exact) routes every connection on the two finished boards with the pours in place (Opus 0 airwires, 0 errors, 44 s,
+  37 vias against the designer's 71; Sonnet 0 airwires and one new starved thermal on a DRV8874 GND pad, 23 s, 43 vias
+  against 75) and without them (Sonnet clean; Opus one VIN airwire that the `board` pass closes in 18 s). freerouting
+  never finishes a board: 21 to 23 airwires with the pours in place (15 of the Opus 21 are GND pads it treats as
+  connected through the `conductionarea` while KiCad's fill does not reach them), 5 to 11 without, and 22 to 50
+  plain errors, almost all `track_width`: it necks tracks to 0.1874 mm (Sonnet 0.15) at the 0.65 mm pitch pads
+  against the setup's 0.2 minimum, plus 4 `copper_edge_clearance` without pours (the DSN carries no edge clearance,
+  as the survey said). It also uses 5 vias where the designers used 71 and 75, because it does not stitch to the
+  planes at all. kct 0.26.0 `route` on the Opus `tracks` board was killed at 20 min: three restarts of its initial
+  pass at 24 of 28 nets, the best-so-far checkpoint at 33 airwires and 61 plain errors (57 `track_width` at 0.15 mm);
+  it routes on 2 of the 4 layers. On the unfinished Fable board every router inherits the broken placement: KRT leaves
+  2 to 7 airwires (two GND pads on the DRV8874 that the designer's own copper also left open) and freerouting 11 to 23.
+  KRT's `raw` defaults loosen the board setup (clearance 0.2 to 0.175, via 0.6/0.3 to 0.25/0.15, hole clearance 0.3
+  to 0.175) so plain DRC reads 0 while the floored packed run reads 4 to 20: `setup_changed` and the pack floor catch
+  it, which is the R1-A2-T5 guard doing its job on a tool. Wall: KRT 14 to 84 s per board (longest on Fable, in rip-up),
+  freerouting 10 to 64 s, both plus 5 s of DSN or refill overhead, against the designers' 16 to 30 min of routing
+  (R1-A2, R2-T2). The DRV8874's nets: KRT 20 to 34 vias and 225 to 278 mm against the designers' 60 to 64 vias and
+  264 to 266 mm. Decision: `pcb route` wraps KRT; freerouting stays as `--engine freerouting` for comparison.
+- **P6-T4 `pcb route auto`, the loop.** Engine pass at exact sizes, refill, dual DRC with the sentinel, a second engine
+  pass (KRT `--escalation board`) on what is still open, then a stitch pass in pcbnew for pads left open or with a
+  starved thermal on a net that has a filled zone: a via of the board's default size just outside the pad with a stub
+  at the pad's width where the footprint has room (pad pitch at least 0.8 mm), a solid zone connection for a fine-pitch
+  pad, and the pass is discarded when it makes airwires or new errors worse. Errors the input already had are reported
+  as inherited and never charged; the setup minimums are compared before and after; exit 1 unless 0 airwires, no new
+  plain errors, packed errors not above the inherited count and the setup unchanged. Measured: Opus without pours
+  pass 1 leaves 1 VIN airwire, pass 2 closes it in 2.5 s, CLEAN in 46 s total with 46 vias. The rung-1 board (23
+  airwires after strip; 20 inherited errors, the LGA pad gap and the fill at 0.2 from P1-T14) reaches 0 airwires in
+  two passes with one new starved thermal on the LGA-14's GND pad; the solid-connection stitch made a second pad open
+  and was discarded, so the verdict is NOT CLEAN with that one error named. The Fable board ends at 4 airwires (two
+  GND pads at 0.65 mm pitch where no via fits, two buck nets) over its 25 inherited errors. freerouting through the same
+  loop on Opus: the under-width segments are widened to 0.2 and plain DRC drops from 22 to 0, but 21 airwires remain.
+  verify_all 27.
+- **P6-T5 kicad-cli DRC on the unfinished Fable board is not stable run to run.** verify_all 26 expects 20
+  `shorting_items`; in the full `--changed` run after phase 6 it reported 21 (the other counts unchanged), and the same
+  section alone, a minute later, 20 again. Nothing in the phase touches `pcbcli.py` or the archived board. The pour
+  shorts on that board sit on fill boundaries, and the zone fill is multithreaded, so a count on a board with
+  overlapping pours is a floor, not a constant. The check stays as it is; a second flake makes it a range.

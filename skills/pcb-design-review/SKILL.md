@@ -28,7 +28,9 @@ re-run. Tools come from the `kicad-design` skill (`<kd>` = `~/code-stuff/alex-pc
    `jumpers` and `addresses` rows do this; read their messages). Vision on schematics is unreliable
    (GAMEPLAN 3b, OmniSch), so the render is a lead only.
 4. **Measure what the log states.** `pcb q <copy>/x.kicad_pcb decoupling`, `dist`, `net`, `vias`, `coverage U1`,
-   `silk`, `settings`. Re-do every calculation in `DESIGN_LOG.md` (pull-up vs bus capacitance, sink current with
+   `silk`, `settings`, `ratsnest` (airwires left, with the open pad clusters, P6-T1); `pcb route measure --drc` gives the
+   copper totals and the DRV-class part's nets in one line. If the designer used `pcb route auto`, read its `route.json`:
+   `final.new_errors` must be empty or explained in the log, `start.inherited_by_type` is placement the router could not fix. Re-do every calculation in `DESIGN_LOG.md` (pull-up vs bus capacitance, sink current with
    the chain, decoupling distance, address). A missing calculation is a finding; a wrong number is an overclaim.
 5. **Regenerate from clean.** `pcb regen-check <copy> --cmd tools/regen.sh --board layout/x/x.kicad_pcb --generated layout fab`.
    Anything but REGENERATES is a major: code is the source of truth only if this passes (R1-Z1-F2, P1-T10).

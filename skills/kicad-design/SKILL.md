@@ -18,6 +18,7 @@ called `pcb` and sits first on PATH otherwise; two of three rung-2 designers ran
 | `pcb drc x.kicad_pcb [--pack jlcpcb]` | DRC twice on a mirror of the project: plain (board setup) and with the fab pack plus a sentinel rule; pack minimums below the setup are raised first. The headline is `errors_total`. Exit 2 if KiCad rejected the pack (P1-T3, P1-T4) |
 | `pcb check x.kicad_pcb checks.json` | intent rows ERC and DRC cannot see: rails, decoupling distance, pull-up current, addresses, connector pin maps, jumpers, test points, silk refdes vs the bring-up doc, feature-vs-floor ratios. Undeclared items fail (P1-T11) |
 | `pcb q x.kicad_pcb <cmd>` | one measurement over pcbnew: `decoupling`, `dist`, `net`, `nets`, `vias`, `coverage`, `zones`, `holes`, `silk`, `settings`, `edge`, `fps`, `pads`, `fabdata` (`pcb q` alone lists them) |
+| `pcb route auto x.kicad_pcb` | autoroute what is unrouted with placement and existing copper kept (KiCadRoutingTools; `--engine freerouting` to compare): engine pass at exact sizes, refill, dual DRC, second pass on what is still open, stitch pass; errors the input already had are reported as inherited; `route.json` beside the board; exit 1 unless clean (P6-T3, P6-T4). `pcb route strip|measure|export-dsn|import-ses|fill` are the primitives; `pcb q ratsnest` counts the airwires (P6-T1) |
 | `pcb py script.py` | KiCad's Python with `pcblib` and the cwd importable, after the GUI guard |
 | `pcb schfix x.kicad_sch` | post-fix a `pcb apply schematic` output: fields, global labels, symbol library, PWR_FLAGs; refuses if connectivity changed (P1-T16) |
 | `pcb netlist`, `pcb diff a b` | kicadxml export; connectivity diff as (ref, pin) sets, renames allowed, exit 1 on change (P0-T3) |
@@ -71,6 +72,17 @@ baseline went to long single generations (18 min of 49, R1-S1-T1): work in small
    `REF.PAD`, `via`, `zone`, `text`, `hide_refdes(keep=...)`, `fill`, `save`. Everything the script places is
    rebuilt on every run, so one run restores the layout after a schematic regeneration (code is the source of truth).
    Run it with `pcb py tools/layout_board.py layout/x/x.kicad_pcb`.
+   - **Place and pour by hand, route by tool.** Hand-route only the nets with a reason (the VM feed, the buck loop,
+     sense lines), then `pcb route auto layout/x/x.kicad_pcb` for the rest, from `tools/regen.sh` after the layout
+     script so regeneration includes it. On the rung-2 boards it routed every connection in 23 to 44 s with half the
+     designers' vias, where the designers spent 16 to 30 min and wrote their own routers (R2-T2, P6-T3). Read its
+     `route.json`: `clean`, `final.new_errors` (yours to fix: usually a starved thermal where a track took the spoke,
+     add a GND via in the layout script), `start.inherited_by_type` (placement and pour errors it will not touch) and
+     `passes[].setup_changed` (always `false`; the tool never lowers the board setup). It leaves a connection open
+     only where no copper fits: move the part.
+   - The three rung-2 designers placed the pours before routing; keep that order, the router treats them as obstacles
+     and stitches to them (the `tracks` variant in P6-T3 was clean on both finished boards, the `all` variant needed
+     the second pass).
    - Never leave a `.kicad_dru` in the project directory: the zone filler reads it and the copper changes
      (hole clearance 0.2 from the pack instead of 0.3 from the setup, 8 DRC errors that appear on the second
      regeneration, P1-T14). `pcb drc --pack` applies the pack on a mirror.
@@ -89,8 +101,8 @@ baseline went to long single generations (18 min of 49, R1-S1-T1): work in small
 6. **Package.** `pcb fab layout/x/x.kicad_pcb --out fab`: read `fab.json` for `bom_missing_lcsc` and
    `cpl_origin_offsets_mm` (the JST SH footprint origin sits 0.45 mm from its body centre, R1-S1-F4). Write
    `BRINGUP.md` as numbered steps with expected readings and the test point or header pin for each.
-7. **Prove regeneration.** Write `tools/regen.sh` (build, layout, layout script, apply schematic, schfix, erc, drc,
-   check, fab) and run `pcb regen-check . --cmd tools/regen.sh --board layout/x/x.kicad_pcb --generated layout fab`.
+7. **Prove regeneration.** Write `tools/regen.sh` (build, layout, layout script, `pcb route auto`, apply schematic,
+   schfix, erc, drc, check, fab) and run `pcb regen-check . --cmd tools/regen.sh --board layout/x/x.kicad_pcb --generated layout fab`.
    It must say REGENERATES: both baseline regenerations diverged on the first pass from a clean tree and one
    exited 1 (R1-Z1-F2, P1-T10). The verdict is on netlist, DRC counts, placement and per-net copper; gerber
    differences from Zener's footprint ordering or a fill vertex are reported as warns (R1-A2-T2). Put the

@@ -1,4 +1,4 @@
-# Status (updated 2026-10-31, phase 1-4 items 1-8 done)
+# Status (updated 2026-11-01, phase 6 routing measured and wrapped)
 
 - Plan: `docs/GAMEPLAN.md`. Evidence: `docs/FINDINGS.md`. Survey with URLs: `docs/SURVEY-2026-10-31.md`. Handoff
   from the kickoff session: `docs/HANDOFF-2026-10-31.md` (its "Next" list is the work order).
@@ -42,5 +42,14 @@
 - Next: phase 6 routing (freerouting 2.5 / KiCadRoutingTools wrappers measured against the rung-2 boards: all three
   designers lost most of their time at the DRV8874's 0.65 mm pitch, R2-T2); then the rows listed under P1-T22
   (pour-neck width, sourcing attributes, cap ripple rating, bring-up vs pin map); then rung-2 attempt 2.
-- Not done: no workflow template (phase 5), no topology or silk-readability rows (the two Plink misses), no routing tool (phase 6). The
-  commits: phase 0, items 1-5.
+- Phase 6 routing (2026-11-01, branch `alexchunlin/phase6-routing`): freerouting 2.5.0 (jar on OpenJDK; the native CLI
+  crashes, P6-T2), KiCadRoutingTools 0.23.7 and kct 0.26.0 measured on the three rung-2 boards stripped with placement
+  kept (`tools/bench/route_bench.py`, 33 rows in `tools/bench/results/route.jsonl`, P6-T3). KRT routes both finished
+  boards clean with the pours in place in 23 to 44 s with half the designers' vias; freerouting leaves 21 to 23 airwires
+  and necks tracks under the setup minimum; kct did not finish in 20 min. `pcb route auto` wraps KRT (engine pass,
+  refill, dual DRC, second pass, stitch pass, inherited errors separated, exit 1 unless clean; P6-T4); `pcb route
+  strip|export-dsn|import-ses|fill|measure` and `pcb q ratsnest` are the primitives (P6-T1). verify_all 27.
+- Next: rung-2 attempt 2 with Opus at medium on `pcb route auto` (reviewer on Fable), compare with 8/6/7 and 38.7 min;
+  the rows the rung-2 reviews asked for (pour-neck width, sourcing attributes, cap ripple rating, bring-up vs pin map);
+  the per-sheet loop. The design-margin experiment (4/6/8 layers) can now run on the route bench.
+- Not done: no workflow template (phase 5), no topology or silk-readability rows (the two Plink misses).

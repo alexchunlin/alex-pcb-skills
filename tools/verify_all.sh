@@ -458,6 +458,32 @@ $PCB drc "$ROOT/examples/rung2-zener-a1-fable/board/motor_channel.kicad_pcb" --p
 [ "$(jq_ "$V/r2fdrc/drc.json" "(d['plain']['by_type']['error'].get('shorting_items'), d['plain']['by_type']['error'].get('courtyards_overlap'), d['plain']['unconnected'])")" = "(20, 14, 6)" ] && ok "r2 fable drc: 20 shorts, 14 courtyard overlaps, 6 unconnected (the reviewer's blockers)" || bad "r2 fable drc $(jq_ "$V/r2fdrc/drc.json" "(d['plain']['errors'], d['plain']['by_type'])")"
 fi  #@ end 26
 
+if want 27; then  #@ watch: @q skills/kicad-design/scripts/pcbroute.py tools/bench/route_bench.py examples/rung1-zener-a1/board/**
+echo "== 27 pcb route primitives: ratsnest count, strip keeps placement, DSN export, measure (P6-T1)"
+for a in opus sonnet fable; do $PCB q "$ROOT"/examples/rung2-zener-a1-$a/board/*.kicad_pcb ratsnest --json > "$V/rn-$a.json"; done
+[ "$(jq_ "$V/rn-opus.json" "d['airwires']")$(jq_ "$V/rn-sonnet.json" "d['airwires']")$(jq_ "$V/rn-fable.json" "(d['airwires'], d['open_nets'], d['kicad_unconnected'])")" = "00(6, 4, 6)" ] && ok "ratsnest: opus 0, sonnet 0, fable 6 airwires on 4 nets (the R2-F reviewer's 6 unconnected), KiCad's own count agrees" || bad "ratsnest: $(jq_ "$V/rn-fable.json" "d['airwires']")"
+R="$V/route"; rm -rf "$R"; mkdir -p "$R"; cp "$ROOT"/examples/rung1-zener-a1/board/qwiic_imu.kicad_p* "$R"/
+$PCB route measure "$R/qwiic_imu.kicad_pcb" --ref-value LSM6 --json > "$R/m0.json"
+$PCB route strip "$R/qwiic_imu.kicad_pcb" --json > "$R/strip.json"
+$PCB route measure "$R/qwiic_imu.kicad_pcb" --ref-value LSM6 --json > "$R/m1.json"
+[ "$(jq_ "$R/strip.json" "(d['before']['tracks'], d['before']['vias'], d['after']['tracks'], d['after']['vias'], d['after']['zones'], d['after']['footprints'])")" = "(74, 25, 0, 0, 4, 15)" ] && ok "strip: 74 tracks and 25 vias gone, 4 zones and 15 footprints kept" || bad "strip: $(cat "$R/strip.json" | cut -c1-200)"
+[ "$(jq_ "$R/m0.json" "(d['ratsnest']['airwires'], d['vias'], round(d['length_mm']), d['part']['ref'])")" = "(0, 25, 145, 'U1')" ] && [ "$(jq_ "$R/m1.json" "(d['ratsnest']['airwires'], d['open']['3V3'], d['open']['GND'] if 'GND' in d['open'] else 0, d['part']['airwires'])")" = "(23, 10, 0, 21)" ] && ok "measure: designer copper 0 airwires / 25 vias / 145 mm; stripped 23 airwires (3V3 10, GND 0 through its pour), 21 on U1's nets" || bad "measure: $(cut -c1-200 "$R/m1.json")"
+$PCB q "$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pcb" fps --json > "$R/fps0.json"; $PCB q "$R/qwiic_imu.kicad_pcb" fps --json > "$R/fps1.json"
+python3 -I -c "
+import json; a=json.load(open('$R/fps0.json'))['footprints']; b=json.load(open('$R/fps1.json'))['footprints']
+k=lambda f: (f['ref'], tuple(f['pos']), f['rot'], f['layer']); assert sorted(map(k,a))==sorted(map(k,b)), 'placement moved'" 2> "$R/place.txt" && ok "strip: every footprint's position, rotation and layer unchanged" || bad "strip placement: $(cat "$R/place.txt")"
+$PCB route export-dsn "$R/qwiic_imu.kicad_pcb" --json > "$R/dsn.json" && grep -q "(host_cad \"KiCad's Pcbnew\")" "$R/qwiic_imu.dsn" && [ "$(grep -c '(image ' "$R/qwiic_imu.dsn")" -ge 5 ] && ok "export-dsn: a pcbnew Specctra file with images ($(grep -c '(image ' "$R/qwiic_imu.dsn")) for the router" || bad "export-dsn: $(cat "$R/dsn.json")"
+python3 -I "$ROOT/tools/bench/route_bench.py" table --md > "$R/table.md" && [ "$(grep -c '^| ' "$R/table.md")" -ge 34 ] && grep -q "| opus | tracks | krt / default | 58 -> \*\*0\*\* | \*\*0\*\* / 0 | 37 |" "$R/table.md" && grep -q "| opus | tracks | freerouting / default | 58 -> \*\*21\*\* | \*\*22\*\* / 0 | 5 |" "$R/table.md" && ok "route bench results: 33 rows; opus/tracks KRT 0 airwires 0 errors 37 vias, freerouting 21 airwires 22 errors 5 vias (P6-T3)" || bad "route bench table: $(grep -c '^| ' "$R/table.md") rows"
+KRT_PY="${KRT_PY:-${KRT_DIR:-$REF/KiCadRoutingTools}/.venv/bin/python}"
+if [ -x "$KRT_PY" ]; then
+  # the loop on the rung-1 board: 23 airwires to 0 in two KRT passes, one new starved thermal on the LGA-14's GND pad, the 20
+  # inherited errors (LGA pad gap, fill at 0.2 from P1-T14) separated, stitch discarded, verdict NOT CLEAN, exit 1 (P6-T4)
+  $PCB route auto "$R/qwiic_imu.kicad_pcb" --work "$R/work" > "$R/auto.txt" 2>&1; rc=$?
+  [ "$rc" = 1 ] && [ "$(jq_ "$R/route.json" "(d['clean'], d['start']['airwires'], d['start']['inherited_by_type'], d['final']['airwires'], d['final']['new_errors'], d['final']['setup_changed'], [p['pass'] for p in d['passes']])")" = "(False, 23, {'clearance': 12, 'hole_clearance': 8}, 0, {'starved_thermal': 1}, False, [1, 2, 'stitch'])" ] && ok "route auto (KRT): 23 airwires -> 2 after pass 1 -> 0 after pass 2, one new starved thermal named, 20 inherited errors separated, stitch tried and discarded, exit 1" || bad "route auto: rc $rc $(tail -2 "$R/auto.txt" | cut -c1-300)"
+  [ "$(jq_ "$R/route.json" "d['final']['vias'] > 0 and d['final']['tracks'] > 0")" = True ] && $PCB q "$R/qwiic_imu.kicad_pcb" ratsnest --json | grep -q '"airwires": 0' && ok "route auto wrote the routed board in place (0 airwires on re-measure)" || bad "route auto output"
+else nochecks "KiCadRoutingTools not installed ($KRT_PY): route auto not run (install per tools/bench/README.md)"; fi
+fi  #@ end 27
+
 if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
 echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"
   KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
