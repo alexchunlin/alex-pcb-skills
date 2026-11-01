@@ -440,7 +440,7 @@ $PCB drc "$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pcb" --pack jlcpcb
 [ "$(jq_ "$V/sdrc/drc-packed.json" "(d.get('sentinel_hits_removed'), sum(1 for v in d['violations'] if '99.' in v['description']))")" = "(74, 0)" ] && [ -f "$V/sdrc/drc-packed-raw.json" ] && ok "packed report carries no sentinel hits (74 removed, raw kept)" || bad "sentinel strip: $(jq_ "$V/sdrc/drc-packed.json" "(d.get('sentinel_hits_removed'), len(d['violations']))")"
 fi  #@ end 25
 
-if want 26; then  #@ watch: @check @cli examples/rung2-zener-a1-*/**
+if want 26; then  #@ watch: @check @cli examples/rung2-zener-a*/**
 echo "== 26 rung-2 boards: the reviewers' majors as rows (feeds, declared decoupling, currents; drc shorts on the unfinished board) (R2-T5)"
 for a in opus sonnet fable; do
   B=$(ls "$ROOT"/examples/rung2-zener-a1-$a/board/*.kicad_pcb)
@@ -456,6 +456,8 @@ $PCB drc "$ROOT/examples/rung2-zener-a1-fable/board/motor_channel.kicad_pcb" --p
 # 67 here against the designer's 62: the archived board sits without its vendored footprint library (59 lib_footprint_issues), which
 # moves five clearance/mask errors; the shorts, courtyards and unconnected counts are the reviewer's
 [ "$(jq_ "$V/r2fdrc/drc.json" "(d['plain']['by_type']['error'].get('shorting_items'), d['plain']['by_type']['error'].get('courtyards_overlap'), d['plain']['unconnected'])")" = "(20, 14, 6)" ] && ok "r2 fable drc: 20 shorts, 14 courtyard overlaps, 6 unconnected (the reviewer's blockers)" || bad "r2 fable drc $(jq_ "$V/r2fdrc/drc.json" "(d['plain']['errors'], d['plain']['by_type'])")"
+$PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$ROOT/examples/rung2-zener-a2-opus/checks.json" --out "$V/r2a2ocheck.json" > "$V/r2a2opus.txt"
+[ "$(jq_ "$V/r2a2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['feeds:C17.1', 'feeds:J3.1']" ] && ok "r2 attempt-2 opus: feeds J3.1 and C17.1 at 0.00 A (the reviewer's two electrical majors, R2A2-O-1/2); the designer's own 147 rows pass" || bad "r2a2 opus: $(jq_ "$V/r2a2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
 fi  #@ end 26
 
 if want 27; then  #@ watch: @q skills/kicad-design/scripts/pcbroute.py tools/bench/route_bench.py examples/rung1-zener-a1/board/**
@@ -479,8 +481,24 @@ if [ -x "$KRT_PY" ]; then
   # the loop on the rung-1 board: 23 airwires to 0 in two KRT passes, one new starved thermal on the LGA-14's GND pad, the 20
   # inherited errors (LGA pad gap, fill at 0.2 from P1-T14) separated, stitch discarded, verdict NOT CLEAN, exit 1 (P6-T4)
   $PCB route auto "$R/qwiic_imu.kicad_pcb" --work "$R/work" > "$R/auto.txt" 2>&1; rc=$?
-  [ "$rc" = 1 ] && [ "$(jq_ "$R/route.json" "(d['clean'], d['start']['airwires'], d['start']['inherited_by_type'], d['final']['airwires'], d['final']['new_errors'], d['final']['setup_changed'], [p['pass'] for p in d['passes']])")" = "(False, 23, {'clearance': 12, 'hole_clearance': 8}, 0, {'starved_thermal': 1}, False, [1, 2, 'stitch'])" ] && ok "route auto (KRT): 23 airwires -> 2 after pass 1 -> 0 after pass 2, one new starved thermal named, 20 inherited errors separated, stitch tried and discarded, exit 1" || bad "route auto: rc $rc $(tail -2 "$R/auto.txt" | cut -c1-300)"
+  [ "$rc" = 1 ] && [ "$(jq_ "$R/route.json" "(d['clean'], d['start']['airwires'], sorted(d['start']['inherited_by_type'].items()), d['final']['airwires'], d['final']['new_errors'], d['final']['setup_changed'], [p['pass'] for p in d['passes']])")" = "(False, 23, [('clearance', 12), ('hole_clearance', 8)], 0, {'starved_thermal': 1}, False, [1, 2, 'stitch'])" ] && ok "route auto (KRT): 23 airwires -> 2 after pass 1 -> 0 after pass 2, one new starved thermal named, 20 inherited errors separated, stitch tried and discarded, exit 1" || bad "route auto: rc $rc $(tail -2 "$R/auto.txt" | cut -c1-300)"
   [ "$(jq_ "$R/route.json" "d['final']['vias'] > 0 and d['final']['tracks'] > 0")" = True ] && $PCB q "$R/qwiic_imu.kicad_pcb" ratsnest --json | grep -q '"airwires": 0' && ok "route auto wrote the routed board in place (0 airwires on re-measure)" || bad "route auto output"
+  # order independence (P6-T6): the same board with its footprint blocks reversed routes to the same copper through `auto`
+  python3 -I -c "
+import sys; sys.path.insert(0, '$ROOT/skills/kicad-design/scripts')
+import re
+t = open('$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pcb').read()
+blocks = [m.span() for m in re.finditer(r'\n\t\(footprint .*?\n\t\)', t, re.S)]
+fps = [t[a:b] for a, b in blocks]
+out = []; last = 0
+for (a, b), f in zip(blocks, reversed(fps)): out.append(t[last:a]); out.append(f); last = b
+out.append(t[last:]); open('$R/rev.kicad_pcb', 'w').write(''.join(out)); print(len(fps))" > "$R/rev.txt"
+  cp "$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pro" "$R/rev.kicad_pro"
+  $PCB route strip "$R/rev.kicad_pcb" > /dev/null && $PCB route auto "$R/rev.kicad_pcb" --work "$R/revwork" > "$R/revauto.txt" 2>&1
+  $PCB q "$R/rev.kicad_pcb" nets --json > "$R/revnets.json"; $PCB q "$R/qwiic_imu.kicad_pcb" nets --json > "$R/fwdnets.json"
+  python3 -I -c "
+import json; a={n['net']: (n['length_mm'], n['vias']) for n in json.load(open('$R/fwdnets.json'))['nets']}; b={n['net']: (n['length_mm'], n['vias']) for n in json.load(open('$R/revnets.json'))['nets']}
+d=[k for k in a if abs(a[k][0]-b[k][0]) > 0.005 or a[k][1] != b[k][1]]; assert not d, d; print('same copper on', len(a), 'nets')" > "$R/order.txt" 2>&1 && ok "route auto: $(cat "$R/rev.txt") footprints reversed in the file give identical per-net copper (canonical order, P6-T6)" || bad "route auto order: $(cat "$R/order.txt" | tail -1)"
 else nochecks "KiCadRoutingTools not installed ($KRT_PY): route auto not run (install per tools/bench/README.md)"; fi
 fi  #@ end 27
 

@@ -1,0 +1,80 @@
+{
+ "board": "/Users/alxchunlin/code-stuff/alex-pcb-runs/rung2-zener-a2-opus/layout/motor1/motor1.kicad_pcb",
+ "out": "/Users/alxchunlin/code-stuff/alex-pcb-runs/rung2-zener-a2-opus/layout/motor1/motor1.kicad_pcb",
+ "engine": "krt",
+ "work": "/tmp/pcb-route-auto/motor1-83771",
+ "wall_s": 23.0,
+ "clean": true,
+ "start": {
+  "airwires": 40,
+  "open": {
+   "ISENSE": 2,
+   "ENC_A_IN": 2,
+   "ENC_A": 1,
+   "RT": 1,
+   "VIN": 1,
+   "VSENSE": 2,
+   "COMP": 1,
+   "SS": 1,
+   "SW": 3,
+   "BOOT": 1,
+   "PWM": 1,
+   "DIR": 1,
+   "nSLEEP": 1,
+   "nFAULT": 3,
+   "3V3": 10,
+   "Q1_GATE": 2,
+   "LED_FAULT": 1,
+   "COMP_RC": 1,
+   "5V": 1,
+   "LED_PWR": 1,
+   "ENC_B_IN": 2,
+   "ENC_B": 1
+  },
+  "plain_errors": 0,
+  "packed_errors": 0,
+  "inherited_by_type": {},
+  "vias": 48,
+  "tracks": 37
+ },
+ "passes": [
+  {
+   "pass": 1,
+   "rc": 0,
+   "wall_s": 13.6,
+   "airwires": 0,
+   "open": {},
+   "vias": 64,
+   "tracks": 188,
+   "length_mm": 495.808,
+   "min_width_mm": 0.2,
+   "plain_errors": 0,
+   "packed_errors": 0,
+   "new_errors": {},
+   "widened": 0,
+   "setup_changed": false
+  }
+ ],
+ "final": {
+  "airwires": 0,
+  "open": {},
+  "vias": 64,
+  "tracks": 188,
+  "length_mm": 495.808,
+  "min_width_mm": 0.2,
+  "plain_errors": 0,
+  "packed_errors": 0,
+  "new_errors": {},
+  "setup_changed": false
+ },
+ "part": {
+  "ref": "U2",
+  "value": "DRV8874PWPR",
+  "nets": 13,
+  "open_nets": {},
+  "airwires": 0,
+  "vias": 42,
+  "length_mm": 309.333
+ },
+ "sentinel": "fired"
+}

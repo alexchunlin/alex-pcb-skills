@@ -14,6 +14,18 @@ handoffs hold Alex's standing decisions and the designer/reviewer prompts.
 - Not run yet: a designer on `pcb route auto`. The numbers so far are the tool on the designers' placements, not a
   designer using the tool.
 
+## Update, later the same day: rung-2 attempt 2 ran
+- Opus 5.5 at medium on `pcb route auto`, reviewer Fable at default (Alex's call, to keep the reviewer constant):
+  8/8/7 in 71.3 min / 196k tokens against 8/6/7 in 38.7 min / 189k. FINDINGS "Rung 2, attempt 2" has the table, the
+  review and the reading; the board is `examples/rung2-zener-a2-opus/` with the reviewer's two `feeds` rows added to
+  its config and labelled (R2A2-O-1/2). P6-T6: KRT follows footprint file order and Zener reorders per layout, so
+  regen-check failed; `pcb route auto` now sorts the footprints first and the attempt REGENERATES.
+- The time did not fall. The designer's 30 min of reaction were two things: signals routed onto the plane layers
+  (it added keepouts) and wide-class nets routed as 0.2 mm stubs or plane spokes (it hand-routed VM/OUT, the reviewer
+  found J3.1 and C17 it missed). Next tool move, before attempt 3: `pcb route auto` routes signal nets on the outer
+  layers only by default and refuses to route a net in a wide class (leave those to the layout script), and a `feeds`
+  row is generated for every pin of a wide-class net.
+
 ## Decisions pending with Alex (do not act without him)
 - Merge this branch.
 - Whether rung-2 attempt 2 (Opus 5.5 at medium, reviewer Fable, same brief and PATH.md) runs before or after the rows in

@@ -329,6 +329,39 @@
      "verify_out": null
     }
    ]
+  },
+  "rung2-zener-a2-opus": {
+   "dir": "examples/rung2-zener-a2-opus",
+   "pcb": "board/motor1.kicad_pcb",
+   "netlist": "board/motor1.xml",
+   "bringup": "board/BRINGUP.md",
+   "reviewer": "R2A2-O",
+   "findings": "R2A2",
+   "runs": [
+    {
+     "id": "drc",
+     "kind": "designer",
+     "type": "drc",
+     "args": [
+      "--pack",
+      "jlcpcb"
+     ],
+     "verify_out": null
+    },
+    {
+     "id": "check",
+     "kind": "review",
+     "type": "check",
+     "config": "checks.json",
+     "verify_out": "r2a2ocheck.json"
+    },
+    {
+     "id": "fab",
+     "kind": "designer",
+     "type": "fab",
+     "verify_out": null
+    }
+   ]
   }
  }
 }

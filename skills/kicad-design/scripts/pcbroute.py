@@ -5,6 +5,8 @@
   export-dsn BOARD [--out F.dsn]                    Specctra DSN via pcbnew.ExportSpecctraDSN (the freerouting input)
   import-ses BOARD F.ses [--out F]                  Specctra session back onto BOARD via pcbnew.ImportSpecctraSES, saved
   fill BOARD                                        save, reload, build connectivity, fill twice (pcblib Board.fill, P1-T10)
+  canon BOARD [--out F]                             sort the footprint blocks by reference so the router sees the same
+                                                    order on every regeneration (`auto` does this first, P6-T6)
   auto BOARD [--engine krt|freerouting] [--out F] [--pack jlcpcb] [--max-pass 2] [--work DIR]
                                                     route what is unrouted with placement and existing copper kept: engine
                                                     pass, refill, dual DRC, a second engine pass on what is still open;
@@ -290,6 +292,63 @@ def stitch(path, drc_plain_json, open_clusters, settings):
     return actions
 
 
+def canonical(path, out=None):
+    """Sort the board file's top-level (footprint ...) blocks by reference, in place. KiCad 10 files carry nets by name
+    inside pads, so a router that numbers nets in order of appearance (KRT) routes in footprint-file order, and Zener's
+    `pcb layout` writes the footprints in a different order on every clean regeneration (R1-A2-T2): the same placement
+    then routes differently and regen-check FAILS (P6-T6). With the footprints sorted the copper is identical. Text-level,
+    so UUIDs, placement and everything else stay byte-for-byte; pcbnew loads the result unchanged."""
+    import re
+    text = open(path).read()
+    i = text.index("(kicad_pcb") + len("(kicad_pcb")
+    spans, depth, start, instr, j = [], 0, None, False, i
+    while j < len(text):
+        c = text[j]
+        if instr:
+            if c == "\\":
+                j += 1
+            elif c == '"':
+                instr = False
+        elif c == '"':
+            instr = True
+        elif c == "(":
+            if depth == 0:
+                start = j
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth == 0 and start is not None:
+                spans.append((start, j + 1))
+                start = None
+            elif depth < 0:
+                break
+        j += 1
+    fps = [(a, b) for a, b in spans if text.startswith("(footprint", a)]
+    if not fps:
+        return 0
+    def key(span):
+        m = re.search(r'\(property "Reference" "([^"]*)"', text[span[0]:span[1]])
+        ref = m.group(1) if m else ""
+        m2 = re.match(r"([A-Za-z_]*)(\d*)", ref)
+        return (m2.group(1), int(m2.group(2) or 0), ref, text[span[0]:span[1]])
+    ordered = sorted(fps, key=key)
+    pieces, last = [], 0
+    for (a, b), (oa, ob) in zip(fps, ordered):
+        pieces.append(text[last:a])
+        pieces.append(text[oa:ob])
+        last = b
+    pieces.append(text[last:])
+    open(out or path, "w").write("".join(pieces))
+    return len(fps)
+
+
+def c_canon(args):
+    out = opt(args, "--out")
+    n = canonical(args[0], out)
+    say("PCBROUTE canon", out or args[0], "footprints sorted by reference", n)
+    return {"path": out or args[0], "footprints": n}
+
+
 def new_errors(by_type, inherited):
     return {k: v - inherited.get(k, 0) for k, v in by_type.items() if v > inherited.get(k, 0)}
 
@@ -321,6 +380,7 @@ def c_auto(args):
         if os.path.exists(src):
             shutil.copy(src, os.path.join(os.path.dirname(cur), os.path.basename(src)))
     shutil.copy(board, os.path.join(work, f"{stem}.prerouted.kicad_pcb"))
+    canonical(cur)
     keep = len(OUT)
     start = c_measure([cur, "--drc", "--pack", pack])
     del OUT[keep:]
@@ -402,7 +462,8 @@ def c_auto(args):
     return r
 
 
-CMDS = {"strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto}
+CMDS = {"strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
+        "canon": c_canon}
 
 
 def main():

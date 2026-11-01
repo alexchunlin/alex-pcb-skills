@@ -721,3 +721,87 @@ calls and no new exporter.
   section alone, a minute later, 20 again. Nothing in the phase touches `pcbcli.py` or the archived board. The pour
   shorts on that board sit on fill boundaries, and the zone fill is multithreaded, so a count on a board with
   overlapping pours is a floor, not a constant. The check stays as it is; a second flake makes it a range.
+
+## Rung 2, attempt 2 (2026-11-01 09:45, one designer on Opus 5.5 at medium effort, Zener path, with `pcb route auto`)
+
+Run: `RUNS/rung2-zener-a2-opus` (same brief, same prompt and PATH.md as attempt 1, the path file pointing at the
+`phase6-routing` branch's skill so the designer had `pcb route auto`). Reviewer on Fable at default effort (Alex: keep
+the reviewer constant so only the designer's routing tool changes). Transcripts in this worktree's project dir,
+`b9c818d0.../subagents/agent-a320055b3c7f715bf.jsonl` (designer), `agent-af474f7a0460a3258.jsonl` (reviewer). No
+forbidden reads. Hypothesis stated before the run: the tool removes the routing bottleneck, scores at or above 8/6/7, no
+new DRC errors from routing, routing under 5 min, fewer tokens than 189k. Null: no change in time or tokens within
+run-to-run spread, or scores fall because of what the router's copper does electrically.
+
+| | A1 Opus (medium), hand routing | A2 Opus (medium), `pcb route auto` |
+|---|---|---|
+| scores (elec / manuf / doc) | 8 / 6 / 7 | **8 / 8 / 7** |
+| blockers / majors | 1 / 4 | 0 / 4 |
+| designer wall / model / tools (min) | 38.7 / 31.5 / 7.1 | 71.3 / 41.5 / 29.8 |
+| API calls / tool uses / bash failures | 107 / 109 / 8 | 129 / 129 / 7 |
+| output tokens (thinking) / peak context | 189k (102k) / 360k | 196k (107k) / 354k |
+| long generations >= 120 s | 3, 8.7 min | 3, 13.3 min (one 7 min tool wait) |
+| `pcb route auto` runs | n/a | 8, all CLEAN; final 64 vias, 495.8 mm, 0 inner-layer tracks |
+| claimed DRC plain / packed, pcbcheck | 0 / 0, 0 fails / 127 | 0 / 0, 0 fails / 147 (1 accepted) |
+| claimed regen-check | REGENERATES | FAILS (3 runs; see R2A2-T1) |
+| reviewer wall / tokens | 20.3 / 229k | 28.9 / 339k |
+
+### Designer side
+- **R2A2-T1 The tool routed the board clean on the first call (step 6, 26 min in) and the designer then spent 20 min on
+  what the router had done to the high-current pins and 10 min fighting its layer choices**: the DRV8874's VM and
+  OUT pins at 0.65 mm pitch got hand escapes (pour necks plus three vias each), 3V3/PWM/DIR/nSLEEP/nFAULT went onto
+  the plane layers until the designer added no-track keepouts on In1/In2, 0.2 mm stubs appeared on the 4 A rails
+  and were replaced by pad pours, and the router deleted vias that touched only one layer plus a pour. Each fix was a
+  fresh `route auto` (8 runs). Then three regen-checks (8 min) all FAILS: pass 2 equals pass 1 every time, but the
+  fresh tree differs from the handed-in one on 11 to 14 signal nets. The designer blamed the run path (wrong) and
+  ordering (right); the reviewer and the session-side experiment pinned it (P6-T6). First `regen.sh` 9 min 22 s
+  (part fetches), later ones 41 s.
+- The time went up, not down: tools 7 -> 30 min (route runs with their DRC, regen-checks, the 9-min regen) and model
+  31 -> 42 min. The routing phase itself was 26 -> 44 min of a 71-min run, so the hypothesis's "under 5 min" is
+  rejected on this run; the tool's own time per call was 1 to 2 min, the designer's reaction to its copper was the
+  rest. Zener frictions again: `properties["Mpn"]`, pin names on the vendored symbols, a KiCad 9-format vendored
+  symbol refused by `pcb apply` (7 bash failures, all before minute 10).
+
+### R2A2-O review (reviewer on Fable at default effort, 28.9 min, 74 tool uses, 339k tokens)
+Scores **8 / 8 / 7**. Review at `RUNS/rung2-zener-a2-opus/review/review.md`. Re-measured: ERC 0/0, DRC plain 0/2 and
+packed 0/92 (sentinel x188), pcbcheck 0/0/147/1 with the designer's config and 10 fails / 165 with the reviewer's, every
+calculation reproduced (fsw 698.3 kHz, 35.8 % ripple, 2.493 V at 2 A, ITRIP 2.647 A, LDO 0.85 W / 116.5 degC, IPC
+1.335 / 0.698 mm), Plink encoder order from the Plink PCB, fab BOM and CPL byte-identical, regen-check FAILS reproduced
+and diagnosed, the router deterministic on one input five times at two paths.
+- **R2A2-O-1 (major)** 5 V header pin J3.1 fed only by four 0.30 mm In2 thermal spokes, 1.64 A against the 3 A rail;
+  no track or via touches it (`feeds:J3.1` 0.00 A with the reviewer's row). The router routed 5V to the plane and the
+  plane's thermal relief is the feed. **R2A2-O-2 (major)** C17 bulk and TP1 reach VIN through single vias in series:
+  the script's two C17 vias touched F.Cu only (the In2 VIN polygon stops 3.5 mm short), the router deleted them and
+  improvised via, B.Cu, via, pour, via at 1.22 A each; the log's "2 vias to the plane" is not on the board.
+  **R2A2-O-3 (major, manuf)** AMS1117 on 9.4 mm2 with no 3V3 pour; 90 K/W quoted as the datasheet value is its
+  minimum-footprint figure; 8.5 K of margin at 500 mA. **R2A2-O-4 (major, doc)** regen-check FAILS.
+- Minor: VM 100 nF at 4.02 mm with `decoupling_max_mm` raised to 4.5 (the R2-T4 pattern again); buck input bypass
+  4.31 mm and no GND vias at the input cap; silk (ENC label over the H2 hole, back-side refdes under no part); J2 5.6 mm
+  inboard against the log's "edge"; CPL offsets 1.9 / 5.2 / 9.0 mm on the through-hole connectors uncorrected; no
+  feeds rows for J3.1, C17.1, TP1.1; the two declared open items (TVS clamp above the buck's 20 V abs max, no header
+  back-feed protection). Overclaims: 7, listed in the review; everything else in SUMMARY.md reproduced.
+
+### Attempt 2 against attempt 1, and what it says
+Manufacturability 6 -> 8 because the one blocker (the 2x10 header part on a 2x5 footprint) and the silk and class
+mistakes did not recur, and DRC was 0/0 in every run; electrical stayed at 8 with different majors. The router moved
+the electrical problem rather than removing it: attempt 1's VM pin fed by a pour neck became attempt 2's header pin
+fed by plane spokes and a bulk cap fed by a via chain, both places where the router connected a wide-class net to a
+plane and the designer's `feeds` rows did not look. Both are rows now in the archived config and the bench labels
+(R2A2-O-1, O-2 caught as `feeds` fails; the `rows` scope rises 22 -> 24 fails, 0 false fails). Time did not fall
+(R2A2-T1): on this run the hypothesis is rejected on time and tokens and partly confirmed on score, with n = 1 on
+each side. What would make the tool pay: (1) the regen fix (P6-T6, done); (2) the skill telling the designer to keep
+the router off the planes and the wide-class nets by default, or the wrapper doing it (`--layers F.Cu B.Cu` for signal
+nets, wide-class nets left to the layout script), since all 30 min of reaction were on those two things; (3) a
+`feeds` row for every pin of a net in a wide class, generated, not declared.
+- **P6-T6 KRT's copper depends on the order of the footprints in the file, and Zener reorders them on every clean
+  `pcb layout`.** Two pre-route boards from the designer's regen runs, identical in placement, pre-route copper and
+  nets (`pcb q fps` and `nets` sorted: same hashes) but with the footprint blocks in different orders, route to 504.3 mm
+  / 64 vias and 519.9 mm / 75 vias, differing on 14 nets. KiCad 10 files carry nets by name inside the pads, so a
+  parser numbers nets in order of appearance and the router's "sorted(net id)" order follows the footprint order.
+  The same input routed twice is byte-identical (the reviewer: five times at two paths). Fix in `pcb route auto`:
+  the work copy's footprint blocks are sorted by reference before the first pass (`pcb route canon`, text-level, UUIDs
+  and placement untouched); the two boards then route to the same 513.3 mm / 67 vias on every net. verify_all 27
+  routes the rung-1 board with its footprints reversed in the file and compares per-net copper. On the designer's
+  attempt the handed-in tree was routed by the old order, so its first regen-check against the fixed tool still says
+  FAILS on 12 nets (pass 2 equals pass 1). A copy of the attempt regenerated once with the fixed tool and regen-checked
+  again says **REGENERATES**: netlist, DRC, placement and per-net copper identical across the handed-in tree and both
+  passes, only the gerber-order warns of R1-A2-T2 (not part of the verdict). R2A2-O-4 is closed by the tool.

@@ -551,6 +551,57 @@
     }
    ],
    "source": "docs/FINDINGS.md R2-F review"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "id": "R2A2-O-1",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "5 V header pin J3.1 fed only by four In2 thermal spokes (1.64 A) against the 3 A rail; no track or via touches it",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail feeds:J3\\.1: .*total 0\\.00 A; a pour also reaches the pad"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2A2-O review"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "id": "R2A2-O-2",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "C17 bulk cap and TP1 reach VIN through single 0.3 mm vias in series after the router dropped the script's vias; the log's '2 vias to the plane' is not on the board",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail feeds:C17\\.1: .*total 0\\.00 A"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2A2-O review"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "id": "R2A2-O-3",
+   "severity": "major",
+   "metric": "manufacturability",
+   "tool_catchable": false,
+   "summary": "AMS1117 has no heat-sink copper (tab on 9.4 mm2, no 3V3 zone); the log's 90 K/W is the datasheet's minimum-footprint figure; Tj 116.5 degC at 500 mA; needs a pour-area-vs-theta row",
+   "locators": [],
+   "source": "docs/FINDINGS.md R2A2-O review"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "id": "R2A2-O-4",
+   "severity": "major",
+   "metric": "documentation",
+   "tool_catchable": false,
+   "process": true,
+   "summary": "regen-check FAILS: each clean pcb layout reorders the footprints and the router followed the order (P6-T6); fixed in pcb route auto (canonical order), so the archived board regenerates with the tools at HEAD",
+   "locators": [],
+   "source": "docs/FINDINGS.md R2A2-O review"
   }
  ],
  "known_true_positives": [

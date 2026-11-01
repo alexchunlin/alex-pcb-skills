@@ -49,7 +49,17 @@
   and necks tracks under the setup minimum; kct did not finish in 20 min. `pcb route auto` wraps KRT (engine pass,
   refill, dual DRC, second pass, stitch pass, inherited errors separated, exit 1 unless clean; P6-T4); `pcb route
   strip|export-dsn|import-ses|fill|measure` and `pcb q ratsnest` are the primitives (P6-T1). verify_all 27.
-- Next: rung-2 attempt 2 with Opus at medium on `pcb route auto` (reviewer on Fable), compare with 8/6/7 and 38.7 min;
+- Rung-2 attempt 2 done (2026-11-01, Opus 5.5 at medium on `pcb route auto`, reviewer Fable at default): **8/8/7** in
+  71.3 min and 196k tokens against attempt 1's 8/6/7 in 38.7 min and 189k. The router routed clean on its first call;
+  the designer spent 30 min reacting to its copper (hand escapes at the DRV8874, keepouts to get signals off the
+  planes) and 8 min on regen-checks that failed because Zener reorders footprints per `pcb layout` and KRT routes in
+  that order (P6-T6; fixed, `pcb route auto` sorts the footprints first, the attempt REGENERATES with the fix). The
+  reviewer's majors: a 5 V header pin and the VIN bulk cap fed only through plane spokes or a via chain (now `feeds`
+  labels on the archived board, bench 10 boards / 41 labels / 0 false fails), no LDO heat-sink copper. FINDINGS
+  "Rung 2, attempt 2". Hypothesis verdict: score up on manufacturability, time and tokens not down (n = 1).
+- Next: make the router pay in time: keep signal nets off the plane layers and wide-class nets with the layout script
+  by default (wrapper or skill), generated `feeds` rows for every pin of a wide-class net; then the review rows
+  (pour-neck width, sourcing attributes, cap ripple, bring-up vs pin map, LDO pour area vs theta); then attempt 3;
   the rows the rung-2 reviews asked for (pour-neck width, sourcing attributes, cap ripple rating, bring-up vs pin map);
   the per-sheet loop. The design-margin experiment (4/6/8 layers) can now run on the route bench.
 - Not done: no workflow template (phase 5), no topology or silk-readability rows (the two Plink misses).
