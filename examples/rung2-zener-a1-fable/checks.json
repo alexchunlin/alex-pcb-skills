@@ -1,0 +1,390 @@
+{
+  "_about": "The rung-2 fable designer's own checks.json plus the reviewer's rows: feeds on the DRV8874 VM pin and declared decoupling rows for the bypass caps the datasheet names, at 2.0 mm (R2-T5). Scores: see FINDINGS R2.",
+  "project": "rung2-zener-a1-fable",
+  "policy": {
+    "clearance_mm": 0.2,
+    "track_mm": 0.2,
+    "via_drill_mm": 0.3,
+    "via_dia_mm": 0.6,
+    "silk_text_mm": 1.0
+  },
+  "fields": [
+    "MPN",
+    "Manufacturer",
+    "LCSC",
+    "Datasheet"
+  ],
+  "rails": {
+    "VIN_IN": {
+      "v": 17.0,
+      "source": "J1 XT30, 6-17 V"
+    },
+    "VIN": {
+      "v": 17.0,
+      "source": "Q1 AO4407A ideal diode from VIN_IN"
+    },
+    "5V": {
+      "v": 5.0,
+      "source": "U2 TPS54620 buck, 3 A"
+    },
+    "3V3": {
+      "v": 3.3,
+      "source": "U3 AMS1117-3.3, 500 mA"
+    },
+    "GND": {}
+  },
+  "decoupling_max_mm": 3.0,
+  "decoupling": [
+    {
+      "ic": "U1",
+      "pin": "11",
+      "cap": "C14",
+      "max_mm": 2.0,
+      "_note": "DRV8874 VM 100 nF"
+    },
+    {
+      "ic": "U1",
+      "pin": "11",
+      "cap": "C13",
+      "max_mm": 4.0,
+      "_note": "DRV8874 VM 22 uF bulk"
+    },
+    {
+      "ic": "U2",
+      "pin": "4",
+      "cap": "C2",
+      "max_mm": 3.0,
+      "_note": "TPS54620 PVIN 22 uF, input loop"
+    },
+    {
+      "ic": "U2",
+      "pin": "6",
+      "cap": "C4",
+      "max_mm": 3.0,
+      "_note": "TPS54620 VIN 4.7 uF"
+    },
+    {
+      "ic": "U3",
+      "pin": "3",
+      "cap": "C11",
+      "max_mm": 3.0
+    },
+    {
+      "ic": "U3",
+      "pin": "2",
+      "cap": "C12",
+      "max_mm": 3.0
+    },
+    {
+      "ic": "U1",
+      "pin": "11",
+      "cap": "C14",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U1",
+      "pin": "11",
+      "cap": "C13",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U3",
+      "pin": "2",
+      "cap": "C12",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U2",
+      "pin": "6",
+      "cap": "C4",
+      "max_mm": 2.0
+    }
+  ],
+  "pinmaps": {
+    "U1": {
+      "1": "PWM",
+      "2": "DIR",
+      "3": "nSLEEP",
+      "4": "nFAULT",
+      "5": "DRV.VREF",
+      "6": "DRV.IPROPI",
+      "7": "DRV.IMODE",
+      "8": "MOTOR_A",
+      "9": "GND",
+      "10": "MOTOR_B",
+      "11": "VIN",
+      "16": "GND",
+      "17": "GND"
+    },
+    "U2": {
+      "4": "VIN",
+      "5": "VIN",
+      "6": "VIN",
+      "11": "BUCK.SW",
+      "12": "BUCK.SW",
+      "7": "BUCK.FB",
+      "1": "BUCK.RT",
+      "10": "BUCK.EN_BUCK",
+      "15": "GND"
+    },
+    "U3": {
+      "1": "GND",
+      "2": "3V3",
+      "3": "5V"
+    },
+    "Q1": {
+      "4": "PWR.GATE",
+      "5": "VIN_IN",
+      "1": "VIN"
+    }
+  },
+  "connectors": {
+    "J1": {
+      "1": "VIN_IN",
+      "2": "GND"
+    },
+    "J2": {
+      "1": "MOTOR_A",
+      "2": "MOTOR_B"
+    },
+    "J3": {
+      "2": "CONN.ENC_A_IN",
+      "3": "CONN.ENC_B_IN",
+      "4": "3V3",
+      "5": "GND"
+    },
+    "J4": {
+      "1": "3V3",
+      "2": "GND",
+      "3": "5V",
+      "4": "nFAULT",
+      "5": "nSLEEP",
+      "6": "DIR",
+      "7": "PWM",
+      "8": "ISENSE",
+      "9": "ENC_A",
+      "10": "ENC_B"
+    }
+  },
+  "jumpers": {},
+  "test_points": {
+    "TP1": "VIN",
+    "TP2": "BUCK.SW",
+    "TP3": "5V",
+    "TP4": "3V3",
+    "TP5": "DRV.IPROPI",
+    "TP6": "nFAULT",
+    "TP7": "GND",
+    "TP8": "GND"
+  },
+  "bringup": "../../BRINGUP.md",
+  "margin": {
+    "pack": "jlcpcb",
+    "default_ratio": 1.0,
+    "min_ratio": {
+      "track_width": 2.0,
+      "clearance": 2.0,
+      "via_drill": 2.0
+    }
+  },
+  "currents": {
+    "VIN_IN": 4.0,
+    "VIN": 4.0,
+    "5V": 3.0,
+    "MOTOR_A": 2.5,
+    "MOTOR_B": 2.5,
+    "3V3": 0.5
+  },
+  "copper_oz": {
+    "outer": 1.0,
+    "inner": 0.5
+  },
+  "rise_c": 20,
+  "thermal_vias": {
+    "U1": {
+      "pad": "17",
+      "min": 6,
+      "within_mm": 2.5
+    },
+    "U2": {
+      "pad": "15",
+      "min": 4,
+      "within_mm": 2.5
+    }
+  },
+  "calcs": [
+    {
+      "id": "l_calc_uH",
+      "expr": "(17-5)/(3*0.35)*5/(17*f)*1e6",
+      "vars": {
+        "f": 480000.0
+      },
+      "unit": "uH",
+      "min": 6.0,
+      "max": 8.0,
+      "note": "TPS54620 eq 18, Kind 0.35 -> 6.8 uH chosen (L1)"
+    },
+    {
+      "id": "ripple_pct_17V",
+      "expr": "100*((17-5)/L('L1')*5/(17*f))/3",
+      "vars": {
+        "f": 480000.0
+      },
+      "unit": "%",
+      "min": 30,
+      "max": 40,
+      "note": "eq 19 at Vin max"
+    },
+    {
+      "id": "il_peak",
+      "expr": "3 + ((17-5)/L('L1')*5/(17*f))/2",
+      "vars": {
+        "f": 480000.0
+      },
+      "unit": "A",
+      "max": 4.5,
+      "note": "eq 21; FXL0840-6R8-M Isat 9 A"
+    },
+    {
+      "id": "vout_ripple_mV",
+      "expr": "1e3*(ir/(8*f*26e-6) + ir*5e-3)",
+      "vars": {
+        "f": 480000.0,
+        "ir": 1.081
+      },
+      "unit": "mV",
+      "max": 50,
+      "note": "eq 23 with 26 uF derated 2x22 uF and 5 mOhm ESR"
+    },
+    {
+      "id": "cin_ripple_A",
+      "expr": "3*(5/6*(1-5/6))**0.5",
+      "unit": "A",
+      "max": 3.0,
+      "note": "eq 26 at 6 V; 2 x 1206 22 uF X5R rated > 3 A"
+    },
+    {
+      "id": "vout_set",
+      "expr": "0.8*(1+R('R2')/R('R3'))",
+      "unit": "V",
+      "min": 4.9,
+      "max": 5.1,
+      "note": "eq 29"
+    },
+    {
+      "id": "en_start_V",
+      "expr": "1.21*(1+R('R6')/R('R7')) - 1.15e-6*R('R6')",
+      "unit": "V",
+      "min": 5.0,
+      "max": 6.0,
+      "note": "UVLO start, datasheet eq 2 with Ip 1.15 uA"
+    },
+    {
+      "id": "p_ldo",
+      "expr": "(5.0-3.3)*0.5",
+      "unit": "W",
+      "max": 1.2,
+      "note": "AMS1117 at the 500 mA budget; package limit 1.2 W"
+    },
+    {
+      "id": "tj_ldo",
+      "expr": "40 + p_ldo*90",
+      "unit": "degC",
+      "max": 125,
+      "note": "theta_JA 90 C/W SOT-223, 40 C ambient"
+    },
+    {
+      "id": "v_sense_2a",
+      "expr": "2.0*455e-6*R('R9')",
+      "unit": "V",
+      "min": 2.25,
+      "max": 2.75,
+      "note": "DRV8874 A_IPROPI 455 uA/A"
+    },
+    {
+      "id": "vref",
+      "expr": "3.3*R('R11')/(R('R10')+R('R11'))",
+      "unit": "V",
+      "min": 2.8,
+      "max": 3.3,
+      "note": "ISENSE ceiling = VREF < 3.3 V"
+    },
+    {
+      "id": "i_trip",
+      "expr": "vref/(455e-6*R('R9'))",
+      "unit": "A",
+      "min": 2.1,
+      "max": 3.0,
+      "note": "chopping threshold above the 2.1 A peak rating"
+    },
+    {
+      "id": "sense_fc_Hz",
+      "expr": "1/(2*3.14159*R('R15')*C('C17'))",
+      "unit": "Hz",
+      "min": 1000,
+      "max": 5000
+    },
+    {
+      "id": "p_drv",
+      "expr": "17*4e-3 + 2*0.5*17*2*150e-9*20e3 + 4*(0.1*1.25*2)",
+      "unit": "W",
+      "max": 2.0,
+      "note": "DRV8874 eqs 8-18 at 2 A, 17 V, 20 kHz"
+    },
+    {
+      "id": "tj_drv",
+      "expr": "40 + p_drv*36",
+      "unit": "degC",
+      "max": 150,
+      "note": "theta_JA 36 C/W (datasheet, 4-layer)"
+    },
+    {
+      "id": "p_fet",
+      "expr": "4*4*0.013",
+      "unit": "W",
+      "max": 0.5,
+      "note": "AO4407A at 4 A, 13 mOhm (Vgs -4.5 V); Schottky alternative 2.0 W"
+    },
+    {
+      "id": "i_nfault_pullup_mA",
+      "expr": "3.3/R('R12')*1e3",
+      "unit": "mA",
+      "max": 3.0
+    },
+    {
+      "id": "w_vin_mm",
+      "expr": "((4/(0.048*20**0.44))**(1/0.725))/1.378*0.0254",
+      "unit": "mm",
+      "max": 1.5,
+      "note": "IPC-2221 outer 1 oz, 4 A, 20 C; class VIN = 1.5 mm"
+    },
+    {
+      "id": "w_5v_mm",
+      "expr": "((3/(0.048*20**0.44))**(1/0.725))/1.378*0.0254",
+      "unit": "mm",
+      "max": 1.0,
+      "note": "class Power5V = 1.0 mm"
+    },
+    {
+      "id": "w_motor_mm",
+      "expr": "((2.5/(0.048*20**0.44))**(1/0.725))/1.378*0.0254",
+      "unit": "mm",
+      "max": 0.8,
+      "note": "class Motor = 0.8 mm"
+    }
+  ],
+  "accepted_warns": [
+    {
+      "check": "test_points",
+      "match": "VIN_IN",
+      "reason": "VIN_IN is the XT30 pin itself; TP1 sits on VIN just after Q1 and reads the same voltage minus the 40-50 mV FET drop"
+    }
+  ],
+  "feeds": [
+    {
+      "pad": "U1.11",
+      "amps": 2.5,
+      "within_mm": 2.0
+    }
+  ]
+}

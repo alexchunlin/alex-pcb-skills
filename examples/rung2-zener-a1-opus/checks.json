@@ -1,0 +1,391 @@
+{
+  "_about": "The rung-2 opus designer's own checks.json plus the reviewer's rows: feeds on the DRV8874 VM pin and declared decoupling rows for the bypass caps the datasheet names, at 2.0 mm (R2-T5). Scores: see FINDINGS R2.",
+  "project": "rung2-zener-a1-opus motor_channel",
+  "policy": {
+    "clearance_mm": 0.2,
+    "track_mm": 0.2,
+    "via_drill_mm": 0.3,
+    "via_dia_mm": 0.6,
+    "silk_text_mm": 1.0
+  },
+  "fields": [
+    "MPN",
+    "Manufacturer",
+    "LCSC",
+    "Datasheet"
+  ],
+  "rails": {
+    "VIN": {
+      "v": 12.0,
+      "source": "J4 via Q1 (AO4407A reverse-polarity FET), 6-17 V"
+    },
+    "VIN_RAW": {
+      "v": 12.0,
+      "source": "J4 pin 1, before Q1"
+    },
+    "5V": {
+      "v": 5.09,
+      "source": "U1 TPS54620 buck"
+    },
+    "connectors.5V_HDR": {
+      "v": 4.7,
+      "source": "5V through D2 B5819W to J3 pin 1"
+    },
+    "3V3": {
+      "v": 3.3,
+      "source": "U3 AMS1117-3.3"
+    },
+    "GND": {}
+  },
+  "decoupling_max_mm": 3.0,
+  "decoupling": [
+    {
+      "ic": "U1",
+      "pin": "4",
+      "cap": "C1",
+      "max_mm": 3.0
+    },
+    {
+      "ic": "U1",
+      "pin": "6",
+      "cap": "C1",
+      "max_mm": 3.0
+    },
+    {
+      "ic": "U2",
+      "pin": "11",
+      "cap": "C10",
+      "max_mm": 2.5
+    },
+    {
+      "ic": "U3",
+      "pin": "3",
+      "cap": "C15",
+      "max_mm": 3.5
+    },
+    {
+      "ic": "U2",
+      "pin": "11",
+      "cap": "C11",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U2",
+      "pin": "11",
+      "cap": "C17",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U2",
+      "pin": "11",
+      "cap": "C10",
+      "max_mm": 2.0
+    }
+  ],
+  "pinmaps": {
+    "U2": {
+      "1": "PWM",
+      "2": "DIR",
+      "3": "nSLEEP",
+      "4": "nFAULT",
+      "6": "IPROPI",
+      "8": "MOTOR_A",
+      "10": "MOTOR_B",
+      "11": "VIN",
+      "16": "GND",
+      "17": "GND"
+    }
+  },
+  "connectors": {
+    "J1": {
+      "1": "MOTOR_A",
+      "2": "MOTOR_B"
+    },
+    "J2": {
+      "2": "connectors.ENC_A_IN",
+      "3": "connectors.ENC_B_IN",
+      "4": "3V3",
+      "5": "GND"
+    },
+    "J3": {
+      "1": "connectors.5V_HDR",
+      "2": "GND",
+      "3": "3V3",
+      "4": "ISENSE",
+      "5": "PWM",
+      "6": "DIR",
+      "7": "nSLEEP",
+      "8": "nFAULT",
+      "9": "ENC_A",
+      "10": "ENC_B"
+    },
+    "J4": {
+      "1": "VIN_RAW",
+      "2": "GND"
+    }
+  },
+  "jumpers": {},
+  "test_points": {
+    "TP1": "VIN",
+    "TP2": "5V",
+    "TP3": "3V3",
+    "TP4": "SW",
+    "TP5": "IPROPI",
+    "TP6": "nFAULT",
+    "TP7": "GND",
+    "TP8": "GND"
+  },
+  "currents": {
+    "VIN": 4.0,
+    "VIN_RAW": 4.0,
+    "5V": 4.0,
+    "SW": 3.0,
+    "MOTOR_A": 2.5,
+    "MOTOR_B": 2.5
+  },
+  "copper_oz": {
+    "outer": 1.0,
+    "inner": 0.5
+  },
+  "rise_c": 20,
+  "thermal_vias": {
+    "U2": {
+      "pad": "17",
+      "min": 6,
+      "within_mm": 2.5
+    }
+  },
+  "calcs": [
+    {
+      "id": "w_vin_4a_mm",
+      "expr": "((4.0 / (0.048 * 20**0.44))**(1/0.725)) / 1.378 * 0.0254",
+      "unit": "mm",
+      "min": 1.3,
+      "max": 1.4,
+      "note": "IPC-2221 external, 1 oz, 20 degC rise: VIN and Power5V class 1.4 mm"
+    },
+    {
+      "id": "w_motor_2a5_mm",
+      "expr": "((2.5 / (0.048 * 20**0.44))**(1/0.725)) / 1.378 * 0.0254",
+      "unit": "mm",
+      "max": 0.8,
+      "note": "Motor class 0.8 mm"
+    },
+    {
+      "id": "f_sw_khz",
+      "expr": "(48000 / (R('R3') / 1000 + 2))**(1/0.997)",
+      "unit": "kHz",
+      "min": 1400,
+      "max": 1600,
+      "note": "TPS54620 eq: Rrt(k) = 48000 * f^-0.997 - 2; RT = R3"
+    },
+    {
+      "id": "vout_5v",
+      "expr": "0.8 * (1 + R('R4') / R('R5'))",
+      "unit": "V",
+      "min": 4.95,
+      "max": 5.15,
+      "note": "Vref 0.8 V, R4 top / R5 bottom"
+    },
+    {
+      "id": "ripple_pct_17v",
+      "expr": "100 * vout_5v * (17.0 - vout_5v) / (17.0 * 2.2e-6 * f_sw_khz * 1e3) / 3.0",
+      "unit": "%",
+      "min": 30,
+      "max": 40,
+      "note": "L1 2.2 uH at VIN max 17 V, 3 A load"
+    },
+    {
+      "id": "ripple_a_17v",
+      "expr": "ripple_pct_17v * 3.0 / 100",
+      "unit": "A"
+    },
+    {
+      "id": "vout_ripple_mv",
+      "expr": "1000 * (ripple_a_17v / (8 * f_sw_khz * 1e3 * 22e-6) + ripple_a_17v * 0.003)",
+      "unit": "mV",
+      "max": 50,
+      "note": "2 x 22 uF 25 V 0805 derated to 22 uF effective at 5 V; ESR 3 mOhm for the pair"
+    },
+    {
+      "id": "i_cin_rms_a",
+      "expr": "3.0 * (0.5 * 0.5)**0.5",
+      "unit": "A",
+      "max": 3.0,
+      "note": "worst case D = 0.5 (VIN 10 V); carried by C1, C2 (GRM21BR61H106KE43L, 10 uF 50 V X5R)"
+    },
+    {
+      "id": "i_bulk_ripple_a",
+      "expr": "0.6",
+      "unit": "A",
+      "note": "C17 BXJ35V220M8*10 rating 600 mA at 100 kHz, 160 mOhm; the 1.5 MHz ripple is taken by the ceramics (2 x 10 uF, a few mOhm), the bulk sees motor-frequency current"
+    },
+    {
+      "id": "v_uvlo_start",
+      "expr": "1.21 + R('R1') * (1.21 / R('R2') - 1.15e-6)",
+      "unit": "V",
+      "min": 4.8,
+      "max": 5.8,
+      "note": "EN divider R1/R2, Ip 1.15 uA"
+    },
+    {
+      "id": "v_uvlo_stop",
+      "expr": "1.17 + R('R1') * (1.17 / R('R2') - 4.55e-6)",
+      "unit": "V",
+      "min": 4.3,
+      "max": 5.2,
+      "note": "Ip + Ih = 4.55 uA"
+    },
+    {
+      "id": "t_ss_ms",
+      "expr": "C('C4') * 0.8 / 2.3e-6 * 1000",
+      "unit": "ms",
+      "min": 2,
+      "max": 6
+    },
+    {
+      "id": "f_pmod_hz",
+      "expr": "3.0 / (2 * 3.14159 * 5.0 * 22e-6)",
+      "unit": "Hz"
+    },
+    {
+      "id": "f_co_hz",
+      "expr": "(f_pmod_hz * f_sw_khz * 1e3 / 2)**0.5",
+      "unit": "Hz",
+      "note": "TPS54620 eq 34"
+    },
+    {
+      "id": "r_comp_ohm",
+      "expr": "2 * 3.14159 * f_co_hz * 5.0 * 22e-6 / (1300e-6 * 0.8 * 16)",
+      "unit": "Ohm",
+      "min": 2200,
+      "max": 2600,
+      "note": "eq 35; R6 = 2.37k"
+    },
+    {
+      "id": "c_comp_nf",
+      "expr": "5.0 * 22e-6 / (3.0 * R('R6')) * 1e9",
+      "unit": "nF",
+      "min": 13,
+      "max": 17,
+      "note": "eq 36; C8 = 15 nF"
+    },
+    {
+      "id": "p_ldo_w",
+      "expr": "(vout_5v - 3.3) * 0.5",
+      "unit": "W",
+      "max": 1.0,
+      "note": "AMS1117 at the 500 mA budget"
+    },
+    {
+      "id": "tj_ldo_c",
+      "expr": "40 + p_ldo_w * 90",
+      "unit": "degC",
+      "max": 125,
+      "note": "theta_JA 90 K/W for SOT-223 on a small pad (AMS1117 datasheet), 40 degC ambient"
+    },
+    {
+      "id": "v_sense_2a",
+      "expr": "2.0 * 455e-6 * R('R14')",
+      "unit": "V",
+      "min": 2.25,
+      "max": 2.75,
+      "note": "DRV8874 A_IPROPI 455 uA/A, R_IPROPI = R14"
+    },
+    {
+      "id": "v_vref",
+      "expr": "3.3 * R('R13') / (R('R12') + R('R13'))",
+      "unit": "V",
+      "max": 3.3
+    },
+    {
+      "id": "i_trip_a",
+      "expr": "v_vref / (455e-6 * R('R14'))",
+      "unit": "A",
+      "min": 2.1,
+      "max": 2.6,
+      "note": "current regulation holds V_IPROPI at V_VREF, so the ADC pin never exceeds v_vref"
+    },
+    {
+      "id": "v_ipropi_max",
+      "expr": "v_vref",
+      "unit": "V",
+      "max": 3.3
+    },
+    {
+      "id": "f_sense_rc_hz",
+      "expr": "1 / (2 * 3.14159 * R('R17') * C('C14'))",
+      "unit": "Hz",
+      "min": 5000,
+      "max": 50000
+    },
+    {
+      "id": "p_fet_4a_w",
+      "expr": "4.0**2 * 0.014",
+      "unit": "W",
+      "max": 0.5,
+      "note": "AO4407A R_DS(on) 14 mOhm max at VGS -10 V (VIN >= 10 V)"
+    },
+    {
+      "id": "p_fet_6v_w",
+      "expr": "4.0**2 * 0.020",
+      "unit": "W",
+      "max": 0.5,
+      "note": "R_DS(on) 20 mOhm at VGS -6 V (VIN 6 V)"
+    },
+    {
+      "id": "p_schottky_alt_w",
+      "expr": "4.0 * 0.55",
+      "unit": "W",
+      "note": "a series SS54 Schottky at 0.55 V would dissipate this; the FET is chosen instead"
+    },
+    {
+      "id": "i_nfault_pullup_ma",
+      "expr": "3.3 / R('R16') * 1000",
+      "unit": "mA",
+      "max": 5.0
+    },
+    {
+      "id": "i_pwr_led_ma",
+      "expr": "(vout_5v - 2.0) / R('R7') * 1000",
+      "unit": "mA",
+      "max": 5.0
+    },
+    {
+      "id": "n_drv_thermal_vias",
+      "expr": "6",
+      "unit": "vias",
+      "min": 6,
+      "note": "0.6/0.3 mm vias in the 2.46 x 3.55 mm pad, 2 x 3 grid at 1.2 x 1.1 mm"
+    }
+  ],
+  "bringup": "BRINGUP.md",
+  "margin": {
+    "pack": "jlcpcb",
+    "default_ratio": 1.0,
+    "min_ratio": {
+      "track_width": 2.0,
+      "clearance": 2.0,
+      "via_drill": 2.0
+    }
+  },
+  "accepted_warns": [
+    {
+      "check": "test_points",
+      "match": "rail VIN_RAW",
+      "reason": "VIN_RAW is probed on the J4 pin 1 screw (BRINGUP step 3)"
+    },
+    {
+      "check": "test_points",
+      "match": "rail connectors.5V_HDR",
+      "reason": "5V_HDR is probed on J3 pin 1 (BRINGUP step 7)"
+    }
+  ],
+  "feeds": [
+    {
+      "pad": "U2.11",
+      "amps": 2.5,
+      "within_mm": 2.0
+    }
+  ]
+}

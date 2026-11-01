@@ -48,5 +48,6 @@
       "max": 1.0,
       "note": "replace with the design's own calculations; R('R1') reads a value from the netlist"
     }
-  ]
+  ],
+  "feeds": []
 }

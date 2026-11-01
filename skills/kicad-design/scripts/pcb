@@ -46,11 +46,19 @@ kpy() {
   rc=$(cat "$st" 2>/dev/null || echo 1); rm -f "$st"; return "$rc"
 }
 guard() {
+  # refuse only a GUI whose working directory is inside this project (or contains it); another run's window is a
+  # warning, not a block (R2-T1: a global check stopped a run that had no window of its own)
   [ "${PCB_ALLOW_GUI:-}" = 1 ] && return 0
-  p=$(pgrep -fl 'MacOS/(pcbnew|eeschema|kicad)$' 2>/dev/null || true)
-  if [ -n "$p" ]; then
-    echo "pcb: a KiCad GUI is running; it rewrites files from memory on save, so scripted edits can be lost (P0-T6). Close it or set PCB_ALLOW_GUI=1:" >&2
-    echo "$p" >&2; return 1
+  here="$(pwd -P)"; blocked=""
+  for pid in $(pgrep -f 'MacOS/(pcbnew|eeschema|kicad)$' 2>/dev/null); do
+    cwd=$(lsof -a -d cwd -p "$pid" -Fn 2>/dev/null | sed -n 's/^n//p' | head -1)
+    case "$cwd" in
+      "$here"|"$here"/*) blocked="$blocked $pid:$cwd" ;;
+      *) case "$here" in "$cwd"/*) blocked="$blocked $pid:$cwd" ;; *) echo "pcb: note: a KiCad GUI is open elsewhere (pid $pid, cwd ${cwd:-?}); not this project" >&2 ;; esac ;;
+    esac
+  done
+  if [ -n "$blocked" ]; then
+    echo "pcb: a KiCad GUI is open on this project; it rewrites files from memory on save, so scripted edits can be lost (P0-T6). Close it or set PCB_ALLOW_GUI=1:$blocked" >&2; return 1
   fi
 }
 cmd="${1:-}"; shift || true

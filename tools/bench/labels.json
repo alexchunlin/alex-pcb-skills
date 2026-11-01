@@ -372,6 +372,185 @@
     }
    ],
    "source": "docs/FINDINGS.md R1-A2F review"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "id": "R2-O-1",
+   "severity": "blocker",
+   "metric": "manufacturability",
+   "tool_catchable": false,
+   "summary": "header J3 LCSC C3405 listed as 2x10 on a 2x5 footprint, flagged 'confirm' and shipped; needs a sourcing-attributes row",
+   "locators": [],
+   "source": "docs/FINDINGS.md R2-O review"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "id": "R2-O-2",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "DRV8874 VM pin fed only by a 0.335 mm pour neck (IPC 1.47 A vs 2.5 A)",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail feeds:U2\\.11: .*total 0\\.00 A; a pour also reaches the pad"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-O review"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "id": "R2-O-3",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "VM bulk caps C11 11.8 mm and C17 15.5 mm from the pin",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail decoupling:U2\\.11:C11: .* 11\\.76"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-O review"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "id": "R2-O-4",
+   "severity": "major",
+   "metric": "documentation",
+   "tool_catchable": false,
+   "summary": "no DRV8874 dissipation calc; BRINGUP claims U2 < 80 degC at stall (datasheet gives 92)",
+   "locators": [],
+   "source": "docs/FINDINGS.md R2-O review"
+  },
+  {
+   "attempt": "rung2-zener-a1-sonnet",
+   "id": "R2-S-1",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "DRV8874 VM fed by one 0.3 mm via and a 0.34 mm zone finger",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail feeds:U2\\.11: .*1 via\\(s\\) within 2\\.0 mm = 1\\.22 A"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-S review"
+  },
+  {
+   "attempt": "rung2-zener-a1-sonnet",
+   "id": "R2-S-2",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "VM/charge-pump caps 5-8 mm away (C15 5.05, C14 7.6, C13 6.2, C11 7.2)",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail decoupling:U2\\.11:C15: .* 5\\.047"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-S review"
+  },
+  {
+   "attempt": "rung2-zener-a1-sonnet",
+   "id": "R2-S-3",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": false,
+   "summary": "C18 100 uF electrolytic rated 135 mA ripple carries the motor PWM ripple; no ripple-rating row",
+   "locators": [],
+   "source": "docs/FINDINGS.md R2-S review"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "id": "R2-F-1",
+   "severity": "blocker",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "20 shorting items (VIN-GND, SW-5V, 3V3-GND, 5V-GND) and 6 unconnected: 3V3 has no source",
+   "locators": [
+    {
+     "report": "drc",
+     "pattern": "^drc fail plain shorting_items 20$"
+    },
+    {
+     "report": "drc",
+     "pattern": "^drc fail unconnected 6$"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-F review"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "id": "R2-F-2",
+   "severity": "blocker",
+   "metric": "manufacturability",
+   "tool_catchable": true,
+   "summary": "14 courtyard overlaps, parts on top of each other",
+   "locators": [
+    {
+     "report": "drc",
+     "pattern": "^drc fail plain courtyards_overlap 14$"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-F review"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "id": "R2-F-3",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "DRV8874 VM feed 0.3 mm through an 0402 pad (1.36 A for 2.1 A)",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail feeds:U1\\.11: .*total 1\\.36 A"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-F review"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "id": "R2-F-4",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "decoupling beyond limits: C14 3.75, C13 4.72, C12 5.15, C4 6.44 mm",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail decoupling:U1\\.11:C14: .* 3\\.751"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-F review"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "id": "R2-F-5",
+   "severity": "major",
+   "metric": "documentation",
+   "tool_catchable": false,
+   "summary": "BRINGUP step 8 drives the wrong header pins after the J4 re-sequence",
+   "locators": [],
+   "source": "docs/FINDINGS.md R2-F review"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "id": "R2-F-6",
+   "severity": "major",
+   "metric": "electrical",
+   "tool_catchable": true,
+   "summary": "VIN/5V/motor outputs on 0.28-0.3 mm tracks against IPC 1.335/0.898/0.698 mm",
+   "locators": [
+    {
+     "report": "check",
+     "pattern": "^check fail currents:VIN: .*outer 0\\.280 < 1\\.335"
+    }
+   ],
+   "source": "docs/FINDINGS.md R2-F review"
   }
  ],
  "known_true_positives": [
@@ -428,6 +607,54 @@
    "report": "check",
    "pattern": "^check fail fields:(C2|C3|R1|R2):",
    "why": "the same missing Datasheet on the other four parts (R1-A2S-1)"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "report": "check",
+   "pattern": "^check fail decoupling:U2\\.11:(C17|C10):",
+   "why": "the same VM bulk-cap finding (C17 15.5 mm) and C10 at 2.11 against a 2.0 row (R2-O-3)"
+  },
+  {
+   "attempt": "rung2-zener-a1-sonnet",
+   "report": "check",
+   "pattern": "^check fail decoupling:U2\\.1[123]:(C14|C13|C11):",
+   "why": "the other three caps of R2-S-2"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "report": "check",
+   "pattern": "^check fail (decoupling:(U1\\.11:C13|U3\\.2:C12|U2\\.6:C4)|currents:(5V|MOTOR_A|MOTOR_B))",
+   "why": "the other caps of R2-F-4 and the other thin nets of R2-F-6"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "report": "drc",
+   "pattern": "^drc fail ",
+   "why": "an unfinished board: every DRC error class is real (R2-F review), two are labelled"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "report": "check",
+   "pattern": "^check fail ",
+   "why": "unfinished board: remaining fails are the designer's own 8 (currents on stubs, etc.)"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "report": "fab",
+   "pattern": "^fab warn cpl_offset ",
+   "why": "JST/terminal footprint origins (same as R1-S1-F4), explained in the log"
+  },
+  {
+   "attempt": "rung2-zener-a1-sonnet",
+   "report": "fab",
+   "pattern": "^fab warn cpl_offset ",
+   "why": "same"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "report": "fab",
+   "pattern": "^fab warn cpl_offset ",
+   "why": "same"
   }
  ],
  "negatives": [

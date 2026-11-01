@@ -22,7 +22,13 @@ first handoff (`docs/HANDOFF-2026-10-31.md`) still holds the decisions Alex made
 - Post the five issue drafts in `docs/upstream/` to github.com/diodeinc/pcb.
 - Link the skills into `~/.claude/skills` (README has the two `ln -s` lines).
 
-## Next
+## Update after rung 2 (same day, later)
+Rung 2 ran with three designers at medium effort (Alex's choice): Sonnet 7/8/8, Opus 8/6/7, Fable 4/4/6 unfinished.
+FINDINGS "Rung 2, attempt 1" has the harvest; P1-T22 the tool fixes. The bench is 9 boards and 37 labels. The next
+item is phase 6 routing, not more rows: all three designers spent their time at the DRV8874's 0.65 mm pitch (R2-T2).
+Memory holds Alex's rules: no posts to repos he does not own; rung-2 designers at medium effort.
+
+## Next (as planned before rung 2; items 1-3 are done, see above)
 1. `calcs` rows in pcbcheck (trace width vs current per declared net current, copper pour thermal, LDO and buck
    dissipation, pull-up vs bus capacitance already exists) with the formula and a datasheet-cited limit in the
    row: rung 2's claims are these. Gate with a planted-bug test and a bench label.

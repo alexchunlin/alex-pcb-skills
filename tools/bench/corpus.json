@@ -230,6 +230,105 @@
      "verify_out": "a2fregen/regen.json"
     }
    ]
+  },
+  "rung2-zener-a1-opus": {
+   "dir": "examples/rung2-zener-a1-opus",
+   "pcb": "board/motor_channel.kicad_pcb",
+   "netlist": "board/motor_channel.xml",
+   "bringup": "board/BRINGUP.md",
+   "reviewer": "R2-O",
+   "findings": "R2",
+   "runs": [
+    {
+     "id": "drc",
+     "kind": "designer",
+     "type": "drc",
+     "args": [
+      "--pack",
+      "jlcpcb"
+     ],
+     "verify_out": null
+    },
+    {
+     "id": "check",
+     "kind": "review",
+     "type": "check",
+     "config": "checks.json",
+     "verify_out": "r2ocheck.json"
+    },
+    {
+     "id": "fab",
+     "kind": "designer",
+     "type": "fab",
+     "verify_out": null
+    }
+   ]
+  },
+  "rung2-zener-a1-sonnet": {
+   "dir": "examples/rung2-zener-a1-sonnet",
+   "pcb": "board/rung2_motor.kicad_pcb",
+   "netlist": "board/rung2_motor.xml",
+   "bringup": "board/BRINGUP.md",
+   "reviewer": "R2-S",
+   "findings": "R2",
+   "runs": [
+    {
+     "id": "drc",
+     "kind": "designer",
+     "type": "drc",
+     "args": [
+      "--pack",
+      "jlcpcb"
+     ],
+     "verify_out": null
+    },
+    {
+     "id": "check",
+     "kind": "review",
+     "type": "check",
+     "config": "checks.json",
+     "verify_out": "r2scheck.json"
+    },
+    {
+     "id": "fab",
+     "kind": "designer",
+     "type": "fab",
+     "verify_out": null
+    }
+   ]
+  },
+  "rung2-zener-a1-fable": {
+   "dir": "examples/rung2-zener-a1-fable",
+   "pcb": "board/motor_channel.kicad_pcb",
+   "netlist": "board/motor_channel.xml",
+   "bringup": "board/BRINGUP.md",
+   "reviewer": "R2-F",
+   "findings": "R2",
+   "runs": [
+    {
+     "id": "drc",
+     "kind": "designer",
+     "type": "drc",
+     "args": [
+      "--pack",
+      "jlcpcb"
+     ],
+     "verify_out": null
+    },
+    {
+     "id": "check",
+     "kind": "review",
+     "type": "check",
+     "config": "checks.json",
+     "verify_out": "r2fcheck.json"
+    },
+    {
+     "id": "fab",
+     "kind": "designer",
+     "type": "fab",
+     "verify_out": null
+    }
+   ]
   }
  }
 }

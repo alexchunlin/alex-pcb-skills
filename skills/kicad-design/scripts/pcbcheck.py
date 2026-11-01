@@ -21,6 +21,9 @@ Checks (v0):
   currents     declared amps per net -> required width by IPC-2221 (20 degC rise by default, outer and inner copper
                weight from `copper_oz`) against the narrowest track on that net per layer; a net carried only by a
                pour passes with the pour noted (rung 2: VIN 4 A, 5V 3 A, motor 2.5 A)
+  feeds        {pad, amps, within_mm}: the ampacity of what feeds a high-current pad, vias within the radius (IPC-2221
+               internal on the barrel) plus tracks touching it; a pour-only feed fails with its neck unsized (rung 2: the
+               DRV8874 VM pin fed by one 0.3 mm via or a 0.34 mm pour finger on two of three boards, R2-T5)
   thermal_vias declared minimum stitching vias on a pad's net within `within_mm` of the pad (thermal pad to pour)
   calcs        formula rows: {id, expr, vars, min, max}; `R("R5")`, `C("C3")`, `L("L1")` read values from the
                netlist, earlier ids are variables; the brief's buck ripple, LDO dissipation and sense scaling
@@ -31,7 +34,7 @@ Checks (v0):
                setting until plain DRC read 0 (clearance 0.14/0.15, silk text 0.8); the policy block makes that a
                fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
-margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, calcs, accepted_warns, _notes.
+margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, calcs, feeds, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, os, re, subprocess, sys
@@ -44,7 +47,7 @@ import pcbq  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "calcs", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "calcs", "feeds", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -209,9 +212,26 @@ def check_decoupling(CFG, NL, B):
                         f"{cref} GND pad to nearest GND via {gv:.3f} mm" + (f" (limit {vlim})" if vlim is not None else ""),
                         value=round(gv, 3), limit=vlim, objects=[cref], finding="R1-S1-F2")
     for key, d in declared.items():
-        if not d.get("_seen"):
-            row("decoupling", "fail", f"decoupling:{key[0]}.{key[1]}:{key[2]}", f"declared row {d} matches no cap on that pin's net", objects=list(key))
-    COVERAGE.append(f"decoupling: {n_pins} power_in pins on non-ground nets, {len(declared)} declared rows, limit {max_mm} mm")
+        if d.get("_seen"):
+            continue
+        ref, pin, cref = key
+        net = padnet.get((ref, pin))
+        cpins = [p for (r, p) in padnet if r == cref]
+        onnet = [p for p in cpins if padnet[(cref, p)] == net]
+        if net and onnet and ref in fps and cref in fps:
+            cp = pcbq.pad_of(fps, f"{cref}.{onnet[0]}"); ip = pcbq.pad_of(fps, f"{ref}.{pin}")
+            dmm, e = pcbq.cc(cp, ip), pcbq.pad_edge(cp, ip)
+            lim = float(d.get("max_mm", max_mm))
+            ptype = pin_type(NL, ref, pin) or "untyped"
+            row("decoupling", "pass" if dmm <= lim else "fail", f"decoupling:{ref}.{pin}:{cref}",
+                f"declared {cref} ({comps[cref]['value']}) to {ref}.{pin} ({ptype} pin, measured anyway): {dmm:.3f} mm centre, {e} mm edge",
+                value=round(dmm, 3), limit=lim, objects=[ref, cref], finding="R2-T5")
+        else:
+            row("decoupling", "fail", f"decoupling:{ref}.{pin}:{cref}", f"declared row {d}: {cref} has no pad on {ref}.{pin}'s net ({net})", objects=list(key))
+    untyped = sorted({r for r, c in comps.items() if r.startswith("U") and not any(v[1] == "power_in" for v in libparts.get(c["lib"], {}).values())})
+    if untyped:
+        NOT_CHECKED.append(f"decoupling: {', '.join(untyped)} have no power_in pins in the netlist (vendored symbols typed input?): only declared rows cover them")
+    COVERAGE.append(f"decoupling: {n_pins} power_in pins on non-ground nets, {len(declared)} declared rows (measured whatever the pin type), limit {max_mm} mm")
 
 
 def check_pullups(CFG, NL, B):
@@ -481,7 +501,7 @@ def check_margin(CFG, NL, B):
 
 def parse_value(s):
     """'4.7k' -> 4700, '2k2' -> 2200, '100nF' -> 1e-7, '4.7uH' -> 4.7e-6, '10R' -> 10, '0.01' -> 0.01."""
-    m = re.match(r"^\s*([\d.]+)\s*([pnumkKMGrR]?)\s*([\d]*)\s*(?:ohm|Ohm|OHM|Ω|R|F|H|V|A|W)?\s*$", s.strip())
+    m = re.match(r"^\s*([\d.]+)\s*([pnumkKMGrR]?)\s*([\d]*)\s*(?:ohm|Ohm|OHM|Ω|R|F|H|V|A|W)?(?:\s|$|,|/)", s.strip() + " ")
     if not m:
         return None
     whole, unit, frac = m.groups()
@@ -527,9 +547,56 @@ def check_currents(CFG, NL, B):
         msg = (f"{net} {amps} A at {rise} degC rise: needs {need_o:.3f} mm outer ({oz.get('outer', 1.0)} oz), {need_i:.3f} mm inner "
                f"({oz.get('inner', 0.5)} oz); narrowest outer {wo if wo is None else round(wo, 3)}, inner {wi if wi is None else round(wi, 3)}"
                + (f"; pour on {', '.join(B.GetLayerName(z.GetFirstLayer()) for z in zones)}" if zones else ""))
-        row("currents", "fail" if bad else "pass", f"currents:{net}", msg + ("; " + "; ".join(bad) if bad else ""),
+        st = "fail" if bad else ("warn" if not tracks else "pass")
+        if not tracks:
+            msg += "; no tracks: carried by pours only, which this row does not size (declare a feeds row per pin)"
+        row("currents", st, f"currents:{net}", msg + ("; " + "; ".join(bad) if bad else ""),
             value=wo if wo is not None else wi, limit=round(need_o, 3), objects=[net], finding="R2")
     COVERAGE.append(f"currents: {len(cur)} nets by IPC-2221 external/internal formulas against the narrowest track per layer; pours noted, not sized")
+
+
+def via_ampacity_a(drill_mm, rise_c=20.0, plating_mm=0.025):
+    """IPC-2221 internal formula on the via barrel cross-section (pi * d * plating); 25 um plating is JLC's minimum."""
+    area_mil2 = 3.14159 * (drill_mm / 0.0254) * (plating_mm / 0.0254)
+    return 0.024 * rise_c ** 0.44 * area_mil2 ** 0.725
+
+
+def check_feeds(CFG, NL, B):
+    feeds = CFG.get("feeds", [])
+    if not feeds:
+        NOT_CHECKED.append("feeds: no feeds rows (pad, amps, within_mm) so what feeds the high-current pins (vias, tracks; pours are not sized) was not measured")
+        return
+    fps = pcbq.fp_map(B)
+    rise = float(CFG.get("rise_c", 20.0))
+    oz = CFG.get("copper_oz", {"outer": 1.0, "inner": 0.5})
+    vias = [t for t in B.GetTracks() if t.GetClass() == "PCB_VIA"]
+    tracks = [t for t in B.GetTracks() if t.GetClass() != "PCB_VIA"]
+    for f in feeds:
+        try:
+            pad = pcbq.pad_of(fps, f["pad"])
+        except SystemExit:
+            row("feeds", "fail", f"feeds:{f.get('pad')}", f"no pad {f.get('pad')}"); continue
+        net = pad.GetNetname()
+        amps = float(f["amps"]); within = float(f.get("within_mm", 2.0))
+        near = [v for v in vias if v.GetNetname() == net and pcbq.cc(pad, v) <= within]
+        via_a = sum(via_ampacity_a(pcbnew.ToMM(v.GetDrillValue()), rise) for v in near)
+        pos = pad.GetPosition()
+        touching = [tr for tr in tracks if tr.GetNetname() == net and (tr.GetStart() == pos or tr.GetEnd() == pos or pad.HitTest(tr.GetStart()) or pad.HitTest(tr.GetEnd()))]
+        outer = {pcbnew.F_Cu, pcbnew.B_Cu}
+        trk_a = 0.0
+        for tr in touching:
+            w = pcbnew.ToMM(tr.GetWidth())
+            internal = tr.GetLayer() not in outer
+            k = 0.024 if internal else 0.048
+            area = w / 0.0254 * 1.378 * float(oz.get("inner" if internal else "outer", 1.0))
+            trk_a += k * rise ** 0.44 * area ** 0.725
+        total = via_a + trk_a
+        zones = [z for z in B.Zones() if z.GetNetname() == net and z.IsFilled()]
+        msg = (f"{f['pad']} ({net}) needs {amps} A: {len(near)} via(s) within {within} mm = {via_a:.2f} A"
+               f" ({', '.join(str(round(pcbnew.ToMM(v.GetDrillValue()), 2)) for v in near) or 'none'}), {len(touching)} track(s) touching = {trk_a:.2f} A; total {total:.2f} A"
+               + ("; a pour also reaches the pad, its neck is NOT sized" if zones else ""))
+        row("feeds", "pass" if total + 1e-9 >= amps else "fail", f"feeds:{f['pad']}", msg, value=round(total, 2), limit=amps, objects=[f["pad"].split(".")[0]], finding="R2-T5")
+    COVERAGE.append(f"feeds: {len(feeds)} pads; via ampacity by IPC-2221 internal on the barrel (25 um plating), tracks by width; pour fingers are not measured")
 
 
 def check_thermal_vias(CFG, NL, B):
@@ -665,9 +732,12 @@ def main():
     out = out or os.path.join(os.path.dirname(board), "pcbcheck.json")
     stem = os.path.splitext(board)[0]
     netlist = netlist or (stem + ".xml")
-    if not os.path.exists(netlist):
-        sch = stem + ".kicad_sch"
+    sch = stem + ".kicad_sch"
+    stale = os.path.exists(netlist) and os.path.exists(sch) and os.path.getmtime(sch) > os.path.getmtime(netlist) and netlist == stem + ".xml"
+    if not os.path.exists(netlist) or stale:
         if os.path.exists(sch):
+            if stale:
+                CONFIG_WARNS.append(f"netlist {os.path.basename(netlist)} was older than the schematic: re-exported (R2-T4)")
             subprocess.run([KICAD_CLI, "sch", "export", "netlist", "--format", "kicadxml", "-o", netlist, sch], capture_output=True)
     if not os.path.exists(netlist):
         sys.exit(f"pcbcheck: no netlist at {netlist} and no schematic to export it from (pass --netlist)")
@@ -681,7 +751,8 @@ def main():
               ("test_points", lambda: check_test_points(CFG, NL, B, bringup)), ("silk", lambda: check_silk(CFG, NL, B, bringup)),
               ("margin", lambda: check_margin(CFG, NL, B)), ("policy", lambda: check_policy(CFG, NL, B)),
               ("fields", lambda: check_fields(CFG, NL, B)), ("currents", lambda: check_currents(CFG, NL, B)),
-              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("calcs", lambda: check_calcs(CFG, NL, B))]
+              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("calcs", lambda: check_calcs(CFG, NL, B)),
+              ("feeds", lambda: check_feeds(CFG, NL, B))]
     for name, fn in checks:
         if only and name not in only:
             continue

@@ -536,3 +536,108 @@ first" bet pays: the loop now fails on measured policy, not on reviewer judgment
   rung-1 pull-up: 3.3 / R('R1') = 1.5 mA) and fails outside min/max: the LDO at 0.8 A is 1.36 W and 162 degC at
   90 K/W; a 4.7 uH buck inductor at 500 kHz gives 50 % ripple against the brief's 30-40 (6.8 uH gives 34.6 %).
   verify_all 24. The rows do not size pours or model the thermal pad's copper; those stay in the log.
+
+## Rung 2, attempt 1 (2026-10-31 18:49, three designers at medium effort on the kicad-design skill, Zener path)
+
+Runs: `RUNS/rung2-zener-a1-{sonnet,opus,fable}` (Sonnet 5.5, Opus 5.5, Fable 5.1, all `effort: medium` at Alex's
+request), same brief (`bench/design/rung2-motor-channel/BRIEF.md`), same PATH.md (skill, `pcb`, datasheets into
+`docs/`, no `examples/`/`docs/`/other runs). Tools at commit 84aed13 (with the `calcs`, `currents`, `thermal_vias`
+rows). Reviewers on Fable at default effort. Transcripts: `SESS/subagents/agent-a1e1e6b578fb04d78.jsonl`
+(Sonnet), `agent-aef59dc285615f7e5.jsonl` (Opus), `agent-aacb5fc98ec60372b.jsonl` (Fable). No forbidden reads.
+
+### Designer side (claims; reviewer scores below as they land)
+| | Sonnet 5.5 (medium) | Opus 5.5 (medium) | Fable (medium) |
+|---|---|---|---|
+| wall / model / tools (min) | 56.6 / 41.7 / 14.9 | 38.7 / 31.5 / 7.1 | 70.8 / 67.2 / 4.6 |
+| API calls / tool uses / bash failures | 175 / 176 / 14 | 107 / 109 / 8 | 64 / 106 / 12 |
+| output tokens (thinking) | 320k (205k) | 189k (102k) | 321k (196k) |
+| cache-read / peak context | 48.9M / 557k | 18.2M / 360k | 12.7M / 438k |
+| long generations >= 120 s | 1, 2.6 min | 3, 8.7 min | 3, 28.4 min (one of 14.4 min emitted nothing) |
+| claimed ERC | 0 / 0 | 0 / 0 | 0 / 0 |
+| claimed DRC plain / packed errors | 0 / 0 | 0 / 0 | 62 / 63 (not finished) |
+| claimed pcbcheck | 0 fails, 112 passes | 0 fails, 127 passes, 2 accepted | 8 fails, 113 passes |
+| claimed regen-check | REGENERATES | REGENERATES | FAILS (62 vs 63 errors) |
+| checks.json rows: calcs / currents / thermal_vias | 30 / 6 / 2 | 29 / 6 / 1 | yes (87 netlist-only passes) |
+| declared gaps | DRV8874 bypass caps 3.7-8 mm, no TVS, 1.22 A motor headroom at 6 V | LDO reverse diode dropped, one 0402 on the bottom, 50 silk warns, header listing 2x10 vs 2x5 "confirm" | fan-out at 0.65 mm pitch unfinished, courtyards, J4 pin order re-sequenced |
+
+- **R2-T1 The wrapper protects only when it is the `pcb` on PATH.** Two of three designers ran bare `pcb layout`
+  once (Diode's binary, first on PATH), which opened pcbnew; both noticed, killed it and switched to `$S/pcb`.
+  The GUI guard then blocked the third designer, whose run had no window, because it is a global `pgrep`; it set
+  `PCB_ALLOW_GUI=1`. Fixes: the skill puts `$S` first on PATH, and the guard checks the window's working
+  directory against the project (lsof) instead of any pcbnew at all.
+- **R2-T2 Routing at 0.65 mm pitch is where the time went, again.** Sonnet wrote an obstacle-aware router and a
+  maze router for the B.Cu hops (29 KB of tools) and finished; Fable rewrote the layout script three times (295
+  -> 110 -> 73 -> 62 errors) and did not. Opus took 8 DRC iterations (250 -> 0). Phase 6 (freerouting /
+  KiCadRoutingTools wrappers) is the next tool, not more rows.
+- **R2-T3 At medium effort Fable spent 14.4 min in one generation that emitted nothing** (64k thinking tokens, no
+  text, then a retry): a third of its model time. Opus at medium was the fastest and cheapest of the three
+  (38.7 min, 189k output tokens).
+- **R2-T4 Tool frictions reported by the designers:** regen-check's default output directory sits inside the
+  project and its `fresh/` copy carries a `pcb.toml`, which the next `pcb layout` picked up as a nested
+  workspace (Fable); a stale `<stem>.xml` next to the board fed `pcb check` old nets (Fable; the netlist is only
+  exported when missing); `schfix` could not place a PWR_FLAG for a net that reaches a `power_in` pin only through
+  passive parts (Fable, fixed by renaming the net); the raw `drc-packed.json` still lists the sentinel's own hits
+  (Sonnet read 146 of them as "a rule-file artefact"); `decoupling_max_mm` was raised to 3.0 by both finished
+  designers because rung 2 declares no distance (the reviewers measure against the datasheets).
+- Both finished designers reached a JLC parts endpoint after LCSC search blocked automated requests (Opus) or
+  wrote a `tools/jlcsearch.py` (Sonnet); XT30 had 0 stock, both chose screw terminals.
+
+### R2-S review (Sonnet attempt; reviewer on Fable, `SESS/subagents/agent-ad558772f916d9b3b.jsonl`, 15.5 min, 50 tool uses, 256k tokens)
+Scores **7 / 8 / 8**. Re-measured: ERC 0/0, DRC plain 0/13 and packed 0/26, sentinel x146, pcbcheck 0/0/112 with the
+designer's config and 13 fails with the reviewer's (5 real), regen-check REGENERATES, all 30 designer calcs rows
+reproduce, all four connector maps and every U1/U2/U3/Q1 pin against the datasheets, the buck loop as the
+datasheet asks (C3 to PVIN 1.12 mm edge, PH to L1 0.385 mm, 4 EP vias, In1 100 %).
+- **R2-S-1 (major)** DRV8874 VM fed by one 0.3 mm via and a 1.84 x 0.34 mm zone finger; the `currents:VIN` row said
+  "pour". **R2-S-2 (major)** VM and charge-pump caps 5.05 to 8.0 mm away on B.Cu hops (declared by the designer).
+  **R2-S-3 (major)** C18 100 uF electrolytic rated 135 mA ripple carrying the motor PWM ripple (0.3-0.4 A rms).
+- Minor: C9 buck bypass 4.3 mm, LDO 9 K margin, R3 1.37k vs the log's own 1495, silk refdes on pads, no J3 signal
+  names, ISENSE hop 0.2 vs class 0.25, no back-feed clamp. Overclaims: widths quoted for nets with no tracks, the
+  C18 reasoning, R3, "J2 4.6 mm" (5.1), "147 track_width artefact" (the sentinel). Tool limits hit: `C('C12')` on
+  "100nF 50V", decoupling rows needing `power_in` pins (vendored symbol types every pin `input`).
+
+### R2-O review (Opus attempt; reviewer on Fable, `agent-a5e0fb40d4829cfe8.jsonl`, 20.3 min, 55 tool uses, 229k tokens)
+Scores **8 / 6 / 7**. Re-measured: ERC 0/0, DRC plain 0/50 and packed 0/179, sentinel x137, pcbcheck 0/127 with the
+designer's config and 6 fails/144 with the reviewer's, regen-check REGENERATES, all 29 calcs rows reproduce against
+the datasheet equations, Plink encoder order from an exported Plink netlist, buck loop and thermal pad measured.
+- **R2-O-1 (blocker)** J3 LCSC C3405 is a 2x10 part on the 2x5 footprint; the designer wrote "confirm" and shipped
+  it. **R2-O-2 (major)** VM pin fed only by a 0.335 mm F.Cu fill neck (IPC 1.47 A vs 2.5 A). **R2-O-3 (major)** VM
+  bulk caps 11.8 and 15.5 mm from the pin. **R2-O-4/5 (major, doc)** no DRV8874 dissipation calc (BRINGUP claims
+  "< 80 degC" at stall; datasheet gives 92), input bulk "sized for transients" with a constant.
+- Minor: `5V_HDR` fell into the Default class (0.25 vs the log's 1.4 mm), copper inside the hole keepout, silk,
+  LDO at 120.5 degC, reverse diode dropped, `.zen` refdes differ from board refdes.
+
+### R2-F review (Fable attempt, unfinished; reviewer on Fable, `agent-a0204de6086ec39f5.jsonl`, 16.5 min, 45 tool uses, 236k tokens)
+Scores **4 / 4 / 6**. The copper shorts VIN-GND, SW-5V, 3V3-GND and 5V-GND (20 shorting items), the 3V3 rail has no
+source (6 unconnected), 14 courtyards overlap. The netlist is right and every one of the 20 log calculations
+reproduces. Majors: VM feed 0.3 mm through an 0402 pad (1.36 A), decoupling 3.75-6.44 mm, BRINGUP step 8 on the
+pre-re-sequence header pins, ERC blind on U1 (all pins `input`), thermal via grid centred 0.5 mm off the pad.
+Overclaims: "errors concentrated at the fan-out" (0 of 62 touch those pins), "nearest-cap rows pass" (none exist).
+
+### Rung 2 against rung 1, and what it says
+| | Sonnet 5.5 (medium) | Opus 5.5 (medium) | Fable (medium) |
+|---|---|---|---|
+| scores (elec / manuf / doc) | 7 / 8 / 8 | 8 / 6 / 7 | 4 / 4 / 6 |
+| blockers / majors | 0 / 3 | 1 / 4 | 3 / 5 |
+| designer wall (min) / output tokens | 56.6 / 320k | 38.7 / 189k | 70.8 / 321k |
+| reviewer wall / tokens | 15.5 / 256k | 20.3 / 229k | 16.5 / 236k |
+| finished (DRC 0, REGENERATES) | yes | yes | no |
+
+Three things the rung tells us. (1) The rows worked where they existed: every calcs row on every board reproduced,
+the pin maps were right on all three, the fab packages were complete. (2) The majors shared by all three boards
+were in the one place no row looked: what physically feeds the driver's VM pin (a via, a finger, a pad) and how far
+the bypass caps sit from pins the vendored symbols typed as plain inputs. Both are rows now (`feeds`, declared
+`decoupling` on any pin type, P1-T22) and the bench labels them on the archived boards. (3) Medium effort is a real
+knob: Opus at medium was the cheapest and the only 8 on electrical; Fable at medium spent a third of its model time
+in generations that emitted nothing and did not finish; Sonnet finished by writing its own router. Routing at
+0.65 mm pitch (R2-T2) is now the largest single cost and the next tool, as GAMEPLAN phase 6 planned.
+- **P1-T22 Tool fixes from rung 2.** `feeds` rows (via barrel ampacity by IPC-2221 internal at 25 um plating plus
+  touching-track ampacity; Fable 1.36 A matches the reviewer's 1.355, Sonnet 1.22 A for one 0.3 mm via against the
+  reviewer's 2.44 at a thicker plating assumption, Opus 0.00 A for a pour-only feed); declared `decoupling` rows
+  measured whatever the pin type, with a coverage note for ICs without `power_in` pins; `currents` warns on
+  pour-only nets instead of passing; `parse_value` takes the first token of "100nF 50V"; `pcb check` re-exports a
+  netlist older than its schematic; regen-check writes under `/tmp/pcb-regen` and copies `regen-check.json` into
+  the project; the packed DRC report is written without the sentinel's own hits (raw kept); the GUI guard blocks
+  only a window whose working directory is this project; the skill's first command puts `$S` first on PATH.
+  verify_all 25, 26. Bench: 9 boards, 37 labels, 0 false fails. Not rows yet: pour-neck width (a polygon-erosion
+  test is the plan), a sourcing-attributes row (JLC part pins vs footprint pads), capacitor ripple rating, a
+  bring-up-vs-pinmap consistency row, thermal pads counted with in-pad PTH.

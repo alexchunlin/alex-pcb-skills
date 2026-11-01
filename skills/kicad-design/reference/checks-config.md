@@ -24,6 +24,7 @@ test points `TP*`), the same rule cadcheck applies. Net names are the project's 
   "currents": {"VIN": 4.0, "5V": 3.0, "MOTOR_A": 2.5}, "copper_oz": {"outer": 1.0, "inner": 0.5}, "rise_c": 20,
                                                                         // IPC-2221 width per net vs the narrowest track per layer (rung 2)
   "thermal_vias": {"U3": {"pad": "EP", "min": 9, "within_mm": 2.5}},   // stitching vias on the pad's net near the pad
+  "feeds": [{"pad": "U3.11", "amps": 2.5, "within_mm": 2.0}],           // what reaches a high-current pad: vias + touching tracks, as amps
   "calcs": [                                                            // formula rows, in order; R("R5"), C("C3"), L("L1") read the netlist values
     {"id": "p_ldo", "expr": "(5.0 - 3.3) * 0.5", "unit": "W", "max": 1.0},
     {"id": "tj_ldo", "expr": "40 + p_ldo * 90", "unit": "degC", "max": 125, "note": "theta_ja 90 K/W"},
@@ -49,8 +50,9 @@ test points `TP*`), the same rule cadcheck applies. Net names are the project's 
 | policy | one per brief number | the board setup, the default net class or a measured minimum (narrowest track, smallest via, smallest silk text) is below the policy | R1-A2-T5 |
 | fields | one per BOM part | a required field is empty on the footprint | R1-A2S-1 |
 | pinmaps | one per declared reference | a declared pin is on another net | P1-T18 |
-| currents | one per declared net | narrowest outer or inner track below the IPC-2221 width for the amps and rise (external k 0.048, internal 0.024); a net fed only by a pour passes with the pour named | P1-T21 |
+| currents | one per declared net | narrowest outer or inner track below the IPC-2221 width for the amps and rise (external k 0.048, internal 0.024); a net with no tracks warns (pours are not sized: use `feeds`) | P1-T21 |
 | thermal_vias | one per pad | fewer vias on the pad's net within `within_mm` than `min` | P1-T21 |
+| feeds | one per pad | via ampacity (IPC-2221 internal on the barrel, 25 um plating) within `within_mm` plus touching-track ampacity below `amps`; a pour-only feed fails because pour necks are not sized | R2-T5 |
 | calcs | one per row | the value falls outside `min`/`max`; an expression that fails to evaluate | P1-T21 |
 
 `pcb check x.kicad_pcb checks.json --only connectors,rails` runs a subset; `--netlist x.xml` and `--bringup F`

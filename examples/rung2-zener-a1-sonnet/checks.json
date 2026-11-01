@@ -1,0 +1,367 @@
+{
+  "_about": "The rung-2 sonnet designer's own checks.json plus the reviewer's rows: feeds on the DRV8874 VM pin and declared decoupling rows for the bypass caps the datasheet names, at 2.0 mm (R2-T5). Scores: see FINDINGS R2.",
+  "project": "rung2_motor",
+  "policy": {
+    "clearance_mm": 0.2,
+    "track_mm": 0.2,
+    "via_drill_mm": 0.3,
+    "via_dia_mm": 0.6,
+    "silk_text_mm": 1.0
+  },
+  "fields": [
+    "MPN",
+    "Manufacturer",
+    "LCSC",
+    "Datasheet"
+  ],
+  "rails": {
+    "VIN": {
+      "v": 12.0,
+      "source": "J4 screw terminal through Q1 ideal-diode P-MOSFET (6 to 17 V)"
+    },
+    "5V": {
+      "v": 5.0,
+      "source": "U1 TPS54620 buck"
+    },
+    "3V3": {
+      "v": 3.3,
+      "source": "U3 AMS1117-3.3 from 5V"
+    },
+    "GND": {}
+  },
+  "decoupling_max_mm": 3.0,
+  "connectors": {
+    "J1": {
+      "1": "MOTOR_A",
+      "2": "MOTOR_B"
+    },
+    "J2": {
+      "1": "unconnected-(J2-Pin_1-Pad1)",
+      "2": "connectors.ENC_A_J",
+      "3": "connectors.ENC_B_J",
+      "4": "3V3",
+      "5": "GND",
+      "MP": "GND"
+    },
+    "J3": {
+      "1": "3V3",
+      "2": "GND",
+      "3": "nFAULT",
+      "4": "5V",
+      "5": "nSLEEP",
+      "6": "ISENSE",
+      "7": "DIR",
+      "8": "ENC_A",
+      "9": "PWM",
+      "10": "ENC_B"
+    },
+    "J4": {
+      "1": "VIN_EXT",
+      "2": "GND"
+    }
+  },
+  "test_points": {
+    "TP1": "VIN",
+    "TP2": "5V",
+    "TP3": "3V3",
+    "TP4": "SW",
+    "TP5": "IPROPI",
+    "TP6": "nFAULT",
+    "TP7": "GND",
+    "TP8": "GND"
+  },
+  "currents": {
+    "VIN": 4.0,
+    "VIN_EXT": 4.0,
+    "5V": 3.0,
+    "MOTOR_A": 2.5,
+    "MOTOR_B": 2.5,
+    "3V3": 0.5
+  },
+  "copper_oz": {
+    "outer": 1.0,
+    "inner": 0.5
+  },
+  "rise_c": 20,
+  "thermal_vias": {
+    "U2": {
+      "pad": "17",
+      "min": 6,
+      "within_mm": 2.5
+    },
+    "U1": {
+      "pad": "15",
+      "min": 4,
+      "within_mm": 2.5
+    }
+  },
+  "calcs": [
+    {
+      "id": "fsw_khz",
+      "expr": "(48000.0 / 100.0) ** (1 / 1.0)",
+      "unit": "kHz",
+      "min": 470,
+      "max": 490,
+      "note": "RT = 100k (R6) selects 480 kHz per TPS54620 table (Rrt 100k = 400/480/560 kHz min/typ/max)"
+    },
+    {
+      "id": "buck_il_ripple",
+      "expr": "(17.0 - 5.0) / L('L1') * 5.0 / (17.0 * f)",
+      "vars": {
+        "f": 480000.0
+      },
+      "unit": "A",
+      "min": 0.9,
+      "max": 1.2,
+      "note": "inductor ripple at 17 V in, L1 6.8 uH"
+    },
+    {
+      "id": "buck_ripple_pct",
+      "expr": "100 * buck_il_ripple / 3.0",
+      "unit": "percent of 3 A",
+      "min": 30,
+      "max": 40,
+      "note": "brief: 30 to 40 percent"
+    },
+    {
+      "id": "buck_il_peak",
+      "expr": "3.0 + buck_il_ripple / 2",
+      "unit": "A",
+      "max": 6.0,
+      "note": "FXL0630-6R8 saturation current 6 A"
+    },
+    {
+      "id": "buck_vout_ripple_mv",
+      "expr": "1000 * (buck_il_ripple / (8 * f * 3 * 22e-6 * 0.4) + buck_il_ripple * 0.005)",
+      "vars": {
+        "f": 480000.0
+      },
+      "unit": "mV",
+      "max": 50,
+      "note": "3 x 22 uF 10 V X5R derated to 40 percent at 5 V, ESR 5 mohm"
+    },
+    {
+      "id": "buck_vout",
+      "expr": "0.8 * (1 + R('R5') / R('R4'))",
+      "unit": "V",
+      "min": 4.9,
+      "max": 5.1,
+      "note": "R5 52.3k over R4 10k, Vref 0.8 V"
+    },
+    {
+      "id": "buck_cin_irms",
+      "expr": "3.0 * sqrt(0.5 * (1 - 0.5))",
+      "unit": "A rms",
+      "max": 1.6,
+      "note": "worst case D = 0.5 (Vin 10 V); shared by 3 x 10 uF 1206 = 0.5 A each"
+    },
+    {
+      "id": "buck_cin_dv",
+      "expr": "3.0 * 0.25 / (3 * 10e-6 * 0.5 * 480e3)",
+      "unit": "V",
+      "max": 0.3,
+      "note": "input ripple voltage, ceramics derated to 50 percent"
+    },
+    {
+      "id": "buck_ss_ms",
+      "expr": "10e-9 * 0.8 / 2.3e-6 * 1000",
+      "unit": "ms",
+      "min": 3.0,
+      "max": 4.0,
+      "note": "C10 10 nF, Iss 2.3 uA, Vref 0.8 V"
+    },
+    {
+      "id": "buck_comp_fpmod_khz",
+      "expr": "3.0 / (2 * pi * 5.0 * 26.4e-6) / 1000",
+      "unit": "kHz",
+      "note": "modulator pole, Cout derated 26.4 uF"
+    },
+    {
+      "id": "buck_comp_fco_khz",
+      "expr": "sqrt(buck_comp_fpmod_khz * 480 / 2)",
+      "unit": "kHz",
+      "max": 60,
+      "note": "crossover target, geometric mean of fpmod and fsw/2"
+    },
+    {
+      "id": "buck_comp_r2",
+      "expr": "2 * pi * 30e3 * 5.0 * 26.4e-6 / (1300e-6 * 0.8 * 16)",
+      "unit": "ohm",
+      "min": 1000,
+      "max": 1800,
+      "note": "R3 1.37k at 30 kHz crossover (gmea 1300 uA/V, gmps 16 A/V)"
+    },
+    {
+      "id": "buck_comp_zero_khz",
+      "expr": "1 / (2 * pi * R('R3') * 27e-9) / 1000",
+      "unit": "kHz",
+      "min": 3.0,
+      "max": 6.0,
+      "note": "R3 with C2 27 nF puts the zero near fpmod"
+    },
+    {
+      "id": "p_ldo",
+      "expr": "(5.0 - 3.3) * 0.5",
+      "unit": "W",
+      "max": 1.0
+    },
+    {
+      "id": "tj_ldo",
+      "expr": "40 + p_ldo * 90",
+      "unit": "degC",
+      "max": 125,
+      "note": "theta_ja 90 K/W SOT-223 (AMS1117 datasheet), 40 degC ambient"
+    },
+    {
+      "id": "q1_p_loss",
+      "expr": "4.0 ** 2 * 0.017",
+      "unit": "W",
+      "max": 0.5,
+      "note": "AO4407A Rds(on) 17 mohm max at Vgs -6 V, 4 A"
+    },
+    {
+      "id": "q1_schottky_loss",
+      "expr": "0.45 * 4.0",
+      "unit": "W",
+      "min": 1.0,
+      "note": "series Schottky at 0.45 V, for comparison"
+    },
+    {
+      "id": "q1_vgs_margin",
+      "expr": "25.0 - 17.0",
+      "unit": "V",
+      "min": 5,
+      "note": "AO4407A Vgs max 25 V against 17 V input, gate pulled to GND through R12"
+    },
+    {
+      "id": "v_sense_2a",
+      "expr": "2.0 * 455e-6 * R('R10')",
+      "unit": "V",
+      "min": 2.25,
+      "max": 2.75,
+      "note": "IPROPI at 2 A, AIPROPI 455 uA/A, R10 2.74k"
+    },
+    {
+      "id": "itrip_a",
+      "expr": "3.3 / (R('R10') * 455e-6)",
+      "unit": "A",
+      "min": 2.1,
+      "max": 3.0,
+      "note": "VREF = 3V3 sets the chopping limit; IPROPI cannot exceed VREF"
+    },
+    {
+      "id": "v_sense_worst",
+      "expr": "min(3.3, 2.1 * 455e-6 * 1.055 * R('R10') * 1.01)",
+      "unit": "V",
+      "max": 3.3,
+      "note": "2.1 A peak, +5.5 percent mirror error, +1 percent R10; clamped at VREF = 3.3 V"
+    },
+    {
+      "id": "sense_rc_hz",
+      "expr": "1 / (2 * pi * R('R11') * 100e-9)",
+      "unit": "Hz",
+      "min": 1000,
+      "max": 2500,
+      "note": "R11 1k with C12 100 nF"
+    },
+    {
+      "id": "fault_pullup_ma",
+      "expr": "3.3 / R('R9') * 1000",
+      "unit": "mA",
+      "max": 5,
+      "note": "R9 10k to 3V3"
+    },
+    {
+      "id": "fault_led_ma",
+      "expr": "(3.3 - 2.0) / R('R1') * 1000",
+      "unit": "mA",
+      "max": 5,
+      "note": "R1 470R, red LED 2.0 V, nFAULT sink limit 5 mA"
+    },
+    {
+      "id": "pwr_led_ma",
+      "expr": "(5.0 - 3.1) / R('R2') * 1000",
+      "unit": "mA",
+      "max": 10,
+      "note": "R2 1k, green LED 3.1 V"
+    },
+    {
+      "id": "i_in_12v",
+      "expr": "3.0 * 5.0 / (12.0 * 0.9) + 2.0",
+      "unit": "A",
+      "max": 4.0,
+      "note": "buck at 3 A / 90 percent plus 2 A motor"
+    },
+    {
+      "id": "motor_a_max_at_6v",
+      "expr": "4.0 - 3.0 * 5.0 / (6.0 * 0.9)",
+      "unit": "A",
+      "min": 1.0,
+      "note": "at 6 V in the 4 A budget leaves this much for the motor with the 5 V rail fully loaded"
+    },
+    {
+      "id": "bulk_dv",
+      "expr": "2.0 * sqrt(1e-6 / 120e-6)",
+      "unit": "V",
+      "max": 1.0,
+      "note": "2 A step on 1 uH of supply lead into C18 100 uF + C14 22 uF"
+    },
+    {
+      "id": "drv_p_w",
+      "expr": "2.0 ** 2 * 0.2",
+      "unit": "W",
+      "max": 1.5,
+      "note": "DRV8874 HS+LS Rds(on) 200 mohm total at 2 A"
+    },
+    {
+      "id": "drv_tj",
+      "expr": "40 + drv_p_w * 35",
+      "unit": "degC",
+      "max": 150,
+      "note": "RthetaJA 35 K/W with the pad on a copper pour (datasheet 8.2 table), 40 degC ambient"
+    }
+  ],
+  "margin": {
+    "pack": "jlcpcb",
+    "default_ratio": 1.0,
+    "min_ratio": {
+      "track_width": 2.0,
+      "clearance": 2.0,
+      "via_drill": 2.0
+    }
+  },
+  "accepted_warns": [],
+  "feeds": [
+    {
+      "pad": "U2.11",
+      "amps": 2.5,
+      "within_mm": 2.0
+    }
+  ],
+  "decoupling": [
+    {
+      "ic": "U2",
+      "pin": "11",
+      "cap": "C15",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U2",
+      "pin": "11",
+      "cap": "C14",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U2",
+      "pin": "12",
+      "cap": "C13",
+      "max_mm": 2.0
+    },
+    {
+      "ic": "U2",
+      "pin": "13",
+      "cap": "C11",
+      "max_mm": 2.0
+    }
+  ]
+}

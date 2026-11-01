@@ -269,6 +269,11 @@ def drc_counts(path, sentinel=False):
     viol = d.get("violations", [])
     sent = [v for v in viol if v.get("type") == "track_width" and "99." in v.get("description", "")]
     viol = [v for v in viol if v not in sent]
+    if sent:   # the sentinel's own hits are not design findings; keep the raw file, write the report without them (R2-T4)
+        shutil.copy(path, path.replace(".json", "-raw.json"))
+        d["violations"] = viol
+        d["sentinel_hits_removed"] = len(sent)
+        json.dump(d, open(path, "w"), indent=1)
     sev = Counter(v["severity"] for v in viol)
     by_type = {}
     for v in viol:
@@ -718,7 +723,9 @@ def cmd_regen_check(a):
         if not cfg.get(k):
             sys.exit(f"regen-check: --{k} is required (or put it in {cfg_path})")
     cfg.setdefault("generated", [])
-    out = os.path.abspath(a.out or os.path.join(proj, "regen-check"))
+    # outside the project: a copy with its own pcb.toml inside the tree made the next `pcb layout` see a nested
+    # workspace (R2-T4); the report is copied back as <project>/regen-check.json
+    out = os.path.abspath(a.out or os.path.join(tempfile.gettempdir(), "pcb-regen", f"{os.path.basename(proj)}-{os.getpid()}"))
     if os.path.isdir(out):
         shutil.rmtree(out)
     os.makedirs(out)
@@ -728,7 +735,7 @@ def cmd_regen_check(a):
     print(f"regen-check {os.path.basename(proj)}: measuring the tree as handed in")
     res["ref"] = measure_tree(proj, cfg, os.path.join(out, "ref"))
     fresh = os.path.join(out, "fresh")
-    shutil.copytree(proj, fresh, symlinks=True, ignore=shutil.ignore_patterns("regen-check", "review", ".git"))
+    shutil.copytree(proj, fresh, symlinks=True, ignore=shutil.ignore_patterns("regen-check", "regen-check.json", "review", ".git"))
     removed = []
     for g in cfg["generated"]:
         p = os.path.join(fresh, g)
@@ -768,6 +775,8 @@ def cmd_regen_check(a):
     res["gerber_warns"] = [d for d in res["diff_ref_pass1"] + res["diff_pass1_pass2"] if d.startswith("fab gerbers differ")]
     res["verdict"] = "REGENERATES" if ok else "FAILS"
     json.dump(res, open(os.path.join(out, "regen.json"), "w"), indent=1)
+    if not a.out:
+        shutil.copy(os.path.join(out, "regen.json"), os.path.join(proj, "regen-check.json"))
     print(f"  removed before pass 1: {', '.join(removed) or 'nothing (no --generated list)'}")
     print(f"  pass 1 vs handed-in tree: {'identical' if not res['diff_ref_pass1'] else '; '.join(res['diff_ref_pass1'])}")
     print(f"  pass 2 vs pass 1:         {'identical' if not res['diff_pass1_pass2'] else '; '.join(res['diff_pass1_pass2'])}")

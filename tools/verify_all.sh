@@ -420,6 +420,44 @@ $PCB check "$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pcb" "$V/calcs2.
 grep -q "needs 0.898 mm outer (1.0 oz), 4.670 mm inner (0.5 oz)" "$V/calcs2.txt" && ok "calcs: IPC-2221 3 A at 20 degC = 0.898 mm at 1 oz outer, 4.670 mm at 0.5 oz inner" || bad "calcs width numbers: $(grep currents "$V/calcs2.txt")"
 fi  #@ end 24
 
+if want 25; then  #@ watch: @check @cli examples/rung1-zener-a1/board/**
+echo "== 25 rung-2 tool fixes: feeds row, declared decoupling on any pin type, values with ratings, stale netlist re-export, regen-check output outside the project, sentinel-free packed report (R2-T4, R2-T5)"
+cat > "$V/feeds.json" <<'EOC'
+{"feeds": [{"pad": "U1.8", "amps": 3.0, "within_mm": 2.0}], "decoupling": [{"ic": "J1", "pin": "2", "cap": "C1", "max_mm": 20}],
+ "currents": {"3V3": 0.5}, "calcs": [{"id": "c1", "expr": "C('C1')", "min": 1e-9}]}
+EOC
+$PCB check "$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pcb" "$V/feeds.json" --only feeds,decoupling,currents,calcs --out "$V/feeds.out.json" > "$V/feeds.txt"
+[ "$(jq_ "$V/feeds.out.json" "[(r['status'], round(r['value'], 2)) for r in d['rows'] if r['id']=='feeds:U1.8'][0]")" = "('fail', 1.19)" ] && ok "feeds: U1.8 at 3 A fails with 1.19 A (one 0.2 mm track, no via, pour unsized)" || bad "feeds: $(grep feeds "$V/feeds.txt")"
+[ "$(jq_ "$V/feeds.out.json" "[r['status'] for r in d['rows'] if r['id']=='decoupling:J1.2:C1'][0]")" = pass ] && ok "decoupling: a declared row on a passive pin is measured (11.7 mm, limit 20)" || bad "decoupling declared: $(grep J1 "$V/feeds.txt")"
+$PCB py -c "import pcbcheck as c; print('PV', *[float('%.6g' % c.parse_value(x)) for x in ('100nF 50V', '4.7uH 2A', '2k2', '0.01')])" 2>/dev/null | grep -q "^PV 1e-07 4.7e-06 2200.0 0.01" && ok "parse_value: '100nF 50V', '4.7uH 2A', '2k2', '0.01'" || bad "parse_value: $($PCB py -c "import pcbcheck as c; print(c.parse_value('100nF 50V'), c.parse_value('4.7uH 2A'), c.parse_value('2k2'), c.parse_value('0.01'))" 2>&1 | tail -1)"
+N="$V/stale"; rm -rf "$N"; mkdir -p "$N"; cp "$ROOT"/examples/rung1-zener-a1/board/* "$N"/; touch -t 202001010000 "$N/qwiic_imu.xml"
+$PCB check "$N/qwiic_imu.kicad_pcb" "$ROOT/examples/rung1-zener-a1/checks.json" --only rails --out "$N/pc.json" > "$N/pc.txt"
+grep -q "CONFIG netlist qwiic_imu.xml was older than the schematic: re-exported" "$N/pc.txt" && [ "$(stat -f %m "$N/qwiic_imu.xml")" -gt 1600000000 ] && ok "pcb check re-exports a netlist older than the schematic (R2-T4)" || bad "stale netlist: $(grep CONFIG "$N/pc.txt")"
+R="$V/regenout"; rm -rf "$R"; mkdir -p "$R"; cp -R "$ROOT/examples/rung1-zener-a1/board" "$R/board"
+$PCB regen-check "$R/board" --cmd true --board qwiic_imu.kicad_pcb > "$R/regen.txt"; rc=$?
+[ "$rc" = 0 ] && [ -f "$R/board/regen-check.json" ] && grep -q "/pcb-regen/board-" "$R/regen.txt" && ok "regen-check writes under /tmp/pcb-regen and copies regen-check.json into the project (R2-T4)" || bad "regen-check out: rc $rc $(tail -2 "$R/regen.txt")"
+$PCB drc "$ROOT/examples/rung1-zener-a1/board/qwiic_imu.kicad_pcb" --pack jlcpcb --out "$V/sdrc" > /dev/null
+[ "$(jq_ "$V/sdrc/drc-packed.json" "(d.get('sentinel_hits_removed'), sum(1 for v in d['violations'] if '99.' in v['description']))")" = "(74, 0)" ] && [ -f "$V/sdrc/drc-packed-raw.json" ] && ok "packed report carries no sentinel hits (74 removed, raw kept)" || bad "sentinel strip: $(jq_ "$V/sdrc/drc-packed.json" "(d.get('sentinel_hits_removed'), len(d['violations']))")"
+fi  #@ end 25
+
+if want 26; then  #@ watch: @check @cli examples/rung2-zener-a1-*/**
+echo "== 26 rung-2 boards: the reviewers' majors as rows (feeds, declared decoupling, currents; drc shorts on the unfinished board) (R2-T5)"
+for a in opus sonnet fable; do
+  B=$(ls "$ROOT"/examples/rung2-zener-a1-$a/board/*.kicad_pcb)
+  $PCB check "$B" "$ROOT/examples/rung2-zener-a1-$a/checks.json" --out "$V/r2${a:0:1}check.json" > "$V/r2$a.txt"
+done
+[ "$(jq_ "$V/r2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['decoupling:U2.11:C10', 'decoupling:U2.11:C11', 'decoupling:U2.11:C17', 'feeds:U2.11']" ] && ok "r2 opus: feeds U2.11 0.00 A (pour neck), C11 11.76 / C17 15.47 mm (the reviewer's two electrical majors)" || bad "r2 opus: $(jq_ "$V/r2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+[ "$(jq_ "$V/r2scheck.json" "[round(r['value'], 2) for r in d['rows'] if r['id']=='feeds:U2.11'][0]")" = 1.22 ] && ok "r2 sonnet: feeds U2.11 1.22 A from one 0.3 mm via (reviewer: one via, 0.34 mm finger)" || bad "r2 sonnet feeds $(grep feeds "$V/r2sonnet.txt")"
+[ "$(jq_ "$V/r2scheck.json" "sum(1 for r in d['rows'] if r['check']=='decoupling' and r['status']=='fail')")" = 4 ] && ok "r2 sonnet: 4 declared VM/charge-pump caps beyond 2 mm (5.05 to 7.6 mm)" || bad "r2 sonnet decoupling"
+[ "$(jq_ "$V/r2fcheck.json" "[round(r['value'], 2) for r in d['rows'] if r['id']=='feeds:U1.11'][0]")" = 1.36 ] && ok "r2 fable: feeds U1.11 1.36 A (reviewer: 1.355 A through an 0402 pad)" || bad "r2 fable feeds"
+[ "$(jq_ "$V/r2fcheck.json" "d['summary']['fails']")" = 9 ] && ok "r2 fable: 9 fails (4 decoupling, 4 currents on 0.28-0.3 mm tracks, feeds)" || bad "r2 fable fails $(jq_ "$V/r2fcheck.json" "d['summary']")"
+grep -q "currents:VIN_RAW: .*no tracks: carried by pours only" "$V/r2opus.txt" && ok "r2 opus: pour-only nets warn, not pass" || bad "r2 opus currents warn"
+$PCB drc "$ROOT/examples/rung2-zener-a1-fable/board/motor_channel.kicad_pcb" --pack jlcpcb --out "$V/r2fdrc" > "$V/r2fdrc.txt"
+# 67 here against the designer's 62: the archived board sits without its vendored footprint library (59 lib_footprint_issues), which
+# moves five clearance/mask errors; the shorts, courtyards and unconnected counts are the reviewer's
+[ "$(jq_ "$V/r2fdrc/drc.json" "(d['plain']['by_type']['error'].get('shorting_items'), d['plain']['by_type']['error'].get('courtyards_overlap'), d['plain']['unconnected'])")" = "(20, 14, 6)" ] && ok "r2 fable drc: 20 shorts, 14 courtyard overlaps, 6 unconnected (the reviewer's blockers)" || bad "r2 fable drc $(jq_ "$V/r2fdrc/drc.json" "(d['plain']['errors'], d['plain']['by_type'])")"
+fi  #@ end 26
+
 if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
 echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"
   KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"

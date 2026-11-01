@@ -7,7 +7,7 @@ every rule is in `docs/FINDINGS.md`; the plan in `docs/GAMEPLAN.md`; current sta
 |---|---|
 | `skills/kicad-design/` | Designer skill: the `pcb` wrapper (`erc`, dual `drc`, `check`, `q`, `fab`, `regen-check`, `schfix`, `py`, Diode passthrough), `pcblib.board` over pcbnew, `pcbcheck` with `checks.json`, reference docs, project template |
 | `skills/pcb-design-review/` | Reviewer skill: check-first protocol, rubric with anchors, evidence checklist |
-| `examples/` | The two reviewed rung-1 attempts (configs, boards, the Zener source and its pcblib layout port) and MotorGo Plink before and after its rework |
+| `examples/` | The reviewed rung-1 and rung-2 attempts (configs, boards, the first Zener source and its pcblib layout port) and MotorGo Plink before and after its rework |
 | `tools/verify_all.sh` | Re-proves everything (about 10 minutes; `--changed [BASE]` runs only what a change affects, `--dry-run` prints the plan) |
 | `tools/bench/` | Replay bench: a tools commit scored against reviewer findings and fab-history bugs |
 | `bench/design/` | Design-bench briefs (rung 1 Qwiic IMU, rung 2 motor channel) and the phase-0 review protocol |
