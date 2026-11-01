@@ -1,6 +1,6 @@
 # Status (updated 2026-11-01, phase 6 routing measured and wrapped)
 
-- Plan: `docs/GAMEPLAN.md`. Evidence: `docs/FINDINGS.md`. Survey with URLs: `docs/SURVEY-2026-10-31.md`. Handoff
+- Plan: `docs/GAMEPLAN.md`; next steps and moonshots after phase 6: `docs/ROADMAP-2026-11-01.md`. Evidence: `docs/FINDINGS.md`. Survey with URLs: `docs/SURVEY-2026-10-31.md`. Handoff
   from the kickoff session: `docs/HANDOFF-2026-10-31.md` (its "Next" list is the work order).
 - Phase 0 done: tooling verified (P0-T1..T10), rung-1 and rung-2 briefs in `bench/design/`, review protocol in
   `bench/design/REVIEW.md`, two rung-1 attempts designed and reviewed (`~/code-stuff/alex-pcb-runs/rung1-{skidl,zener}-a1`).
