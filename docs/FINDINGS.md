@@ -806,3 +806,58 @@ nets, wide-class nets left to the layout script), since all 30 min of reaction w
   FAILS on 12 nets (pass 2 equals pass 1). A copy of the attempt regenerated once with the fixed tool and regen-checked
   again says **REGENERATES**: netlist, DRC, placement and per-net copper identical across the handed-in tree and both
   passes, only the gerber-order warns of R1-A2-T2 (not part of the verdict). R2A2-O-4 is closed by the tool.
+
+## Routing session 4: config first, judges, feed helpers (2026-11-02)
+
+Hypothesis stated with Alex before any code: the 30 min of reaction in rung-2 attempt 2 came from how the router was
+configured, not from routing needing a designer. Null: some of it is a gap configuration cannot close. Measured on the
+route bench (four rung-2 placements, tracks stripped, pours kept), then on the attempt-2 placement end to end. Alex's
+stackup, stated this session and now the policy the judges check: In1 and In2 both solid GND, 3V3/5V routed point to
+point, high-current rails as pours or thick tracks, every signal over unbroken ground.
+
+- **ROUTE-T1 Outer-only routing is free; wide nets are not a config problem.** KRT's own recipe (`--layers F.Cu In1.Cu
+  In2.Cu B.Cu --layer-costs 1 -1 -1 1`) took inner-layer track from 138 / 200 / 200 / 0.2 mm to 0 on all four boards
+  with the same clean/open result and equal or fewer vias (37->36, 43->38, 54->52, 46->46). KRT already reads the net
+  class widths ("auto-read netclass track widths for 7 non-Default nets"); explicit `--power-nets` was mixed (Opus: narrow
+  copper 53->11 mm but 1 airwire; Fable: 5x slower) and `--no-power-tap-neckdown` did nothing or worse. Every config
+  necked the fine-pitch power pins (0.2 mm plane taps and rescues into DRV8874 VM/OUT, TPS54620 PVIN, from KRT's own
+  `narrowed` report), failed `currents` on 2-5 nets where the designers' copper failed none, and placed no thermal vias
+  under the exposed pads. `pcb route auto` now routes outer-only by default (`--inner-tracks` lifts it); the skill says to
+  draw wide-class nets and thermal vias before calling it. Side-by-side renders were shown to Alex in the session.
+- **ROUTE-T2 KiCad sorts tracks by UUID on save and KRT writes random UUIDs**, so the same copper came back from a refill in
+  a different order each run, and KRT's second pass (which reads tracks in file order) routed differently: verify 27's
+  order check failed 1 run in 2 once pass 2 had work to do. `canonical()` now derives every segment/arc/via UUID from its
+  content (uuid5) and runs on each pass's output before the refill; two routes that differ only in KRT's UUIDs are then
+  byte-identical after canon + fill.
+- **ROUTE-T3 KRT's rip-up order iterates a set of net names**, so pass 2 on one byte-identical input differed 1 run in 4
+  ("Blocking obstacles: 3V3, unconnected-(U1.U:10)" against the reverse). `PYTHONHASHSEED=0` for every KRT call (route
+  auto and the bench): 6/6 identical; verify 27 three runs green.
+- **ROUTE-T4 `SaveBoard` re-nets a new via that sits in another net's stale zone fill** and touches nothing of its own net:
+  a PVIN feed via inside the old GND pour came back GND, a 0.185 mm clearance error to C1.1 (VIN) and an IPROPI airwire
+  the router could not close. `Board.save()` unfills the zones when vias or tracks were added since the last save (a first version keyed on the session's counters unfilled fill()'s own saves: verify 17/19 caught 12 clearance errors and 17 dangling vias), `unfill_and_save()`
+  does it for raw boards (the stitch pass and the freerouting SES import had the same hazard); verify 28 reproduces the
+  bug with a plain save (`['GND', 'VIN']`) and passes with the fix.
+- **REFPLANE-1 `refplane` row (pcbcheck, opt-in, on in the project template).** Every non-ground track sampled every
+  0.25 mm against GND fill on the adjacent copper layer, own vias and through-hole pads skipped (antipads); per net the
+  unreferenced mm and gap count, 0.5 s a board. Attempt-2 board: F.Cu 0.5 mm off ground, B.Cu 212 mm (In2 is the VIN/5V
+  plane), 14 of 29 nets fail. Positive control: In2 converted to GND on the router's copper, 290 -> 5.1 mm (DIR along the
+  board edge where the plane pulls back, 0.2 mm of 3V3 at a via). Prior art: nothing in KRT, kct or this repo checks it.
+- **IRDROP-1 `pcb irdrop`**: the net rasterised by KiCad's own hit tests (fill as poured, so spokes and necks are real) at
+  0.1 mm, vias as barrel conductances, solved with scipy under `uv` (KiCad's isolated Python has no numpy). Selftest: a
+  10 x 1 mm 1 oz strip at 1 A gives 4.8651 mV and 28.57 A/mm2, exactly rho L / (w t). 2.5 s a net. On the attempt-2 board
+  the hottest 5V copper outside any pad is the In2 spokes into J3.1 (184 A/mm2): the reviewer's R2A2-O-1 found from
+  physics, no declared row. VIN, designer against router-only: 11.7 vs 36.2 mV at VM, 55 vs 166 mW. Prior art: kct's
+  `power_trace` flags 3 narrow traces on both boards alike; KRT has pour-resistance helpers but no network solve.
+- **FEED-1 `pcblib` `thermal_vias()` and `pad_feed()` / `pad_feed_search()`.** Prior art measured first: KiCad ships
+  `_ThermalVias` variants (the DRV8874's HTSSOP-16 has one: config, no code); `kct stitch --thermal` added 0 vias with
+  defaults and with explicit GND/In1 settings (it only looks beside a pad, never in it); KRT's QFN fan-out is one stub or
+  via per pad at one width. `pad_feed` draws the designers' hand feed (pour at pad width out of the package, flare, a
+  via field sized by the `feeds` row's own IPC formula: 0.3 mm drill 1.22 A, so 2.5 A gets 3), pads grouped
+  ("4,5,6"), splay to fan neighbours apart, direction from the pad centroid (the vendored SOIC-8's origin is pin 1), and
+  a pre-check of the whole pour and every via against other nets that raises with the parts in the way. On the attempt-2
+  placement with outer-only `route auto` (designer / pours without vias / router only / helpers): feeds fails 2 / 7 / 4
+  / 3 of 9, thermal vias 12+4 / 0 / 0 / 15+4, VIN drop at VM 11.7 / 24.5 / 36.2 / 11.3 mV, I2R 55 / 112 / 166 / 54 mW;
+  helpers and router-only both route CLEAN. The helpers give back the designer's VIN feed; OUT2 does not fit beside VM
+  under this placement (C12/C13, the charge-pump caps, sit where both fields want to go) and Q1's source pins collide
+  with D3: the feed has to be planned at placement, which is the first wave of Alex's wave idea. `pad_feed_search` costs
+  ~27 s on this board (0.1 mm area check times the grid); fine for a layout script, worth a faster check later.

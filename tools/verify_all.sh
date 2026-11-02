@@ -479,10 +479,11 @@ $PCB route export-dsn "$R/qwiic_imu.kicad_pcb" --json > "$R/dsn.json" && grep -q
 python3 -I "$ROOT/tools/bench/route_bench.py" table --md > "$R/table.md" && [ "$(grep -c '^| ' "$R/table.md")" -ge 34 ] && grep -q "| opus | tracks | krt / default | 58 -> \*\*0\*\* | \*\*0\*\* / 0 | 37 |" "$R/table.md" && grep -q "| opus | tracks | freerouting / default | 58 -> \*\*21\*\* | \*\*22\*\* / 0 | 5 |" "$R/table.md" && ok "route bench results: 33 rows; opus/tracks KRT 0 airwires 0 errors 37 vias, freerouting 21 airwires 22 errors 5 vias (P6-T3)" || bad "route bench table: $(grep -c '^| ' "$R/table.md") rows"
 KRT_PY="${KRT_PY:-${KRT_DIR:-$REF/KiCadRoutingTools}/.venv/bin/python}"
 if [ -x "$KRT_PY" ]; then
-  # the loop on the rung-1 board: 23 airwires to 0 in two KRT passes, one new starved thermal on the LGA-14's GND pad, the 20
-  # inherited errors (LGA pad gap, fill at 0.2 from P1-T14) separated, stitch discarded, verdict NOT CLEAN, exit 1 (P6-T4)
+  # the loop on the rung-1 board: 23 airwires to 0 in two KRT passes, the 20 inherited errors (LGA pad gap, fill at 0.2 from
+  # P1-T14) separated, verdict CLEAN, exit 0 (P6-T4). Before outer-only (ROUTE-T1) and content-derived track UUIDs (ROUTE-T2)
+  # pass 2 left a starved thermal on the LGA-14's GND pad and the verdict was NOT CLEAN
   $PCB route auto "$R/qwiic_imu.kicad_pcb" --work "$R/work" > "$R/auto.txt" 2>&1; rc=$?
-  [ "$rc" = 1 ] && [ "$(jq_ "$R/route.json" "(d['clean'], d['start']['airwires'], sorted(d['start']['inherited_by_type'].items()), d['final']['airwires'], d['final']['new_errors'], d['final']['setup_changed'], [p['pass'] for p in d['passes']])")" = "(False, 23, [('clearance', 12), ('hole_clearance', 8)], 0, {'starved_thermal': 1}, False, [1, 2, 'stitch'])" ] && ok "route auto (KRT): 23 airwires -> 2 after pass 1 -> 0 after pass 2, one new starved thermal named, 20 inherited errors separated, stitch tried and discarded, exit 1" || bad "route auto: rc $rc $(tail -2 "$R/auto.txt" | cut -c1-300)"
+  [ "$rc" = 0 ] && [ "$(jq_ "$R/route.json" "(d['clean'], d['start']['airwires'], sorted(d['start']['inherited_by_type'].items()), d['final']['airwires'], d['final']['new_errors'], d['final']['setup_changed'], [p['pass'] for p in d['passes']], d['inner_mm'])")" = "(True, 23, [('clearance', 12), ('hole_clearance', 8)], 0, {}, False, [1, 2], 0)" ] && ok "route auto (KRT): 23 airwires -> 2 after pass 1 -> 0 after pass 2, no new errors, 20 inherited errors separated, 0 mm on the inner layers, CLEAN, exit 0" || bad "route auto: rc $rc $(tail -2 "$R/auto.txt" | cut -c1-300)"
   [ "$(jq_ "$R/route.json" "d['final']['vias'] > 0 and d['final']['tracks'] > 0")" = True ] && $PCB q "$R/qwiic_imu.kicad_pcb" ratsnest --json | grep -q '"airwires": 0' && ok "route auto wrote the routed board in place (0 airwires on re-measure)" || bad "route auto output"
   # order independence (P6-T6): the same board with its footprint blocks reversed routes to the same copper through `auto`
   python3 -I -c "
@@ -500,8 +501,37 @@ out.append(t[last:]); open('$R/rev.kicad_pcb', 'w').write(''.join(out)); print(l
   python3 -I -c "
 import json; a={n['net']: (n['length_mm'], n['vias']) for n in json.load(open('$R/fwdnets.json'))['nets']}; b={n['net']: (n['length_mm'], n['vias']) for n in json.load(open('$R/revnets.json'))['nets']}
 d=[k for k in a if abs(a[k][0]-b[k][0]) > 0.005 or a[k][1] != b[k][1]]; assert not d, d; print('same copper on', len(a), 'nets')" > "$R/order.txt" 2>&1 && ok "route auto: $(cat "$R/rev.txt") footprints reversed in the file give identical per-net copper (canonical order, P6-T6)" || bad "route auto order: $(cat "$R/order.txt" | tail -1)"
+  # outer layers only by default (ROUTE-T1): the rung-2 Opus placement, stripped, routes clean with no track on In1/In2
+  R2="$R/r2"; mkdir -p "$R2"; cp "$ROOT"/examples/rung2-zener-a1-opus/board/motor_channel.kicad_p* "$R2"/
+  $PCB route strip "$R2/motor_channel.kicad_pcb" > /dev/null && $PCB route auto "$R2/motor_channel.kicad_pcb" --work "$R2/work" > "$R2/auto.txt" 2>&1
+  [ "$(jq_ "$R2/route.json" "(d['clean'], d['inner_tracks'], d['inner_mm'], d['final']['airwires'])")" = "(True, False, 0, 0)" ] && grep -q -- "--layer-costs 1.0 -1 -1 1.0" "$R2/work/route.log" && ok "route auto: rung-2 Opus placement CLEAN with 0 mm of track on the inner (plane) layers, KRT given --layer-costs 1 -1 -1 1" || bad "route auto outer-only: $(jq_ "$R2/route.json" "(d['clean'], d['inner_mm'], d['final'])" | cut -c1-200)"
 else nochecks "KiCadRoutingTools not installed ($KRT_PY): route auto not run (install per tools/bench/README.md)"; fi
 fi  #@ end 27
+
+if want 28; then  #@ watch: skills/kicad-design/scripts/pcbir.py skills/kicad-design/scripts/pcbir_solve.py skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcblib/board.py tools/verify.d/pad_feed_check.py examples/rung2-zener-a2-opus/**
+echo "== 28 the layout judges: refplane (signals over solid ground) and pcb irdrop (DC drop and current density on real copper)"
+J="$V/judges"; mkdir -p "$J"; cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* "$J"/
+if command -v uv > /dev/null; then
+  (cd "$J" && uv run --no-project --quiet --with numpy --with scipy python3 "$ROOT/skills/kicad-design/scripts/pcbir_solve.py" --selftest) > "$J/self.json" 2>&1
+  [ "$(jq_ "$J/self.json" "(d['selftest'], d['drop_mV'], d['want_mV'])")" = "('PASS', 4.8651, 4.8651)" ] && ok "irdrop solver: a 10 x 1 mm strip of 1 oz copper at 1 A drops 4.8651 mV, as rho L / (w t) says, and carries 28.57 A/mm2" || bad "irdrop selftest: $(cat "$J/self.json" | tail -1)"
+  # R2A2-O-1: the 5 V header pin fed only by 0.30 mm In2 thermal spokes; the hottest copper outside any pad is those spokes
+  $PCB irdrop "$J/motor1.kicad_pcb" --net 5V --source L1.2 --sink J3.1=3.0 --out "$J/ir5" --json > "$J/ir5.txt" 2>&1
+  tail -1 "$J/ir5.txt" > "$J/ir5.json"
+  [ "$(jq_ "$J/ir5.json" "(d['worst'][0]['layer'], abs(d['worst'][0]['x'] - 143.24) < 2 and abs(d['worst'][0]['y'] - 117.34) < 2, d['worst'][0]['J_A_mm2'] > 150, round(d['sinks'][0]['drop_mV']))")" = "('In2.Cu', True, True, 9)" ] && ok "irdrop: attempt-2 5V, L1 to J3.1 at 3 A: 9 mV, hottest copper the In2 spokes into J3.1 at $(jq_ "$J/ir5.json" "d['worst'][0]['J_A_mm2']") A/mm2 (the reviewer's R2A2-O-1, found without a declared row)" || bad "irdrop 5V: $(tail -c 300 "$J/ir5.txt")"
+else nochecks "uv not installed: pcb irdrop's solver not run"; fi
+python3 -I -c "
+import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json')); c['refplane']={'ground':'GND'}; json.dump(c,open('$J/c.json','w'))"
+$PCB check "$J/motor1.kicad_pcb" "$J/c.json" --only refplane --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$J/rp.json" > /dev/null 2>&1
+python3 -I -c "
+import json, re; d=json.load(open('$J/rp.json')); c=[x for x in d['coverage'] if x.startswith('refplane')][0]
+f=float(re.search(r'F.Cu ([0-9.]+)', c).group(1)); b=float(re.search(r'B.Cu ([0-9.]+)', c).group(1))
+assert f < 1.0 and b > 150 and d['summary']['fails'] >= 10, c; print(f, b, d['summary']['fails'])" > "$J/rp.txt" 2>&1 && ok "refplane: attempt-2 board F.Cu $(cut -d' ' -f1 "$J/rp.txt") mm off ground (In1 is solid GND), B.Cu $(cut -d' ' -f2 "$J/rp.txt") mm (In2 is the VIN/5V plane), $(cut -d' ' -f3 "$J/rp.txt") nets fail" || bad "refplane: $(tail -1 "$J/rp.txt")"
+# pcblib feeds (FEED-1): VM gets 3 vias for 2.5 A (1.22 A each), OUT2 next to it is refused with the parts in the way, the
+# PVIN group gets one pour; the PVIN vias stay VIN through save + reload although one sits in the stale GND fill (ROUTE-T4)
+(cd "$J" && cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* . && $PCB py "$ROOT/tools/verify.d/pad_feed_check.py") > "$J/feed.txt" 2>&1
+tail -1 "$J/feed.txt" > "$J/feed.json"
+[ "$(jq_ "$J/feed.json" "(d['vm_vias'], d['vm_amps'] >= 2.5, d['out2'], d['pvin_vias'], d['thermal_u1'], d['pvin_nets_after_save'])")" = "(3, True, True, 3, 4, ['VIN'])" ] && ok "pcblib pad_feed: VM 3 vias ($(jq_ "$J/feed.json" "d['vm_amps']") A), OUT2 refused naming the parts in the way, PVIN 3 vias, U1 4 thermal vias; PVIN vias still VIN after save (ROUTE-T4)" || bad "pad_feed: $(tail -c 300 "$J/feed.txt")"
+fi  #@ end 28
 
 if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
 echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"

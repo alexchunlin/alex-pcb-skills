@@ -1,4 +1,4 @@
-# Status (updated 2026-11-01, phase 6 routing measured and wrapped)
+# Status (updated 2026-11-02, routing config, judges and feed helpers)
 
 - Plan: `docs/GAMEPLAN.md`; next steps and moonshots after phase 6: `docs/ROADMAP-2026-11-01.md`. Evidence: `docs/FINDINGS.md`. Survey with URLs: `docs/SURVEY-2026-10-31.md`. Handoff
   from the kickoff session: `docs/HANDOFF-2026-10-31.md` (its "Next" list is the work order).
@@ -63,3 +63,14 @@
   the rows the rung-2 reviews asked for (pour-neck width, sourcing attributes, cap ripple rating, bring-up vs pin map);
   the per-sheet loop. The design-margin experiment (4/6/8 layers) can now run on the route bench.
 - Not done: no workflow template (phase 5), no topology or silk-readability rows (the two Plink misses).
+- Session 4 (2026-11-02, FINDINGS "Routing session 4"): `pcb route auto` routes outer-only by default (ROUTE-T1) and is
+  now reproducible run to run (ROUTE-T2 track UUIDs from content, ROUTE-T3 KRT hash seed pinned); the judges `refplane`
+  (pcbcheck, opt-in, on in the template) and `pcb irdrop` (DC drop and current density on real copper, scipy via `uv`);
+  pcblib `pad_feed`/`pad_feed_search`/`thermal_vias` and the SaveBoard re-net trap fixed (ROUTE-T4). verify_all has 28
+  sections. Not built yet: the wave orchestrator.
+- Decided 2026-11-02 (Alex): stackup policy is two solid GND planes (In1, In2), 3V3/5V routed point to point, high-current
+  rails as pours or thick tracks, signals only over unbroken ground. The archived rung-2 boards predate it (In2 power
+  plane), which is why `refplane` is opt-in rather than on for the replay bench.
+- Next: the wave orchestrator (feeds and thermal vias at placement, then router waves by net group with per-wave layers and
+  keepouts, judged by refplane, irdrop, feeds); then a routing-stage designer run from the attempt-2 placement (old wrapper
+  first, to check the stage run reproduces attempt 2), then 3 against 3.

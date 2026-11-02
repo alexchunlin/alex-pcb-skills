@@ -40,6 +40,8 @@
   },
   "rise_c": 20,
   "thermal_vias": {},
+  "refplane": {"ground": "GND", "step_mm": 0.25, "max_gap_mm": 0, "skip_nets": [],
+               "_why": "Alex's stackup: In1 and In2 both solid GND, rails routed, every signal over unbroken ground (REFPLANE-1)"},
   "calcs": [
     {
       "id": "example_p_ldo",

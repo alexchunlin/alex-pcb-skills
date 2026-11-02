@@ -25,6 +25,11 @@ Checks (v0):
                internal on the barrel) plus tracks touching it; a pour-only feed fails with its neck unsized (rung 2: the
                DRV8874 VM pin fed by one 0.3 mm via or a 0.34 mm pour finger on two of three boards, R2-T5)
   thermal_vias declared minimum stitching vias on a pad's net within `within_mm` of the pad (thermal pad to pour)
+  refplane     every track off the ground net runs over solid ground fill on the copper layer next to it in the stack
+               (In1 under F.Cu, the last inner layer under B.Cu): sampled every step_mm, points next to the net's own
+               vias and through-hole pads skipped (the plane's antipad), per net the mm and the count of gaps crossed.
+               Opt-in: {"ground": "GND", "step_mm": 0.25, "max_gap_mm": 0, "skip_nets": []}. Alex's stackup: two solid
+               ground planes, rails routed, signals only over unbroken ground (REFPLANE-1)
   calcs        formula rows: {id, expr, vars, min, max}; `R("R5")`, `C("C3")`, `L("L1")` read values from the
                netlist, earlier ids are variables; the brief's buck ripple, LDO dissipation and sense scaling
   fields       every BOM part (not DNP, not excluded from BOM) carries the required fields, default MPN, Manufacturer,
@@ -34,7 +39,7 @@ Checks (v0):
                setting until plain DRC read 0 (clearance 0.14/0.15, silk text 0.8); the policy block makes that a
                fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
-margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, calcs, feeds, accepted_warns, _notes.
+margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, refplane, calcs, feeds, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, os, re, subprocess, sys
@@ -47,7 +52,7 @@ import pcbq  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "calcs", "feeds", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "calcs", "feeds", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -623,6 +628,87 @@ def check_thermal_vias(CFG, NL, B):
     COVERAGE.append(f"thermal_vias: {len(tv)} pads; vias on the pad's net within within_mm of the pad centre")
 
 
+def check_refplane(CFG, NL, B):
+    rp = CFG.get("refplane")
+    if not rp:
+        NOT_CHECKED.append("refplane: no refplane block, so whether signals run over solid ground was not measured")
+        return
+    rp = rp if isinstance(rp, dict) else {}
+    gnd = rp.get("ground", "GND")
+    step = float(rp.get("step_mm", 0.25))
+    max_gap = float(rp.get("max_gap_mm", 0.0))
+    skip = set(rp.get("skip_nets", [])) | {gnd}
+    stack = list(B.GetEnabledLayers().CuStack())
+    if len(stack) < 3:
+        NOT_CHECKED.append(f"refplane: {len(stack)} copper layers, no inner reference plane to check")
+        return
+    zones = {}
+    unfilled = []
+    for z in B.Zones():
+        if z.GetIsRuleArea() or z.GetNetname() != gnd:
+            continue
+        for L in z.GetLayerSet().CuStack():
+            if z.HasFilledPolysForLayer(L) and z.GetFilledPolysList(L).OutlineCount():
+                zones.setdefault(L, []).append(z)
+            else:
+                unfilled.append(B.GetLayerName(L))
+    if unfilled:
+        CONFIG_WARNS.append(f"refplane: {gnd} zones with no fill on {sorted(set(unfilled))}; run `pcb route fill` first")
+    # the net's own vias and through-hole pads punch an antipad in every plane: skip points that close to them
+    holes = {}
+    for t in B.GetTracks():
+        if t.GetClass() == "PCB_VIA":
+            holes.setdefault(t.GetNetname(), []).append((t.GetPosition(), t.GetWidth(pcbnew.F_Cu) / 2))
+    for f in B.GetFootprints():
+        for pd in f.Pads():
+            if pd.GetAttribute() == pcbnew.PAD_ATTRIB_PTH:
+                holes.setdefault(pd.GetNetname(), []).append((pd.GetPosition(), max(pd.GetSize().x, pd.GetSize().y) / 2))
+    halo = pcbnew.FromMM(float(rp.get("antipad_mm", 0.5)))
+    per = {}
+    for t in B.GetTracks():
+        if t.GetClass() == "PCB_VIA" or t.GetNetname() in skip:
+            continue
+        L = t.GetLayer()
+        if L not in stack:
+            continue
+        i = stack.index(L)
+        refs = [stack[j] for j in (i - 1, i + 1) if 0 <= j < len(stack)]
+        a, b = t.GetStart(), t.GetEnd()
+        length = pcbnew.ToMM(t.GetLength())
+        n = max(1, int(length / step))
+        own = holes.get(t.GetNetname(), [])
+        d = per.setdefault(t.GetNetname(), {"mm": 0.0, "bad_mm": 0.0, "gaps": 0, "layers": {}, "where": []})
+        d["mm"] += length
+        prev_bad = False
+        for k in range(n + 1):
+            x = a.x + (b.x - a.x) * k / n; y = a.y + (b.y - a.y) * k / n
+            pt = pcbnew.VECTOR2I(int(x), int(y))
+            if any((pt.x - c.x) ** 2 + (pt.y - c.y) ** 2 <= (r + halo) ** 2 for c, r in own):
+                prev_bad = False
+                continue
+            ok = any(z.HitTestFilledArea(R, pt) for R in refs for z in zones.get(R, []))
+            if not ok:
+                d["bad_mm"] += length / (n + 1)
+                ln = B.GetLayerName(L)
+                d["layers"][ln] = d["layers"].get(ln, 0.0) + length / (n + 1)
+                if not prev_bad:
+                    d["gaps"] += 1
+                    if len(d["where"]) < 3:
+                        d["where"].append(f"({pcbnew.ToMM(pt.x):.1f}, {pcbnew.ToMM(pt.y):.1f}) {B.GetLayerName(L)}")
+            prev_bad = not ok
+    bad_total, by_layer = 0.0, {}
+    for net, d in sorted(per.items()):
+        for k, v in d["layers"].items():
+            by_layer[k] = by_layer.get(k, 0.0) + v
+        st = "fail" if d["bad_mm"] > max_gap + 1e-6 else "pass"
+        bad_total += d["bad_mm"]
+        msg = (f"{net}: {d['bad_mm']:.1f} of {d['mm']:.1f} mm not over solid {gnd} on the next layer, {d['gaps']} gap(s)"
+               + (f" ({', '.join(f'{k} {v:.1f} mm' for k, v in sorted(d['layers'].items()))}), first at {'; '.join(d['where'])}" if d["gaps"] else ""))
+        row("refplane", st, f"refplane:{net}", msg, value=round(d["bad_mm"], 2), limit=max_gap, objects=[net], finding="REFPLANE-1")
+    COVERAGE.append(f"refplane: {len(per)} nets, tracks sampled every {step} mm against {gnd} fill on the adjacent layer(s); "
+                    f"{bad_total:.1f} mm unreferenced in total ({', '.join(f'{k} {v:.1f}' for k, v in sorted(by_layer.items()))})")
+
+
 def check_calcs(CFG, NL, B):
     rows = CFG.get("calcs", [])
     if not rows:
@@ -751,7 +837,8 @@ def main():
               ("test_points", lambda: check_test_points(CFG, NL, B, bringup)), ("silk", lambda: check_silk(CFG, NL, B, bringup)),
               ("margin", lambda: check_margin(CFG, NL, B)), ("policy", lambda: check_policy(CFG, NL, B)),
               ("fields", lambda: check_fields(CFG, NL, B)), ("currents", lambda: check_currents(CFG, NL, B)),
-              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("calcs", lambda: check_calcs(CFG, NL, B)),
+              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("refplane", lambda: check_refplane(CFG, NL, B)),
+              ("calcs", lambda: check_calcs(CFG, NL, B)),
               ("feeds", lambda: check_feeds(CFG, NL, B))]
     for name, fn in checks:
         if only and name not in only:

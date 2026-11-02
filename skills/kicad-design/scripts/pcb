@@ -28,6 +28,7 @@
 #                                                                  items fail; `pcb check` alone prints the config keys
 #   pcb q        x.kicad_pcb <cmd ...>                             one measurement over pcbnew (`pcb q` alone lists them)
 #   pcb route    strip|export-dsn|import-ses|fill|measure ...       autorouting primitives and copper measurements (P6-T1)
+#   pcb irdrop   x.kicad_pcb --net N --source P [--sink P=A] [--config checks.json]  DC drop and current density on real copper (IRDROP-1)
 #   pcb py       script.py [args] | -c "code"                      KiCad's Python with pcbnew (GUI guard first)
 #   pcb guard                                                      exit 1 if a KiCad GUI process is running
 #   pcb build|layout|apply|dfm|bom|test|...                        passthrough to Diode's pcb; `layout` and `apply` always get
@@ -73,6 +74,8 @@ case "$cmd" in
      kpy "$HERE/pcbq.py" "$@" ;;
   route) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbroute.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
      guard; kpy "$HERE/pcbroute.py" "$@" ;;
+  irdrop) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbir.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
+     kpy "$HERE/pcbir.py" "$@" ;;
   py) # KiCad's Python with pcblib and the cwd importable (-I drops PYTHONPATH, so the path is set in-process)
       guard
       if [ "${1:-}" = "-c" ]; then kpy -c "import sys; sys.path[:0] = ['$HERE', '.']; exec(sys.argv[1])" "$2"

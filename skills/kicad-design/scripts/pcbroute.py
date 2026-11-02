@@ -7,8 +7,10 @@
   fill BOARD                                        save, reload, build connectivity, fill twice (pcblib Board.fill, P1-T10)
   canon BOARD [--out F]                             sort the footprint blocks by reference so the router sees the same
                                                     order on every regeneration (`auto` does this first, P6-T6)
-  auto BOARD [--engine krt|freerouting] [--out F] [--pack jlcpcb] [--max-pass 2] [--work DIR]
-                                                    route what is unrouted with placement and existing copper kept: engine
+  auto BOARD [--engine krt|freerouting] [--out F] [--pack jlcpcb] [--max-pass 2] [--work DIR] [--inner-tracks]
+                                                    route what is unrouted with placement and existing copper kept; KRT
+                                                    puts tracks on F.Cu/B.Cu only, the inner layers are ground planes that
+                                                    vias pass through (--inner-tracks lifts that, ROUTE-T1); engine
                                                     pass, refill, dual DRC, a second engine pass on what is still open;
                                                     errors the input already had are inherited, not the router's. Writes
                                                     route.json beside the output; exit 1 unless clean (P6-T4)
@@ -26,7 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import pcbnew  # noqa: E402
 from pcbnew import ToMM  # noqa: E402
-from pcblib.board import Board  # noqa: E402
+from pcblib.board import Board, unfill_and_save  # noqa: E402
 import pcbq  # noqa: E402
 
 OUT = []
@@ -93,7 +95,7 @@ def c_fill(args):
 
 def copper(b):
     tracks, vias, length, widths, per_layer = 0, 0, 0.0, {}, {}
-    via_sizes = {}
+    via_sizes, net_minw = {}, {}
     for t in b.GetTracks():
         if t.GetClass() == "PCB_VIA":
             vias += 1
@@ -105,10 +107,13 @@ def copper(b):
             length += l
             w = round(ToMM(t.GetWidth()), 4)
             widths[w] = widths.get(w, 0) + 1
+            nw = net_minw.setdefault(t.GetNetname(), {})
+            nw[str(w)] = round(nw.get(str(w), 0.0) + l, 3)
             ln = b.GetLayerName(t.GetLayer())
             per_layer[ln] = round(per_layer.get(ln, 0.0) + l, 3)
     return {"tracks": tracks, "vias": vias, "length_mm": round(length, 3), "min_width_mm": min(widths) if widths else None,
-            "widths": {str(k): v for k, v in sorted(widths.items())}, "via_sizes": via_sizes, "length_per_layer_mm": per_layer}
+            "widths": {str(k): v for k, v in sorted(widths.items())}, "via_sizes": via_sizes, "length_per_layer_mm": per_layer,
+            "net_width_mm": dict(sorted(net_minw.items()))}   # net -> {track width: length mm}
 
 
 def c_measure(args):
@@ -167,7 +172,18 @@ KRT_PASSES = [["--no-fix-drc-settings", "--escalation", "off"], ["--no-fix-drc-s
 FR_ARGS = ["-mt", "4", "-da", "--gui.enabled=false", "--logging.file.enabled=false"]
 
 
-def run_engine(engine, board, out_dir, pass_no, log):
+def outer_only_args(board):
+    """KRT's own recipe for 'tracks on the outer layers, inner layers obstacle-only': every copper layer listed, the inner
+    ones at cost -1 (no track copper, vias may span them). On the four rung-2 placements this took inner-layer track
+    from 138-200 mm to 0 with the same clean/open result and equal or fewer vias (ROUTE-T1)."""
+    b = pcbnew.LoadBoard(board)
+    ls = [b.GetLayerName(l) for l in b.GetEnabledLayers().CuStack()]
+    if len(ls) <= 2:
+        return []
+    return ["--layers", *ls, "--layer-costs", *["1.0" if l in ("F.Cu", "B.Cu") else "-1" for l in ls]]
+
+
+def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False):
     """Route `board` (a .kicad_pcb with its .kicad_pro beside it) into out_dir; returns (routed path, wall s, rc)."""
     import shutil, time
     os.makedirs(out_dir, exist_ok=True)
@@ -180,9 +196,11 @@ def run_engine(engine, board, out_dir, pass_no, log):
     if engine == "krt":
         if not os.path.exists(KRT_PY):
             sys.exit(f"pcbroute: KiCadRoutingTools not installed at {KRT_DIR} (KRT_DIR, KRT_PY; see tools/bench/README.md)")
-        extra = KRT_PASSES[min(pass_no, len(KRT_PASSES)) - 1]
+        extra = KRT_PASSES[min(pass_no, len(KRT_PASSES)) - 1] + ([] if inner_tracks else outer_only_args(board))
         cmd = [KRT_PY, os.path.join(KRT_DIR, "py_router/route.py"), board, routed, "--json-out", os.path.join(out_dir, "krt.json"), *extra]
-        p = subprocess.run(cmd, cwd=KRT_DIR, capture_output=True, text=True)
+        # KRT orders rip-up candidates by iterating a set of net names, so its second pass varied with Python's per-process
+        # string hash seed (1 run in 4 on the rung-1 board, ROUTE-T3); a fixed seed makes every pass reproducible
+        p = subprocess.run(cmd, cwd=KRT_DIR, capture_output=True, text=True, env={**os.environ, "PYTHONHASHSEED": "0"})
     elif engine == "freerouting":
         if not os.path.exists(FR_JAR) or not os.path.exists(JAVA):
             sys.exit(f"pcbroute: freerouting jar or java missing ({FR_JAR}, {JAVA}); the native CLI crashes (P6-T2)")
@@ -194,7 +212,7 @@ def run_engine(engine, board, out_dir, pass_no, log):
         if os.path.exists(ses):
             b = pcbnew.LoadBoard(board)
             pcbnew.ImportSpecctraSES(b, ses)
-            pcbnew.SaveBoard(routed, b)
+            unfill_and_save(b, routed)   # new copper in stale fills gets re-netted on save (ROUTE-T4); refilled after
     else:
         sys.exit(f"pcbroute: unknown engine {engine}")
     wall = round(time.time() - t, 1)
@@ -288,18 +306,12 @@ def stitch(path, drc_plain_json, open_clusters, settings):
         actions.append({"pad": name, "net": pd.GetNetname(), "why": why, "action": f"via {via_d}/{drill} at ({vx:.3f}, {vy:.3f}) with a {width:.2f} mm stub",
                         "pitch_mm": round(pitch, 3)})
     if actions:
-        pcbnew.SaveBoard(path, b)
+        unfill_and_save(b, path)   # ROUTE-T4; c_auto refills right after
     return actions
 
 
-def canonical(path, out=None):
-    """Sort the board file's top-level (footprint ...) blocks by reference, in place. KiCad 10 files carry nets by name
-    inside pads, so a router that numbers nets in order of appearance (KRT) routes in footprint-file order, and Zener's
-    `pcb layout` writes the footprints in a different order on every clean regeneration (R1-A2-T2): the same placement
-    then routes differently and regen-check FAILS (P6-T6). With the footprints sorted the copper is identical. Text-level,
-    so UUIDs, placement and everything else stay byte-for-byte; pcbnew loads the result unchanged."""
-    import re
-    text = open(path).read()
+def top_spans(text):
+    """(start, end) of every top-level block inside (kicad_pcb ...), string-aware."""
     i = text.index("(kicad_pcb") + len("(kicad_pcb")
     spans, depth, start, instr, j = [], 0, None, False, i
     while j < len(text):
@@ -323,8 +335,42 @@ def canonical(path, out=None):
             elif depth < 0:
                 break
         j += 1
+    return spans
+
+
+def track_uuids(text):
+    """Give every top-level segment, arc and via a UUID derived from its own text (uuid5 over the block with its uuid
+    removed, plus a duplicate counter). KiCad sorts tracks by UUID when it saves, and KRT writes random UUIDs, so the
+    same copper came back from a refill in a different order on every run, and KRT's second pass, which reads tracks
+    in file order, then routed differently (ROUTE-T2). Track UUIDs are referenced by nothing else in the file."""
+    import re, uuid
+    ns = uuid.UUID("6f1c3a52-9d0e-4b8a-a1f2-7e5d3c2b1a09")
+    seen, pieces, last = {}, [], 0
+    for a, b in top_spans(text):
+        if not text.startswith(("(segment", "(arc", "(via"), a):
+            continue
+        blk = text[a:b]
+        body = re.sub(r'\(uuid "[^"]*"\)', "", blk)
+        n = seen.get(body, 0); seen[body] = n + 1
+        new = re.sub(r'\(uuid "[^"]*"\)', f'(uuid "{uuid.uuid5(ns, body + "#" + str(n))}")', blk, count=1)
+        pieces += [text[last:a], new]; last = b
+    pieces.append(text[last:])
+    return "".join(pieces)
+
+
+def canonical(path, out=None):
+    """Sort the board file's top-level (footprint ...) blocks by reference, in place. KiCad 10 files carry nets by name
+    inside pads, so a router that numbers nets in order of appearance (KRT) routes in footprint-file order, and Zener's
+    `pcb layout` writes the footprints in a different order on every clean regeneration (R1-A2-T2): the same placement
+    then routes differently and regen-check FAILS (P6-T6). With the footprints sorted the copper is identical. Track,
+    arc and via UUIDs are then derived from content (track_uuids, ROUTE-T2). Text-level; placement and every other
+    UUID stay byte-for-byte; pcbnew loads the result unchanged."""
+    import re
+    text = open(path).read()
+    spans = top_spans(text)
     fps = [(a, b) for a, b in spans if text.startswith("(footprint", a)]
     if not fps:
+        open(out or path, "w").write(track_uuids(text))
         return 0
     def key(span):
         m = re.search(r'\(property "Reference" "([^"]*)"', text[span[0]:span[1]])
@@ -338,7 +384,7 @@ def canonical(path, out=None):
         pieces.append(text[oa:ob])
         last = b
     pieces.append(text[last:])
-    open(out or path, "w").write("".join(pieces))
+    open(out or path, "w").write(track_uuids("".join(pieces)))
     return len(fps)
 
 
@@ -366,6 +412,7 @@ def c_auto(args):
     pack = opt(args, "--pack", "jlcpcb")
     max_pass = int(opt(args, "--max-pass", "2"))
     work = opt(args, "--work")
+    inner_tracks = opt(args, "--inner-tracks", flag=True)
     board = os.path.abspath(args[0])
     stem = os.path.splitext(os.path.basename(board))[0]
     work = work or os.path.join("/tmp/pcb-route-auto", f"{stem}-{os.getpid()}")
@@ -393,12 +440,13 @@ def c_auto(args):
     for n in range(1, max_pass + 1):
         if final["ratsnest"]["airwires"] == 0 and n > 1:
             break
-        routed, wall, rc = run_engine(engine, cur, os.path.join(work, f"pass{n}"), n, log)
+        routed, wall, rc = run_engine(engine, cur, os.path.join(work, f"pass{n}"), n, log, inner_tracks)
         if routed is None:
             say("PCBROUTE pass", n, "FAILED rc", rc, "see", log)
             passes.append({"pass": n, "rc": rc, "wall_s": wall, "error": "no board written"})
             break
         widened = widen_under_min(routed, start["settings"]["track_width"]) if engine == "freerouting" else 0
+        canonical(routed)   # content-derived track UUIDs, so the refill's save order and the next pass are reproducible
         Board.load(routed).fill()
         keep = len(OUT)
         m = c_measure([routed, "--drc", "--pack", pack])
@@ -426,6 +474,7 @@ def c_auto(args):
                 _sh.copy(src, os.path.join(os.path.dirname(fixed), os.path.basename(src)))
         actions = stitch(fixed, os.path.join(os.path.dirname(cur), "drc", "drc-plain.json"), final.get("clusters", {}), start["settings"])
         if actions:
+            canonical(fixed)
             Board.load(fixed).fill()
             keep = len(OUT)
             m = c_measure([fixed, "--drc", "--pack", pack])
@@ -449,6 +498,7 @@ def c_auto(args):
         if out and os.path.exists(pro):
             shutil.copy(pro, os.path.splitext(dest)[0] + ".kicad_pro")
     r = {"board": board, "out": dest, "engine": engine, "work": work, "wall_s": round(time.time() - t0, 1), "clean": clean,
+         "inner_tracks": inner_tracks or engine != "krt", "inner_mm": round(sum(v for k, v in (final.get("length_per_layer_mm") or {}).items() if k.startswith("In")), 1),
          "start": {"airwires": start["ratsnest"]["airwires"], "open": start["open"], "plain_errors": (start.get("drc") or {}).get("plain_errors"),
                    "packed_errors": inherited_packed, "inherited_by_type": inherited, "vias": start["vias"], "tracks": start["tracks"]},
          "passes": passes, "final": {k: last.get(k) for k in ("airwires", "open", "vias", "tracks", "length_mm", "min_width_mm", "plain_errors",
