@@ -861,3 +861,28 @@ point, high-current rails as pours or thick tracks, every signal over unbroken g
   under this placement (C12/C13, the charge-pump caps, sit where both fields want to go) and Q1's source pins collide
   with D3: the feed has to be planned at placement, which is the first wave of Alex's wave idea. `pad_feed_search` costs
   ~27 s on this board (0.1 mm area check times the grid); fine for a layout script, worth a faster check later.
+- **WAVES-1 `pcb route waves`: routing in waves is mostly KRT configuration.** Prior art first: KRT already has `--nets`
+  per call, `--layers/--layer-costs`, `--keepout` (gr_poly / gr_rect on User.2, "hard keepout, all routed nets"),
+  `--guide-corridor` (User.1, the bus-zone idea) and never rips locked copper. So the driver is thin: wave 0 is pcblib
+  code (pad_feed_search on the plan's feeds, thermal_vias), each later wave one KRT call with its nets, layers and
+  keepout polygons, its copper locked after so later waves and the finishing `auto` cannot rip it, unlocked at the end;
+  no plan = wide classes (>= 0.5 mm), then Sense classes, then the rest. The verdict compares against the untouched
+  input (a first version let `auto` treat the waves' output as the baseline and called a starved thermal the waves made
+  "inherited": CLEAN when it was not; `auto --baseline` fixes that). Test: the attempt-2 placement on Alex's stackup (In2
+  turned to GND, designer hand-feeds removed; 71 airwires, VIN and 5V now routed), all arms deterministic:
+
+  | arm | wall | new errors | signal off ground | VIN I2R | VIN drop PVIN / VM | worst J | currents fails | thermal vias |
+  |---|---|---|---|---|---|---|---|---|
+  | A one-shot `auto` | 61 s | 0 | 2.2 mm | 440 mW | 122 / 39 mV | 581 | 4 | 0 |
+  | B waves, default plan | 49 s | 0 | 0 | 158 mW | 22 / 38 mV | 510 | 2 | 0 |
+  | C waves + feeds + thermal | 73 s | 1 starved thermal (J4 GND) | 0 | 102 mW | 19 / 20 mV | 187 | 3 | 15 + 4 |
+  | D C + buck wave + keepout | 106 s | 2 starved thermals | 5.4 mm | 124 mW | | 187 | 3 | 15 + 4 |
+
+  Power first is the win: B against A cuts VIN loss 440 -> 158 mW and removes the last unreferenced signal copper at no
+  time cost; C's feeds cut it to 102 mW and the worst current density 581 -> 187 A/mm2. Keepouts work while a wave runs
+  (signals hugged the box edge) but only hold if the finish cannot rip the wave (first run: nSLEEP re-routed through the
+  box after an early unlock); a keepout that covers a subsystem's own pins pushes that subsystem's nets (SS, BOOT) to the
+  unconstrained finish, so the zone needs its own wave first (D: buck nets, then sense and rest kept out; only COMP, SS
+  and 0.9 mm of 3V3 inside the buck box against ENC_B's 10.6 mm in C). The zones cost: +33 s, 5.4 mm off ground, +22 mW,
+  one more starved thermal. Starved thermals on through-hole GND pads (J4) are the waves' remaining error; the stitch pass
+  does not handle them. DIR runs 69-80 mm round the board edge on B.Cu in every arm: placement, not routing.

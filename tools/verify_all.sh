@@ -505,6 +505,11 @@ d=[k for k in a if abs(a[k][0]-b[k][0]) > 0.005 or a[k][1] != b[k][1]]; assert n
   R2="$R/r2"; mkdir -p "$R2"; cp "$ROOT"/examples/rung2-zener-a1-opus/board/motor_channel.kicad_p* "$R2"/
   $PCB route strip "$R2/motor_channel.kicad_pcb" > /dev/null && $PCB route auto "$R2/motor_channel.kicad_pcb" --work "$R2/work" > "$R2/auto.txt" 2>&1
   [ "$(jq_ "$R2/route.json" "(d['clean'], d['inner_tracks'], d['inner_mm'], d['final']['airwires'])")" = "(True, False, 0, 0)" ] && grep -q -- "--layer-costs 1.0 -1 -1 1.0" "$R2/work/route.log" && ok "route auto: rung-2 Opus placement CLEAN with 0 mm of track on the inner (plane) layers, KRT given --layer-costs 1 -1 -1 1" || bad "route auto outer-only: $(jq_ "$R2/route.json" "(d['clean'], d['inner_mm'], d['final'])" | cut -c1-200)"
+  # waves (WAVES-1): the default plan on the same stripped Opus placement, wide classes then Sense then the rest, each
+  # wave's nets closed before the next, the result clean against the input and off the inner layers
+  R3="$R/r3"; mkdir -p "$R3"; cp "$ROOT"/examples/rung2-zener-a1-opus/board/motor_channel.kicad_p* "$R3"/
+  $PCB route strip "$R3/motor_channel.kicad_pcb" > /dev/null && $PCB route waves "$R3/motor_channel.kicad_pcb" --work "$R3/work" > "$R3/waves.txt" 2>&1
+  [ "$(jq_ "$R3/waves.json" "([w['name'] for w in d['waves']], [w.get('open_in_wave') for w in d['waves'][1:]], d['clean'], d['finish']['inner_mm'])")" = "(['feeds', 'power', 'sense', 'rest'], [{}, {}, {}], True, 0)" ] && ok "route waves: default plan power -> sense -> rest, every wave's nets closed, CLEAN against the input, 0 mm on the inner layers ($(jq_ "$R3/waves.json" "d['wall_s']") s)" || bad "route waves: $(grep 'waves verdict\|PCBROUTE wave' "$R3/waves.txt" | cut -c1-200 | tail -4)"
 else nochecks "KiCadRoutingTools not installed ($KRT_PY): route auto not run (install per tools/bench/README.md)"; fi
 fi  #@ end 27
 

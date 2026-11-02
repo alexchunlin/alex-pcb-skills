@@ -67,10 +67,11 @@
   now reproducible run to run (ROUTE-T2 track UUIDs from content, ROUTE-T3 KRT hash seed pinned); the judges `refplane`
   (pcbcheck, opt-in, on in the template) and `pcb irdrop` (DC drop and current density on real copper, scipy via `uv`);
   pcblib `pad_feed`/`pad_feed_search`/`thermal_vias` and the SaveBoard re-net trap fixed (ROUTE-T4). verify_all has 28
-  sections. Not built yet: the wave orchestrator.
+  sections. `pcb route waves` (WAVES-1): power first, then sense, then the rest, wave 0 feeds and thermal vias, per-wave
+  keepouts; on Alex's stackup VIN loss 440 mW (one-shot) -> 158 (waves) -> 102 (waves + feeds).
 - Decided 2026-11-02 (Alex): stackup policy is two solid GND planes (In1, In2), 3V3/5V routed point to point, high-current
   rails as pours or thick tracks, signals only over unbroken ground. The archived rung-2 boards predate it (In2 power
   plane), which is why `refplane` is opt-in rather than on for the replay bench.
-- Next: the wave orchestrator (feeds and thermal vias at placement, then router waves by net group with per-wave layers and
-  keepouts, judged by refplane, irdrop, feeds); then a routing-stage designer run from the attempt-2 placement (old wrapper
+- Next: starved thermals on through-hole GND pads (the waves' remaining error); feeds planned at placement (OUT2 and Q1
+  did not fit the attempt-2 placement); a plan author (agent or rules) for zones; then a routing-stage designer run from the attempt-2 placement (old wrapper
   first, to check the stage run reproduces attempt 2), then 3 against 3.

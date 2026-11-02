@@ -19,6 +19,13 @@
                                                     (pcb q ratsnest), setup minimums, the nets of the footprint whose value
                                                     matches --ref-value (the 0.65 mm pitch part, R2-T2) and with --drc the
                                                     dual DRC of `pcb drc` (plain, packed, errors_total)
+  waves BOARD [--plan plan.json] [--out F] [--work DIR] [--pack jlcpcb]
+                                                    route in waves (WAVES-1): wave 0 is code (pcblib pad_feed_search on the
+                                                    plan's feeds, thermal_vias), then one KRT call per wave with its own
+                                                    nets, layers and keepout polygons (User.2), each wave's copper locked
+                                                    so later waves and the finishing `auto` cannot rip it, unlocked at the
+                                                    end. No plan: wide classes (>= 0.5 mm), then Sense classes, then the
+                                                    rest. waves.json beside the output; the verdict is against the input
 Output lines start with `PCBROUTE`; --json prints one JSON object instead. Evidence: P6-T1 (measurement), P6-T2 onwards
 (the routers measured on the rung-2 boards).
 """
@@ -183,7 +190,7 @@ def outer_only_args(board):
     return ["--layers", *ls, "--layer-costs", *["1.0" if l in ("F.Cu", "B.Cu") else "-1" for l in ls]]
 
 
-def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False):
+def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_args=()):
     """Route `board` (a .kicad_pcb with its .kicad_pro beside it) into out_dir; returns (routed path, wall s, rc)."""
     import shutil, time
     os.makedirs(out_dir, exist_ok=True)
@@ -196,7 +203,7 @@ def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False):
     if engine == "krt":
         if not os.path.exists(KRT_PY):
             sys.exit(f"pcbroute: KiCadRoutingTools not installed at {KRT_DIR} (KRT_DIR, KRT_PY; see tools/bench/README.md)")
-        extra = KRT_PASSES[min(pass_no, len(KRT_PASSES)) - 1] + ([] if inner_tracks else outer_only_args(board))
+        extra = KRT_PASSES[min(pass_no, len(KRT_PASSES)) - 1] + ([] if inner_tracks else outer_only_args(board)) + list(extra_args)
         cmd = [KRT_PY, os.path.join(KRT_DIR, "py_router/route.py"), board, routed, "--json-out", os.path.join(out_dir, "krt.json"), *extra]
         # KRT orders rip-up candidates by iterating a set of net names, so its second pass varied with Python's per-process
         # string hash seed (1 run in 4 on the rung-1 board, ROUTE-T3); a fixed seed makes every pass reproducible
@@ -413,6 +420,7 @@ def c_auto(args):
     max_pass = int(opt(args, "--max-pass", "2"))
     work = opt(args, "--work")
     inner_tracks = opt(args, "--inner-tracks", flag=True)
+    baseline = opt(args, "--baseline")   # judge inherited errors against this board instead (waves pass their input)
     board = os.path.abspath(args[0])
     stem = os.path.splitext(os.path.basename(board))[0]
     work = work or os.path.join("/tmp/pcb-route-auto", f"{stem}-{os.getpid()}")
@@ -431,8 +439,14 @@ def c_auto(args):
     keep = len(OUT)
     start = c_measure([cur, "--drc", "--pack", pack])
     del OUT[keep:]
-    inherited = (start.get("drc") or {}).get("plain_by_type", {})
-    inherited_packed = (start.get("drc") or {}).get("packed_errors", 0)
+    if baseline:
+        keep = len(OUT)
+        base_m = c_measure([baseline, "--drc", "--pack", pack])
+        del OUT[keep:]
+    else:
+        base_m = start
+    inherited = (base_m.get("drc") or {}).get("plain_by_type", {})
+    inherited_packed = (base_m.get("drc") or {}).get("packed_errors", 0)
     passes = []
     final = start
     say("PCBROUTE auto", board, "engine", engine, "airwires", start["ratsnest"]["airwires"], "inherited plain errors", inherited,
@@ -512,7 +526,182 @@ def c_auto(args):
     return r
 
 
-CMDS = {"strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
+# ---------------------------------------------------------------------------------------------------- waves (WAVES-1)
+def default_plan(board):
+    """Waves from the net classes: classes at least 0.5 mm wide (the power and motor rails), then classes named *sense*,
+    then everything else."""
+    pro = os.path.splitext(board)[0] + ".kicad_pro"
+    ns = json.load(open(pro)).get("net_settings", {}) if os.path.exists(pro) else {}
+    w = {c["name"]: float(c.get("track_width") or 0) for c in ns.get("classes", [])}
+    pats = ns.get("netclass_patterns", [])
+    power = [x["pattern"] for x in pats if w.get(x.get("netclass"), 0) >= 0.5]
+    sense = [x["pattern"] for x in pats if "sense" in (x.get("netclass") or "").lower() and x["pattern"] not in power]
+    waves = []
+    if power:
+        waves.append({"name": "power", "nets": power})
+    if sense:
+        waves.append({"name": "sense", "nets": sense})
+    waves.append({"name": "rest", "nets": ["*"]})
+    return {"waves": waves}
+
+
+def keepout_blocks(polys, tag):
+    """gr_poly blocks on User.2 (KRT's keepout layer, read with --keepout), uuids from the tag so they can be removed."""
+    import uuid
+    ns = uuid.UUID("2b7e1f0c-5a3d-4c6e-9f81-0d2c4b6a8e13")
+    out = []
+    for i, poly in enumerate(polys):
+        pts = " ".join(f"(xy {x} {y})" for x, y in poly)
+        out.append(f'\t(gr_poly\n\t\t(pts {pts})\n\t\t(stroke (width 0.1) (type solid))\n\t\t(fill no)\n\t\t(layer "User.2")\n'
+                   f'\t\t(uuid "{uuid.uuid5(ns, tag + "#" + str(i))}")\n\t)\n')
+    return out
+
+
+def put_keepouts(path, polys, tag):
+    if not polys:
+        return
+    t = open(path).read().rstrip()
+    assert t.endswith(")")
+    open(path, "w").write(t[:-1] + "".join(keepout_blocks(polys, tag)) + ")\n")
+
+
+def drop_keepouts(path, polys, tag):
+    if not polys:
+        return
+    import re
+    ids = set(re.findall(r'\(uuid "([^"]+)"\)', "".join(keepout_blocks(polys, tag))))
+    text = open(path).read()
+    pieces, last = [], 0
+    for a, b in top_spans(text):
+        blk = text[a:b]
+        if blk.startswith("(gr_poly") and any(i in blk for i in ids):
+            pieces.append(text[last:a].rstrip("\t")); last = b
+            if text[last:last + 1] == "\n":
+                last += 1
+    pieces.append(text[last:])
+    open(path, "w").write("".join(pieces))
+
+
+def lock_nets(path, patterns, lock=True):
+    import fnmatch
+    b = pcbnew.LoadBoard(path)
+    n = 0
+    for t in b.GetTracks():
+        if any(fnmatch.fnmatchcase(t.GetNetname(), p) for p in patterns) and t.IsLocked() != lock:
+            t.SetLocked(lock); n += 1
+    pcbnew.SaveBoard(path, b)   # no copper added, so no stale-fill re-net (ROUTE-T4)
+    return n
+
+
+def c_waves(args):
+    """pcb route waves BOARD [--plan plan.json] [--out F] [--work DIR] [--pack jlcpcb]
+    plan.json: {"feeds": [{"pad": "U2.11", "amps": 2.5}, {"pad": "U1.4,5,6", "amps": 2.8}], "thermal_vias": ["U1"],
+                "waves": [{"name": "power", "nets": ["VIN", "5V"], "layers": "outer"|"all"|["F.Cu", ...],
+                           "keepouts": [[[x, y], ...], ...], "args": ["--ordering", "bus"]}, ...]}
+    Wave 0 (feeds, thermal vias) is pcblib code; each later wave is one KRT call on its nets, its copper locked after;
+    then `auto` finishes the board (second pass, stitch, dual DRC, verdict). Writes waves.json and route.json."""
+    import shutil, time, fnmatch
+    plan_path = opt(args, "--plan"); out = opt(args, "--out"); work = opt(args, "--work"); pack = opt(args, "--pack", "jlcpcb")
+    board = os.path.abspath(args[0]); base = os.path.basename(board); stem = os.path.splitext(base)[0]
+    work = work or os.path.join("/tmp/pcb-route-waves", f"{stem}-{os.getpid()}")
+    plan = json.load(open(plan_path)) if plan_path else default_plan(board)
+    if "waves" not in plan:
+        plan = {**plan, **default_plan(board)}
+    t0 = time.time()
+    def stage(name, src):
+        d = os.path.join(work, name); os.makedirs(d, exist_ok=True)
+        for ext in (".kicad_pcb", ".kicad_pro", ".kicad_prl"):
+            f = os.path.splitext(src)[0] + ext
+            if os.path.exists(f):
+                shutil.copy(f, os.path.join(d, stem + ext))
+        return os.path.join(d, base)
+    orig = stage("input", board)
+    canonical(orig)
+    cur = stage("w0", orig)
+    keep = len(OUT)
+    start = c_measure([orig, "--drc", "--pack", pack])   # errors the input carries; the verdict compares against these,
+    del OUT[keep:]                                       # not against the waves' own output
+    inherited = (start.get("drc") or {}).get("plain_by_type", {})
+    inherited_packed = (start.get("drc") or {}).get("packed_errors", 0)
+    rec = {"board": board, "plan": plan, "work": work, "waves": [], "inherited_by_type": inherited}
+    # wave 0: code, not router
+    w0 = {"name": "feeds", "feeds": {}, "thermal_vias": {}}
+    if plan.get("feeds") or plan.get("thermal_vias"):
+        t = time.time()
+        bd = Board.load(cur)
+        for f in plan.get("feeds", []):
+            ref, nums = f["pad"].split(".", 1)
+            try:
+                r = bd.pad_feed_search(ref, nums, float(f["amps"]), **{k: f[k] for k in ("layer",) if k in f})
+                w0["feeds"][f["pad"]] = {k: r[k] for k in ("vias", "amps_capacity", "splay", "length", "across")}
+            except ValueError as e:
+                w0["feeds"][f["pad"]] = {"error": str(e)[-300:]}
+        for ref in plan.get("thermal_vias", []):
+            w0["thermal_vias"][ref] = {"vias": bd.thermal_vias(ref), "skipped": len(bd.thermal_skipped)}
+        bd.save(); bd.fill()
+        w0["wall_s"] = round(time.time() - t, 1)
+        say("PCBROUTE wave 0 feeds", json.dumps(w0["feeds"]), "thermal", json.dumps(w0["thermal_vias"]), f"({w0['wall_s']} s)")
+    rec["waves"].append(w0)
+    log = os.path.join(work, "waves.log")
+    locked = []
+    for i, w in enumerate(plan["waves"], 1):
+        name = w.get("name", f"wave{i}")
+        inp = stage(f"w{i}-{name}-in", cur)
+        polys = w.get("keepouts", [])
+        put_keepouts(inp, polys, f"{name}{i}")
+        lay = w.get("layers", "outer")
+        extra = ["--nets", *w["nets"]]
+        if polys:
+            extra += ["--keepout", "--keepout-layer", "User.2"]
+        if isinstance(lay, list):
+            b = pcbnew.LoadBoard(inp); cu = [b.GetLayerName(l) for l in b.GetEnabledLayers().CuStack()]
+            extra += ["--layers", *cu, "--layer-costs", *["1.0" if l in lay else "-1" for l in cu]]
+        extra += [str(x) for x in w.get("args", [])]
+        routed, wall, rc = run_engine("krt", inp, os.path.join(work, f"w{i}-{name}"), 1, log, inner_tracks=(lay != "outer"), extra_args=extra)
+        if routed is None:
+            say("PCBROUTE wave", i, name, "FAILED rc", rc, "see", log)
+            rec["waves"].append({"name": name, "rc": rc, "error": "no board written"}); break
+        drop_keepouts(routed, polys, f"{name}{i}")
+        canonical(routed)
+        Board.load(routed).fill()
+        keep = len(OUT)
+        m = c_measure([routed])
+        del OUT[keep:]
+        pats = w["nets"] if w["nets"] != ["*"] else ["*"]
+        open_here = {n: k for n, k in m["open"].items() if any(fnmatch.fnmatchcase(n, p) for p in pats)}
+        n_locked = lock_nets(routed, pats)
+        locked += pats
+        wr = {"name": name, "nets": w["nets"], "layers": lay, "keepouts": len(polys), "wall_s": wall, "rc": rc,
+              "airwires_left": m["ratsnest"]["airwires"], "open_in_wave": open_here, "vias": m["vias"], "length_mm": m["length_mm"],
+              "locked": n_locked}
+        rec["waves"].append(wr)
+        say("PCBROUTE wave", i, name, "nets", w["nets"], "wall", wall, "s; open in wave", open_here, "airwires left", m["ratsnest"]["airwires"],
+            "vias", m["vias"], "locked", n_locked)
+        cur = routed
+    dest = out or board
+    keep = len(OUT)
+    fin = c_auto([cur, "--work", os.path.join(work, "finish"), "--out", dest, "--pack", pack, "--baseline", orig])
+    del OUT[keep:]
+    rec["finish"] = {k: fin.get(k) for k in ("clean", "final", "inner_mm", "wall_s")}
+    lock_nets(dest, ["*"], lock=False)   # locked only while routing; the handed-in board is ordinary copper
+    Board.load(dest).fill()
+    keep = len(OUT)
+    end = c_measure([dest, "--drc", "--pack", pack])
+    del OUT[keep:]
+    d = end.get("drc") or {}
+    rec["new_errors"] = new_errors(d.get("plain_by_type", {}), inherited)   # anything wave 0 or the waves added
+    rec["clean"] = bool(end["ratsnest"]["airwires"] == 0 and not rec["new_errors"] and (d.get("packed_errors") or 0) <= inherited_packed)
+    rec["wall_s"] = round(time.time() - t0, 1); rec["out"] = dest
+    json.dump(rec, open(os.path.join(os.path.dirname(os.path.abspath(dest)), "waves.json"), "w"), indent=1)
+    say("PCBROUTE waves verdict", "CLEAN" if rec["clean"] else "NOT CLEAN", "new errors against the input", rec["new_errors"],
+        "airwires", end["ratsnest"]["airwires"], "final", json.dumps(fin.get("final")), "->", dest,
+        f"({rec['wall_s']} s, work {work})")
+    if not rec["clean"]:
+        rec["exit"] = 1
+    return rec
+
+
+CMDS = {"waves": c_waves, "strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
         "canon": c_canon}
 
 
