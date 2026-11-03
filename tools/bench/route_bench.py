@@ -63,7 +63,10 @@ CONFIGS = {
             "outer_original": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "--ordering", "original"],
             **{f"outer_gp_{o}": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "@ENV:KICAD_GLOBAL_PLAN=1",
                                  f"@ENV:KICAD_GLOBAL_PLAN_ORDER={o}"] for o in ("planar", "share", "contended")},
-            **{f"outer_rand{n}": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", f"@SHUFFLE:{n}"] for n in range(1, 6)}},
+            **{f"outer_rand{n}": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", f"@SHUFFLE:{n}"] for n in range(1, 6)},
+            # KRT's "route to judge, not to ship": main pass only, no rescue, escalation, plane finalize or polish (spike #4
+            # H1 labels on the perturbed placements)
+            "outer_quick2": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "--quick", "2"]},
     "kct": {"default": [], "negotiated": ["--strategy", "negotiated"]},
 }
 

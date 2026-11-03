@@ -126,6 +126,22 @@ def h2_waves():
     return rs
 
 
+def h3():
+    rs = latest(rows("plan.jsonl", "spike4-h3"), lambda r: r["arm"])
+    base = latest(rows("plan.jsonl", "spike4-h2-waves"), lambda r: (r["board"], r["arm"])).get(("opus2", "mps"))
+    if not rs:
+        return
+    print("\n### H3: guide corridors on the attempt-2 placement (opus2, Alex's stackup, rules plan's feeds)\n")
+    print("| arm | clean | vias | signal vias | length mm | VIN mW | VIN drop mV | VIN J A/mm2 | fast off mm | mid off mm | return-via bad | exposure mm | currents fails | wall s |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    for name, r in [("rules plan (KRT alone)", base), ("split power wave, no guides", rs.get("h3-split")), ("guided, two chains a net (VIN, 5V waves timed out at 300 s)", rs.get("h3-guided")), ("guided, one chain a net, 900 s (VIN timed out, 5V 793 s)", rs.get("h3-guided1"))]:
+        if not r or "error" in r:
+            continue
+        print(f"| {name} | {'yes' if r['clean'] else 'no ' + json.dumps(r['new_errors'])} | {r['vias']} | {r.get('signal_vias')} | {r['length_mm']:.0f} | "
+              f"{r['vin_mW']:.1f} | {', '.join('%.1f' % x for x in r['vin_drop_mV'])} | {r['vin_J']:.0f} | {r['fast_off_mm']} | {r['mid_off_mm']} | "
+              f"{r['return_via_bad']} | {r['exposure_mm']} | {len(r['currents_fails'])} | {r['wall_s']} |")
+
+
 def h1():
     rs = [r for r in rows("placements.jsonl", "spike4-h1") if "signal_vias" in r]
     if not rs:
@@ -158,6 +174,28 @@ def h1():
         return spearman(x, y)
     print("| within-board ranks, pooled | " + str(len(rs)) + " | " + " | ".join(f"{a:+.2f} ({p:.3f})" for a, p in
           (within(k) for k in ("conflicts", "signal_conflicts", "hpwl_mm", "hpwl_signal_mm"))) + " |")
+    # does the conflict count add anything once HPWL is known? partial Spearman of conflicts and signal vias given HPWL
+    def partial(k, z):
+        sv = [r["signal_vias"] for r in rs]
+        rxy = pearson(ranks([r[k] for r in rs]), ranks(sv))
+        rxz = pearson(ranks([r[k] for r in rs]), ranks([r[z] for r in rs]))
+        ryz = pearson(ranks(sv), ranks([r[z] for r in rs]))
+        return (rxy - rxz * ryz) / ((1 - rxz ** 2) * (1 - ryz ** 2)) ** 0.5, rxz
+    for k, z in (("conflicts", "hpwl_mm"), ("signal_conflicts", "hpwl_signal_mm"), ("hpwl_mm", "conflicts"), ("hpwl_signal_mm", "signal_conflicts")):
+        pr, rxz = partial(k, z)
+        out[("partial", k)] = (pr, rxz)
+        print(f"\npartial Spearman {k} vs signal vias given {z}: {pr:+.2f} (Spearman {k} vs {z}: {rxz:+.2f}, n {len(rs)})", end="")
+    print()
+    print("\n| board | placements | clean | signal vias min / median / max | conflicts min-max | signal conflicts min-max | HPWL mm min-max |")
+    print("|---|---|---|---|---|---|---|")
+    for b in BOARDS:
+        sub = [r for r in rs if r["board"] == b]
+        if not sub:
+            continue
+        sv = sorted(r["signal_vias"] for r in sub)
+        rng = lambda k, f="%d": f"{f % min(r[k] for r in sub)}-{f % max(r[k] for r in sub)}"
+        print(f"| {b} | {len(sub)} | {sum(1 for r in sub if r.get('clean'))} | {sv[0]} / {sv[len(sv) // 2]} / {sv[-1]} | {rng('conflicts')} | "
+              f"{rng('signal_conflicts')} | {rng('hpwl_mm', '%.0f')} |")
     print("\n| board | k | sigma mm | moved | conflicts | signal conflicts | HPWL mm | airwires | new errors | vias | signal vias | length mm |")
     print("|---|---|---|---|---|---|---|---|---|---|---|---|")
     for r in sorted(rs, key=lambda r: (BOARDS.index(r["board"]), r["k"])):
@@ -176,7 +214,8 @@ def charts(rs2, summary, rs1):
     p = ax.use("dark")
     IMG.mkdir(parents=True, exist_ok=True)
     boards = [b for b in BOARDS if b in summary]
-    fig, axs = plt.subplots(1, len(boards), figsize=(4.0 * len(boards), 4.4), sharey=True)
+    fig, axs = plt.subplots(2, (len(boards) + 1) // 2, figsize=(13, 8.5))
+    axs = list(axs.flat)
     for a, b in zip(axs, boards):
         labels, vals = [], []
         for arm in ARMS:
@@ -186,10 +225,10 @@ def charts(rs2, summary, rs1):
             tag = "" if (r["airwires"] == 0 and new_err(r) == 0) else f" ({r['airwires']} open)" if r["airwires"] else f" (+{new_err(r)} err)"
             labels.append(ARM_NAME[arm] + tag)
             vals.append(r["signal_vias"])
-        ax.bars(a, labels, vals, highlight=labels[0] if labels else None, xlabel="Signal vias, count", ylabel="Net order" if a is axs[0] else "Net order, as left")
+        ax.bars(a, labels, vals, highlight=labels[0] if labels else None, xlabel="Signal vias, count", ylabel="Net order")
         a.axvline(summary[b]["mps"] - 2, color=p["muted"], linestyle=(0, (2, 4)), linewidth=1)
         a.axvline(summary[b]["mps"] + 2, color=p["muted"], linestyle=(0, (2, 4)), linewidth=1)
-        ax.title(a, f"{b}", f"MPS {summary[b]['mps']} (red); dotted: MPS +/- 2; spread {summary[b]['spread_pct']} %")
+        ax.title(a, f"{b}", f"MPS {summary[b]['mps']} in red; dotted lines MPS +/- 2; spread {summary[b]['spread_pct']} %; (n open) = airwires left, (+n err) = new DRC errors")
     fig.suptitle("SIGNAL VIAS PER NET ORDER, FOUR RUNG-2 PLACEMENTS", x=0.01, ha="left", fontfamily="Roboto Condensed", fontweight="bold", color=p["ink"])
     fig.tight_layout()
     ax.save(fig, IMG / "4-ordering.png", dpi=150)
@@ -202,7 +241,7 @@ def charts(rs2, summary, rs1):
             if not sub:
                 continue
             col = p["series"][i]
-            for k, axx in (("signal_conflicts", a), ("hpwl_signal_mm", c)):
+            for k, axx in (("conflicts", a), ("hpwl_signal_mm", c)):
                 xs = [r[k] for r in sub]
                 ys = [r["signal_vias"] for r in sub]
                 axx.scatter(xs, ys, s=18, color=col, label=b, edgecolors="none", alpha=0.9)
@@ -210,9 +249,9 @@ def charts(rs2, summary, rs1):
                 if z:
                     axx.scatter([z[0][k]], [z[0]["signal_vias"]], s=70, facecolors="none", edgecolors=col, linewidths=1.5)
         o = rs1[1]
-        a.set_xlabel("MPS signal conflicts before routing, count"); a.set_ylabel("Signal vias after KRT, count")
+        a.set_xlabel("MPS crossing conflicts before routing (KRT), count"); a.set_ylabel("Signal vias after KRT, count")
         c.set_xlabel("Signal-net HPWL, mm"); c.set_ylabel("Signal vias after KRT, count")
-        rc = o.get(("all placements", "signal_conflicts")); rh = o.get(("all placements", "hpwl_signal_mm"))
+        rc = o.get(("all placements", "conflicts")); rh = o.get(("all placements", "hpwl_signal_mm"))
         ax.title(a, "Conflicts vs signal vias", f"Spearman {rc[0]:+.2f} over {rc[2]} placements; ring = archived placement" if rc else "")
         ax.title(c, "HPWL vs signal vias", f"Spearman {rh[0]:+.2f} over {rh[2]} placements" if rh else "")
         a.legend(loc="lower left", bbox_to_anchor=(0, 1.12), ncol=4, frameon=False, handletextpad=0.3, markerscale=1.2)
@@ -224,6 +263,7 @@ def charts(rs2, summary, rs1):
 def main():
     rs2, summary = h2_route()
     h2_waves()
+    h3()
     rs1 = h1()
     charts(rs2, summary, rs1)
 

@@ -237,10 +237,12 @@ def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_a
         # string hash seed (1 run in 4 on the rung-1 board, ROUTE-T3); a fixed seed makes every pass reproducible
         try:
             p = subprocess.run(cmd, cwd=KRT_DIR, capture_output=True, text=True, env={**os.environ, "PYTHONHASHSEED": "0"}, timeout=timeout)
-        except subprocess.TimeoutExpired:
-            # an agent-written wave with an edge keepout ran 23 min, another 17 min in KRT's plane repair (PLAN-1)
+        except subprocess.TimeoutExpired as e:
+            # an agent-written wave with an edge keepout ran 23 min, another 17 min in KRT's plane repair (PLAN-1); the
+            # output so far goes to the log (spike #4: two guided power waves timed out with nothing to read)
+            part = e.stdout.decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
             with open(log, "a") as f:
-                f.write(f"$ {' '.join(cmd)}\nTIMEOUT after {timeout} s\n")
+                f.write(f"$ {' '.join(cmd)}\nTIMEOUT after {timeout} s\n{part[-20000:]}\n")
             return None, round(time.time() - t, 1), "timeout"
     elif engine == "freerouting":
         if not os.path.exists(FR_JAR) or not os.path.exists(JAVA):

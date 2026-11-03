@@ -26,7 +26,7 @@ printf '{"commit": "%s", "dirty": %s, "when": "%s"}\n' "$(git -C "$ROOT" rev-par
 #@ group @check = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcbq.py skills/kicad-design/scripts/pcbcli.py
 #@ group @lib = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcblib/**
 # none: paths no test reads (a watch wins: section 20 reads FINDINGS.md and every skills/**/*.md)
-#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README
+#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README tools/spikes/** tools/readme/** tools/bench/plink/** tools/bench/plink_signals.py
 SELECTED=ALL; EXPECT=""; CHANGED=""; RAN=""; CUR=""; CUR_N=0; CUR_OK=""
 case "${1:-}" in
   --*) P=$(python3 -I "$ROOT/tools/verify_select.py" "$@") || { rc=$?; printf '%s\n' "$P"; exit $rc; }

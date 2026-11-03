@@ -8,9 +8,10 @@ gen: per board the route bench's own input (archived project copied, footprints 
 kept: route_bench.prep), then placement 0 (as archived) and n perturbed placements (perturb_kpy.py, sigma 1, 2, 3, 4 mm
 in turn, seed = index, redrawn while KiCad's DRC on the stripped board shows more overlap-type errors than placement 0: courtyards,
 shorts, clearance, mask bridges, copper to edge), each with `pcb q conflicts --as-is` and the start measure (`pcb route measure --drc`).
-route: each placement routed with the bench's `krt outer` config (KRT's default MPS order, outer layers, setup kept,
-sizes exact), measured as the bench measures; one row per placement in tools/bench/results/placements.jsonl with the
-placement as (ref, x, y, rot) so spike #1 can reuse it. Scratch /tmp/spike4/perturb3/<board>/p<k>/.
+route: each placement routed with the bench's `krt outer` config (KRT's default MPS order, outer layers, setup
+kept, sizes exact, the full pass: `--quick 2` left 11 airwires on the archived opus2 placement, so its via count is not a
+label), measured as the bench measures; one row per placement in tools/bench/results/placements.jsonl with the placement
+as (ref, x, y, rot) so spike #1 can reuse it; a restart skips placements that already have a row. Scratch /tmp/spike4/perturb3/<board>/p<k>/.
 """
 import argparse, concurrent.futures as cf, datetime as dt, importlib.util, json, os, shutil, subprocess, sys
 from pathlib import Path
@@ -19,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[3]
 PCB = str(ROOT / "skills/kicad-design/scripts/pcb")
 OUT = ROOT / "tools/bench/results/placements.jsonl"
 SCR = Path("/tmp/spike4/perturb3")
+CONFIG = "outer"   # route_bench config for the labels; outer_quick2 (KRT --quick 2) left 11 airwires on opus2 p0 where the full pass leaves 0
 _spec = importlib.util.spec_from_file_location("route_bench", ROOT / "tools/bench/route_bench.py")
 rb = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(rb)
 
@@ -99,10 +101,10 @@ def gen_one(board, k, b):
 
 def route_one(meta, tag):
     pcb = Path(meta["pcb"])
-    out_dir = pcb.parent / "krt-outer"
-    rr = rb.run_router("krt", "outer", pcb, out_dir, 600)
+    out_dir = pcb.parent / f"krt-{CONFIG}"
+    rr = rb.run_router("krt", CONFIG, pcb, out_dir, 600)
     m = rb.measure(rr["board"], meta["settings"]) if rr.get("board") else {"error": rr.get("error", "no output")}
-    row = {"ts": dt.datetime.now().isoformat(timespec="seconds"), "tag": tag, "router": "krt", "config": "outer",
+    row = {"ts": dt.datetime.now().isoformat(timespec="seconds"), "tag": tag, "router": "krt", "config": CONFIG,
            **{k: meta[k] for k in ("board", "k", "seed", "sigma", "moved", "conflicts", "signal_conflicts", "rounds", "nets",
                                    "bipartite", "hpwl_mm", "hpwl_signal_mm", "plane_nets", "airwires_start", "errors_start")},
            "wall_s": rr.get("wall_s"), "mps": rr.get("mps")}
@@ -145,6 +147,13 @@ def main():
                     print(f"{b} p{k} ERROR {type(e).__name__}: {e}"[:300], flush=True)
         return
     metas = [json.load(open(p)) for b in boards for p in sorted((SCR / b).glob("p*/meta.json"), key=lambda p: int(p.parent.name[1:]))]
+    done = set()   # a restart skips the placements this tag and config already have a row for
+    if OUT.exists():
+        for line in OUT.read_text().splitlines():
+            r = json.loads(line) if line.strip() else {}
+            if r.get("tag") == a.tag and r.get("config") == CONFIG and "error" not in r:
+                done.add((r["board"], r["k"]))
+    metas = [m for m in metas if (m["board"], m["k"]) not in done]
     with cf.ThreadPoolExecutor(a.workers) as ex, OUT.open("a") as fh:
         for row in ex.map(lambda m: route_one(m, a.tag), metas):
             fh.write(json.dumps(row) + "\n"); fh.flush()
