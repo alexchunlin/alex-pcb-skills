@@ -30,6 +30,10 @@ Checks (v0):
                hottest cells) or a via/plated-hole barrel carrying more than IPC-2221 allows for its cross-section at
                rise_c, and a sink with no path; a neck as wide as its pad and under 1 mm is the pad's exit, reported.
                Opt-in: {"sources": {}, "grid_mm": 0.1} (spike #3, C1; R2-O-2, R2A2-O-1 from physics)
+  basic_parts  every BOM line's LCSC code as JLC basic or extended from a dated cache (tools/bench/jlc_parts.py fetch),
+               extended types warn with the feeder fee and any basic alternative the cache lists, stock under
+               boards x quantity fails, a total row sums the fees. Opt-in: {"cache": path, "assembly": "economic",
+               "boards": 5, "max_extended": null} (spike #3, C2: 17 extended types, $52 of a $125-150 order)
   thermal_vias declared minimum stitching vias on a pad's net within `within_mm` of the pad (thermal pad to pour)
   feed_room    placement-stage: every SMD `feeds` pad gets a trial pcblib plan_feeds on an in-memory copy (biggest
                current first, neighbours splayed apart, each feed reserved for the next), so a pad whose feed cannot fit
@@ -61,7 +65,7 @@ Checks (v0):
                fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
 margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, refplane, return_via, exposure, feed_room, calcs, feeds,
-irdrop, signals, accepted_warns, _notes.
+irdrop, basic_parts, signals, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, math, os, re, subprocess, sys, zlib
@@ -74,7 +78,7 @@ import pcbq  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "basic_parts", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -1041,6 +1045,53 @@ def check_irdrop(CFG, NL, B):
     COVERAGE.append(f"irdrop: {n} solves at {h} mm on {len(by_net)} nets with feeds rows; necks and barrels by IPC-2221 at {rise:g} degC")
 
 
+def check_basic_parts(CFG, NL, B, cfg_dir):
+    """Every BOM line's LCSC part as JLC basic or extended from a dated cache (tools/bench/jlc_parts.py), with the
+    extended-part feeder fee (spike #3, C2: 17 extended types x $3.07 was the largest line of the rung-2 quote)."""
+    bp = CFG.get("basic_parts")
+    if bp is None:
+        NOT_CHECKED.append("basic_parts: no basic_parts block, so JLC basic/extended and the feeder fee were not counted")
+        return
+    bp = bp if isinstance(bp, dict) else {}
+    if bp.get("cache"):   # relative to the config's directory
+        path = os.path.join(cfg_dir, bp["cache"])
+    else:                 # this repo's cache (the skill is linked from it)
+        path = os.environ.get("PCB_JLC_CACHE") or os.path.join(os.path.realpath(HERE), "..", "..", "..", "tools", "bench", "data", "jlc_parts.json")
+    if not os.path.exists(path):
+        row("basic_parts", "fail", "basic_parts:cache", f"no JLC parts cache at {path} (python3 -I tools/bench/jlc_parts.py fetch BOARD)"); return
+    cache = json.load(open(path))
+    fee = float(bp.get("fee_usd", cache.get("fee_usd", {}).get(bp.get("assembly", "economic"), 3.07)))
+    lines = {}
+    for f in sorted(B.GetFootprints(), key=lambda f: f.GetReference()):
+        if f.IsDNP() or (f.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_BOM):
+            continue
+        code = pcbq.field(f, "LCSC").strip()
+        if code:
+            lines.setdefault(code, []).append(f.GetReference())
+    ext, fees = [], 0.0
+    for code, refs in sorted(lines.items(), key=lambda kv: kv[1][0]):
+        p = cache.get("parts", {}).get(code)
+        alt = cache.get("alternatives", {}).get(code, {}).get("basic", [])
+        if p is None or p.get("library") == "not found":
+            row("basic_parts", "warn", f"basic_parts:{code}", f"{code} ({', '.join(refs)}): not in the cache fetched {cache.get('fetched')}"
+                " (run tools/bench/jlc_parts.py fetch)", objects=refs); continue
+        stock = p.get("stock") or 0
+        msg = f"{code} {p.get('mpn')} ({', '.join(refs)}): {p.get('library')}{' (preferred, no feeder fee)' if p.get('preferred') else ''}, stock {stock}"
+        if stock < len(refs) * int(bp.get("boards", 5)):
+            row("basic_parts", "fail", f"basic_parts:{code}", msg + f" < {len(refs)} x {bp.get('boards', 5)} boards", objects=refs, finding="C2"); continue
+        if p.get("library") == "extended" and not p.get("preferred"):
+            ext.append(code); fees += fee
+            row("basic_parts", "warn", f"basic_parts:{code}", msg + f": ${fee:.2f} feeder fee"
+                + (f"; basic: " + ", ".join(f"{a['lcsc']} {a['value']} {a['package']}" for a in alt[:3]) if alt else ""), objects=refs, finding="C2")
+        else:
+            row("basic_parts", "pass", f"basic_parts:{code}", msg, objects=refs)
+    lim = bp.get("max_extended")
+    st = "fail" if lim is not None and len(ext) > int(lim) else "pass"
+    row("basic_parts", st, "basic_parts:total", f"{len(lines)} LCSC lines, {len(ext)} extended types: ${fees:.2f} in feeder fees at ${fee:.2f} a type"
+        f" (cache fetched {cache.get('fetched')})" + (f"; limit {lim}" if lim is not None else ""), value=len(ext), limit=lim, finding="C2")
+    COVERAGE.append(f"basic_parts: {len(lines)} LCSC lines against the JLC cache fetched {cache.get('fetched')}")
+
+
 def check_calcs(CFG, NL, B):
     rows = CFG.get("calcs", [])
     if not rows:
@@ -1173,7 +1224,8 @@ def main():
               ("return_via", lambda: check_return_via(CFG, NL, B)), ("exposure", lambda: check_exposure(CFG, NL, B)),
               ("feed_room", lambda: check_feed_room(CFG, NL, B, board)),
               ("calcs", lambda: check_calcs(CFG, NL, B)),
-              ("feeds", lambda: check_feeds(CFG, NL, B)), ("irdrop", lambda: check_irdrop(CFG, NL, B))]
+              ("feeds", lambda: check_feeds(CFG, NL, B)), ("irdrop", lambda: check_irdrop(CFG, NL, B)),
+              ("basic_parts", lambda: check_basic_parts(CFG, NL, B, cfg_dir))]
     for name, fn in checks:
         if only and name not in only:
             continue
