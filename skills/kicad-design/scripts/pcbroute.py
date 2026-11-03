@@ -190,7 +190,7 @@ def outer_only_args(board):
     return ["--layers", *ls, "--layer-costs", *["1.0" if l in ("F.Cu", "B.Cu") else "-1" for l in ls]]
 
 
-def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_args=()):
+def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_args=(), timeout=None):
     """Route `board` (a .kicad_pcb with its .kicad_pro beside it) into out_dir; returns (routed path, wall s, rc)."""
     import shutil, time
     os.makedirs(out_dir, exist_ok=True)
@@ -207,7 +207,13 @@ def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_a
         cmd = [KRT_PY, os.path.join(KRT_DIR, "py_router/route.py"), board, routed, "--json-out", os.path.join(out_dir, "krt.json"), *extra]
         # KRT orders rip-up candidates by iterating a set of net names, so its second pass varied with Python's per-process
         # string hash seed (1 run in 4 on the rung-1 board, ROUTE-T3); a fixed seed makes every pass reproducible
-        p = subprocess.run(cmd, cwd=KRT_DIR, capture_output=True, text=True, env={**os.environ, "PYTHONHASHSEED": "0"})
+        try:
+            p = subprocess.run(cmd, cwd=KRT_DIR, capture_output=True, text=True, env={**os.environ, "PYTHONHASHSEED": "0"}, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # an agent-written wave with an edge keepout ran 23 min, another 17 min in KRT's plane repair (PLAN-1)
+            with open(log, "a") as f:
+                f.write(f"$ {' '.join(cmd)}\nTIMEOUT after {timeout} s\n")
+            return None, round(time.time() - t, 1), "timeout"
     elif engine == "freerouting":
         if not os.path.exists(FR_JAR) or not os.path.exists(JAVA):
             sys.exit(f"pcbroute: freerouting jar or java missing ({FR_JAR}, {JAVA}); the native CLI crashes (P6-T2)")
@@ -243,9 +249,10 @@ def widen_under_min(path, min_mm):
 
 
 def pad_by_desc(b, desc):
-    """'Pad 2 [GND] of U1 on F.Cu' -> the PAD."""
+    """'Pad 2 [GND] of U1 on F.Cu' or 'PTH pad 1 [GND] of J4' (KiCad's wording for through-hole pads, no layer; the stitch
+    pass never matched it, so a starved through-hole GND pad was never repaired, STARVE-1) -> the PAD."""
     import re
-    m = re.match(r"Pad (\S+) \[.*\] of (\S+) on", desc or "")
+    m = re.match(r"(?:N?PTH )?[Pp]ad (\S+) \[.*?\] of (\S+)", desc or "")
     if not m:
         return None
     for f in b.GetFootprints():
@@ -595,7 +602,7 @@ def lock_nets(path, patterns, lock=True):
 
 def c_waves(args):
     """pcb route waves BOARD [--plan plan.json] [--out F] [--work DIR] [--pack jlcpcb]
-    plan.json: {"feeds": [{"pad": "U2.11", "amps": 2.5}, {"pad": "U1.4,5,6", "amps": 2.8}], "thermal_vias": ["U1"],
+    plan.json: {"feeds": [{"pad": "U2.11", "amps": 2.5}, {"pad": "U1.4,5,6", "amps": 2.8}], "thermal_vias": ["U1"], "timeout_s": 300,
                 "waves": [{"name": "power", "nets": ["VIN", "5V"], "layers": "outer"|"all"|["F.Cu", ...],
                            "keepouts": [[[x, y], ...], ...], "args": ["--ordering", "bus"]}, ...]}
     Wave 0 (feeds, thermal vias) is pcblib code; each later wave is one KRT call on its nets, its copper locked after;
@@ -629,13 +636,9 @@ def c_waves(args):
     if plan.get("feeds") or plan.get("thermal_vias"):
         t = time.time()
         bd = Board.load(cur)
-        for f in plan.get("feeds", []):
-            ref, nums = f["pad"].split(".", 1)
-            try:
-                r = bd.pad_feed_search(ref, nums, float(f["amps"]), **{k: f[k] for k in ("layer",) if k in f})
-                w0["feeds"][f["pad"]] = {k: r[k] for k in ("vias", "amps_capacity", "splay", "length", "across")}
-            except ValueError as e:
-                w0["feeds"][f["pad"]] = {"error": str(e)[-300:]}
+        res = bd.plan_feeds([(f["pad"], float(f["amps"])) for f in plan.get("feeds", [])])   # neighbours fan apart (FEED-2)
+        for pad, r in res.items():
+            w0["feeds"][pad] = {"error": r["error"][-300:]} if "error" in r else {k: r[k] for k in ("vias", "amps_capacity", "splay", "length", "across")}
         for ref in plan.get("thermal_vias", []):
             w0["thermal_vias"][ref] = {"vias": bd.thermal_vias(ref), "skipped": len(bd.thermal_skipped)}
         bd.save(); bd.fill()
@@ -657,10 +660,12 @@ def c_waves(args):
             b = pcbnew.LoadBoard(inp); cu = [b.GetLayerName(l) for l in b.GetEnabledLayers().CuStack()]
             extra += ["--layers", *cu, "--layer-costs", *["1.0" if l in lay else "-1" for l in cu]]
         extra += [str(x) for x in w.get("args", [])]
-        routed, wall, rc = run_engine("krt", inp, os.path.join(work, f"w{i}-{name}"), 1, log, inner_tracks=(lay != "outer"), extra_args=extra)
-        if routed is None:
-            say("PCBROUTE wave", i, name, "FAILED rc", rc, "see", log)
-            rec["waves"].append({"name": name, "rc": rc, "error": "no board written"}); break
+        routed, wall, rc = run_engine("krt", inp, os.path.join(work, f"w{i}-{name}"), 1, log, inner_tracks=(lay != "outer"), extra_args=extra,
+                                      timeout=float(w.get("timeout_s", plan.get("timeout_s", 300))))
+        if routed is None:   # a wave that times out or fails leaves its nets to the later waves and the finish
+            say("PCBROUTE wave", i, name, "FAILED rc", rc, "after", wall, "s; its nets go to the later waves, see", log)
+            rec["waves"].append({"name": name, "rc": rc, "wall_s": wall, "error": "timeout" if rc == "timeout" else "no board written"})
+            continue
         drop_keepouts(routed, polys, f"{name}{i}")
         canonical(routed)
         Board.load(routed).fill()

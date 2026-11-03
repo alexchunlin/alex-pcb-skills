@@ -72,6 +72,10 @@
 - Decided 2026-11-02 (Alex): stackup policy is two solid GND planes (In1, In2), 3V3/5V routed point to point, high-current
   rails as pours or thick tracks, signals only over unbroken ground. The archived rung-2 boards predate it (In2 power
   plane), which is why `refplane` is opt-in rather than on for the replay bench.
-- Next: starved thermals on through-hole GND pads (the waves' remaining error); feeds planned at placement (OUT2 and Q1
-  did not fit the attempt-2 placement); a plan author (agent or rules) for zones; then a routing-stage designer run from the attempt-2 placement (old wrapper
+- Starved through-hole thermals fixed (STARVE-1); feeds planned at placement with `plan_feeds` and the `feed_room` row,
+  every feed fits the attempt-2 placement and waves + feeds route it CLEAN at 94 mW VIN loss (FEED-2).
+- PLAN-1 (2026-11-03): a 6-plan deterministic search matches Sonnet agents on 2 of 3 boards at zero tokens; agents cost
+  65-95k tokens each and hung the router twice (per-wave timeout added). Pending with Alex: the judge priority order.
+- Next: `pcb route waves --search` (the 6 plans in parallel, pick by pass limits then priority); teach the `feeds` row
+  to read pour feeds (irdrop); then a routing-stage designer run from the attempt-2 placement (old wrapper
   first, to check the stage run reproduces attempt 2), then 3 against 3.

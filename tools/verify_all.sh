@@ -461,7 +461,7 @@ $PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$ROOT/ex
 [ "$(jq_ "$V/r2a2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['feeds:C17.1', 'feeds:J3.1']" ] && ok "r2 attempt-2 opus: feeds J3.1 and C17.1 at 0.00 A (the reviewer's two electrical majors, R2A2-O-1/2); the designer's own 147 rows pass" || bad "r2a2 opus: $(jq_ "$V/r2a2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
 fi  #@ end 26
 
-if want 27; then  #@ watch: @q skills/kicad-design/scripts/pcbroute.py tools/bench/route_bench.py examples/rung1-zener-a1/board/**
+if want 27; then  #@ watch: @q skills/kicad-design/scripts/pcbroute.py tools/bench/route_bench.py tools/bench/plan_bench.py tools/bench/plan_kpy.py examples/rung1-zener-a1/board/**
 echo "== 27 pcb route primitives: ratsnest count, strip keeps placement, DSN export, measure (P6-T1)"
 for a in opus sonnet fable; do $PCB q "$ROOT"/examples/rung2-zener-a1-$a/board/*.kicad_pcb ratsnest --json > "$V/rn-$a.json"; done
 [ "$(jq_ "$V/rn-opus.json" "d['airwires']")$(jq_ "$V/rn-sonnet.json" "d['airwires']")$(jq_ "$V/rn-fable.json" "(d['airwires'], d['open_nets'], d['kicad_unconnected'])")" = "00(6, 4, 6)" ] && ok "ratsnest: opus 0, sonnet 0, fable 6 airwires on 4 nets (the R2-F reviewer's 6 unconnected), KiCad's own count agrees" || bad "ratsnest: $(jq_ "$V/rn-fable.json" "d['airwires']")"
@@ -510,6 +510,9 @@ d=[k for k in a if abs(a[k][0]-b[k][0]) > 0.005 or a[k][1] != b[k][1]]; assert n
   R3="$R/r3"; mkdir -p "$R3"; cp "$ROOT"/examples/rung2-zener-a1-opus/board/motor_channel.kicad_p* "$R3"/
   $PCB route strip "$R3/motor_channel.kicad_pcb" > /dev/null && $PCB route waves "$R3/motor_channel.kicad_pcb" --work "$R3/work" > "$R3/waves.txt" 2>&1
   [ "$(jq_ "$R3/waves.json" "([w['name'] for w in d['waves']], [w.get('open_in_wave') for w in d['waves'][1:]], d['clean'], d['finish']['inner_mm'])")" = "(['feeds', 'power', 'sense', 'rest'], [{}, {}, {}], True, 0)" ] && ok "route waves: default plan power -> sense -> rest, every wave's nets closed, CLEAN against the input, 0 mm on the inner layers ($(jq_ "$R3/waves.json" "d['wall_s']") s)" || bad "route waves: $(grep 'waves verdict\|PCBROUTE wave' "$R3/waves.txt" | cut -c1-200 | tail -4)"
+  # plan bench (PLAN-1): the zones rule plan on the Opus placement adds the buck's own wave and keeps sense and rest out of its box
+  python3 -I "$ROOT/tools/bench/plan_bench.py" rules --board opus --zones > "$R/zplan.json" 2> "$R/zplan.err"
+  [ "$(jq_ "$R/zplan.json" "([w['name'] for w in d['waves']], [len(w.get('keepouts', [])) for w in d['waves']], len(d['feeds']), d['thermal_vias'])")" = "(['power', 'u1-local', 'sense', 'rest'], [0, 0, 1, 1], 7, ['U2', 'U1'])" ] && ok "plan bench: zones rule plan power -> u1-local -> sense and rest kept out of the switch-node box, 7 feeds, U2/U1 thermal vias" || bad "plan bench rules: $(cut -c1-200 "$R/zplan.json") $(tail -2 "$R/zplan.err")"
 else nochecks "KiCadRoutingTools not installed ($KRT_PY): route auto not run (install per tools/bench/README.md)"; fi
 fi  #@ end 27
 
@@ -535,7 +538,20 @@ assert f < 1.0 and b > 150 and d['summary']['fails'] >= 10, c; print(f, b, d['su
 # PVIN group gets one pour; the PVIN vias stay VIN through save + reload although one sits in the stale GND fill (ROUTE-T4)
 (cd "$J" && cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* . && $PCB py "$ROOT/tools/verify.d/pad_feed_check.py") > "$J/feed.txt" 2>&1
 tail -1 "$J/feed.txt" > "$J/feed.json"
-[ "$(jq_ "$J/feed.json" "(d['vm_vias'], d['vm_amps'] >= 2.5, d['out2'], d['pvin_vias'], d['thermal_u1'], d['pvin_nets_after_save'])")" = "(3, True, True, 3, 4, ['VIN'])" ] && ok "pcblib pad_feed: VM 3 vias ($(jq_ "$J/feed.json" "d['vm_amps']") A), OUT2 refused naming the parts in the way, PVIN 3 vias, U1 4 thermal vias; PVIN vias still VIN after save (ROUTE-T4)" || bad "pad_feed: $(tail -c 300 "$J/feed.txt")"
+[ "$(jq_ "$J/feed.json" "(d['vm_vias'], d['vm_amps'] >= 2.5, d['out2'], d['pvin_vias'], d['thermal_u1'], d['pvin_nets_after_save'])")" = "(3, True, True, 3, 4, ['VIN'])" ] && ok "pcblib pad_feed: VM 3 vias ($(jq_ "$J/feed.json" "d['vm_amps']") A), a straight 3-across OUT2 field beside it refused with the parts in the way, PVIN 3 vias, U1 4 thermal vias; PVIN vias still VIN after save (ROUTE-T4)" || bad "pad_feed: $(tail -c 300 "$J/feed.txt")"
+[ "$(jq_ "$J/feed.json" "(d['plan'], d['splays_opposite'])")" = "({'U2.11': 3, 'U2.10': 3, 'U2.8': 3}, True)" ] && ok "pcblib plan_feeds: VM, OUT2 and OUT1 all get 3 vias on the designer's placement, VM and OUT2 splayed apart (FEED-2)" || bad "plan_feeds: $(tail -c 300 "$J/feed.txt")"
+# feed_room at placement: every SMD feeds pad of the attempt-2 board fits with plan_feeds (FEED-2)
+python3 -I -c "
+import json; c=json.load(open('$J/c.json')); c['feed_room']={}; json.dump(c,open('$J/fr.json','w'))"
+$PCB check "$J/orig/motor1.kicad_pcb" "$J/fr.json" --only feed_room --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$J/frout.json" > /dev/null 2>&1
+[ "$(jq_ "$J/frout.json" "(d['summary']['fails'], d['summary']['passes'])")" = "(0, 8)" ] && ok "feed_room: all 8 SMD feeds pads of the attempt-2 placement have room for a pour and vias" || bad "feed_room: $(jq_ "$J/frout.json" "[r['msg'][:120] for r in d['rows'] if r['status'] == 'fail']")"
+# STARVE-1: KiCad names through-hole pads 'PTH pad 1 [GND] of J4' (no layer); the stitch pass must find them
+$PCB py -c "
+import pcbnew, pcbroute
+b = pcbnew.LoadBoard('$J/orig/motor1.kicad_pcb')
+r = [pcbroute.pad_by_desc(b, d) for d in ('PTH pad 1 [GND] of J4', 'Pad 2 [GND] of U1 on F.Cu')]
+print([x.GetParentFootprint().GetReference() + '.' + x.GetNumber() for x in r])" > "$J/pbd.txt" 2>&1
+grep -q "\['J4.1', 'U1.2'\]" "$J/pbd.txt" && ok "stitch pass reads KiCad's through-hole wording: PTH pad 1 of J4 -> J4.1 (STARVE-1)" || bad "pad_by_desc: $(tail -1 "$J/pbd.txt")"
 fi  #@ end 28
 
 if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py

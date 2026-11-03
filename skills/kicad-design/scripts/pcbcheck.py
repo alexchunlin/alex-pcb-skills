@@ -25,6 +25,9 @@ Checks (v0):
                internal on the barrel) plus tracks touching it; a pour-only feed fails with its neck unsized (rung 2: the
                DRV8874 VM pin fed by one 0.3 mm via or a 0.34 mm pour finger on two of three boards, R2-T5)
   thermal_vias declared minimum stitching vias on a pad's net within `within_mm` of the pad (thermal pad to pour)
+  feed_room    placement-stage: every SMD `feeds` pad gets a trial pcblib plan_feeds on an in-memory copy (biggest
+               current first, neighbours splayed apart, each feed reserved for the next), so a pad whose feed cannot fit
+               fails at placement with the parts in the way, before any routing (FEED-2). Opt-in: {} or {"skip": [pads]}
   refplane     every track off the ground net runs over solid ground fill on the copper layer next to it in the stack
                (In1 under F.Cu, the last inner layer under B.Cu): sampled every step_mm, points next to the net's own
                vias and through-hole pads skipped (the plane's antipad), per net the mm and the count of gaps crossed.
@@ -39,7 +42,7 @@ Checks (v0):
                setting until plain DRC read 0 (clearance 0.14/0.15, silk text 0.8); the policy block makes that a
                fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
-margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, refplane, calcs, feeds, accepted_warns, _notes.
+margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, refplane, feed_room, calcs, feeds, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, os, re, subprocess, sys
@@ -52,7 +55,7 @@ import pcbq  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "calcs", "feeds", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "calcs", "feeds", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -628,6 +631,44 @@ def check_thermal_vias(CFG, NL, B):
     COVERAGE.append(f"thermal_vias: {len(tv)} pads; vias on the pad's net within within_mm of the pad centre")
 
 
+def check_feed_room(CFG, NL, B, board_path):
+    fr = CFG.get("feed_room")
+    if fr is None:
+        NOT_CHECKED.append("feed_room: no feed_room block, so whether each feeds pad has room for its pour and vias was not tried")
+        return
+    fr = fr if isinstance(fr, dict) else {}
+    from pcblib.board import Board
+    bd = Board(pcbnew.LoadBoard(board_path), board_path)   # a second copy: the trial copper never reaches the other rows
+    bd.clearance = pcbnew.ToMM(bd.b.GetDesignSettings().m_MinClearance) or 0.2
+    skip = set(fr.get("skip", []))
+    fps = pcbq.fp_map(bd.b)
+    rows = []
+    for f in CFG.get("feeds", []):
+        pad = f.get("pad", "")
+        if pad in skip:
+            continue
+        try:
+            pd = pcbq.pad_of(fps, pad.split(",")[0] if "," in pad else pad)
+        except SystemExit:
+            continue
+        if pd.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+            continue   # through-hole pins reach the planes through their barrel
+        rows.append((float(f["amps"]), pad, f))
+    res = bd.plan_feeds([(pad, amps) for amps, pad, _ in rows])
+    for amps, pad, f in sorted(rows, key=lambda r: -r[0]):
+        ref = pad.split(".")[0]
+        r = res[pad]
+        if "error" not in r:
+            row("feed_room", "pass", f"feed_room:{pad}", f"{pad} {amps} A: {r['vias']} vias fit (splay {r['splay']}, length {r['length']} mm, "
+                f"{r['across']} across), reserved for the pins after it", value=r["vias"], objects=[ref], finding="FEED-2")
+        else:
+            msg = r["error"]
+            blockers = sorted(set(re.findall(r"on ([A-Z]+[0-9]+)\.", msg)) | set(re.findall(r"inside feed_([A-Z]+[0-9]+_[0-9_]+)", msg)) - {ref})
+            row("feed_room", "fail", f"feed_room:{pad}", f"{pad} {amps} A: no room for a pour and vias; in the way: "
+                f"{', '.join(blockers) or 'see message'} ({msg[-160:]})", objects=[ref] + [b for b in blockers if not b.startswith(ref + "_")], finding="FEED-2")
+    COVERAGE.append(f"feed_room: {len(rows)} SMD feeds pads tried with pcblib pad_feed_search, biggest current first, each reserved")
+
+
 def check_refplane(CFG, NL, B):
     rp = CFG.get("refplane")
     if not rp:
@@ -838,6 +879,7 @@ def main():
               ("margin", lambda: check_margin(CFG, NL, B)), ("policy", lambda: check_policy(CFG, NL, B)),
               ("fields", lambda: check_fields(CFG, NL, B)), ("currents", lambda: check_currents(CFG, NL, B)),
               ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("refplane", lambda: check_refplane(CFG, NL, B)),
+              ("feed_room", lambda: check_feed_room(CFG, NL, B, board)),
               ("calcs", lambda: check_calcs(CFG, NL, B)),
               ("feeds", lambda: check_feeds(CFG, NL, B))]
     for name, fn in checks:

@@ -371,13 +371,49 @@ class Board:
                     seen.add(name); hits.append(f"pour at ({x:.2f}, {y:.2f}) inside {name} ({zn})")
         return hits
 
-    def pad_feed_search(self, ref, num, amps, splays=(0, 30, -30, 50, -50), lengths=(1.0, 1.8, 2.6), acrosses=(3, 2, 1), **kw):
+    def plan_feeds(self, rows, dry=False):
+        """pad_feed_search over many pins at once (FEED-2): biggest current first, and a pad with other feed pads beside it
+        on the same footprint tries splaying away from them first, so neighbours fan apart instead of the first one taking
+        the straight-out slot (DRV8874 VM beside OUT2). rows: [(\"U2.11\", 2.5), ...]. Returns {pad: result or error}."""
+        out = {}
+        pads = {}
+        for pad, _ in rows:
+            ref, nums = pad.split(".", 1)
+            ps = [self.pad(ref, n) for n in nums.split(",")]
+            pads[pad] = (ref, sum(xy(q.GetPosition())[0] for q in ps) / len(ps), sum(xy(q.GetPosition())[1] for q in ps) / len(ps))
+        for pad, amps in sorted(rows, key=lambda r: -r[1]):
+            ref, nums = pad.split(".", 1)
+            ref_, px, py = pads[pad]
+            near = [(x, y) for k, (r2, x, y) in pads.items() if k != pad and r2 == ref and math.hypot(x - px, y - py) < 2.5]
+            prefer = 0
+            if near:
+                q = self.pad(ref, nums.split(",")[0]); _, hx, hy = self._pad_frame(q)
+                allp = [xy(o.GetPosition()) for o in self.fp(ref).Pads()]
+                fx, fy = sum(a for a, _ in allp) / len(allp), sum(b for _, b in allp) / len(allp)
+                d = ((1.0 if px >= fx else -1.0), 0.0) if hx >= hy else (0.0, (1.0 if py >= fy else -1.0))
+                n = (-d[1], d[0])
+                ox, oy = sum(x for x, _ in near) / len(near), sum(y for _, y in near) / len(near)
+                prefer = 1 if (px - ox) * n[0] + (py - oy) * n[1] > 0 else -1
+            splays = (30 * prefer, 50 * prefer, 70 * prefer, 0, -30 * prefer) if prefer else (0, 30, -30, 50, -50)
+            try:
+                out[pad] = self.pad_feed_search(ref, nums, amps, splays=splays, splay_first=bool(prefer))
+            except ValueError as e:
+                out[pad] = {"error": str(e)}
+        return out
+
+    def pad_feed_search(self, ref, num, amps, splays=(0, 30, -30, 50, -50), lengths=(1.0, 1.8, 2.6), acrosses=(3, 2, 1),
+                        splay_first=False, **kw):
         """pad_feed over a small grid of splay x length x across, first fit wins (fewest changes from straight-out,
-        short, wide first). Raises with the last collision when nothing fits; the placement then needs to move."""
+        short, wide first; with splay_first, every length and width at the first splay before the next, so a preferred
+        direction is not given up for a wider field). Raises with the last collision when nothing fits; the placement
+        then needs to move."""
+        import itertools
         last = None
-        for length in lengths:
-            for across in acrosses:
-                for splay in splays:
+        grid = (((sp, ln, ac) for sp in splays for ln in lengths for ac in acrosses) if splay_first else
+                ((sp, ln, ac) for ln in lengths for ac in acrosses for sp in splays))
+        for splay, length, across in grid:
+            if True:
+                if True:
                     try:
                         r = self.pad_feed(ref, num, amps, length=length, splay=splay, across=across, **kw)
                         r.update(splay=splay, length=length, across=across)
@@ -387,7 +423,7 @@ class Board:
         raise ValueError(f"pad_feed_search {ref}.{num}: nothing fits in {len(splays) * len(lengths) * len(acrosses)} tries; last: {last}")
 
     def pad_feed(self, ref, num, amps, layer="F.Cu", length=1.0, splay=0.0, size=None, pitch=None, across=3, rise_c=20.0,
-                 priority=3, layers=("F.Cu", "B.Cu"), check=True):
+                 priority=3, layers=("F.Cu", "B.Cu"), check=True, exit=0.4):
         """Feed a fine-pitch power pin the way the rung-2 designers did by hand (R2A2-T1): a pour on the pad's net that
         covers the pad, leaves the package along the pad's long axis at the pad's width, flares over `length` mm and
         ends in a field of vias, as many as IPC-2221 needs for `amps` at `rise_c` (0.3 mm drill: 1.22 A each, so 2.5 A
@@ -427,13 +463,13 @@ class Board:
         d2 = (d[0] * math.cos(a) - d[1] * math.sin(a), d[0] * math.sin(a) + d[1] * math.cos(a)); n2 = (-d2[1], d2[0])
         def at(t, s):                                # pad frame: t along the pad axis from the group centre, s across
             return (cxm + d[0] * t + nrm[0] * s, cym + d[1] * t + nrm[1] * s)
-        ex, ey = at(hl, mid)                         # where the pour leaves the pads
+        ex, ey = at(hl + exit, mid)                  # straight out past the pin row's tips before any turn (FEED-2)
         ox, oy = ex + d2[0] * length, ey + d2[1] * length
         def fat(t, s):                               # field frame: from the end of the flare, along the splayed axis
             return (ox + d2[0] * t + n2[0] * s, oy + d2[1] * t + n2[1] * s)
         depth = rows * pitch
-        outline = [at(min(along), hw_lo), at(hl, hw_lo), fat(0, -half), fat(depth, -half), fat(depth, half), fat(0, half),
-                   at(hl, hw_hi), at(min(along), hw_hi)]
+        outline = [at(min(along), hw_lo), at(hl + exit, hw_lo), fat(0, -half), fat(depth, -half), fat(depth, half), fat(0, half),
+                   at(hl + exit, hw_hi), at(min(along), hw_hi)]
         outline = [(round(x, 4), round(y, 4)) for x, y in outline]
         spots = []
         for r in range(rows):
@@ -456,6 +492,13 @@ class Board:
                             hits.append(f"via ({x:.2f}, {y:.2f}) on a {t.GetNetname()} via at ({v[0]:.2f}, {v[1]:.2f})")
             if hits:
                 raise ValueError(f"pad_feed {ref}.{num}: {len(hits)} collision(s), try splay/length/across: " + "; ".join(hits[:4]))
+        lid = layer_id(layer)
+        for z in self.b.Zones():   # KiCad: intersecting zones need distinct priorities; a same-net pour it overlaps ranks below
+            if z.GetIsRuleArea() or z.GetNetname() != net or not z.IsOnLayer(lid):
+                continue
+            poly = [xy(z.GetCornerPosition(i)) for i in range(z.GetNumCorners())]
+            if any(self._inside(q, poly) for q in outline) or any(self._inside(q, outline) for q in poly):
+                priority = max(priority, z.GetAssignedPriority() + 1)
         self.zone(net, layer, outline=outline, clearance=getattr(self, "clearance", 0.2), min_width=0.2, thermal=False, priority=priority,
                   name=f"feed_{ref}_{'_'.join(nums)}")
         for x, y in spots:

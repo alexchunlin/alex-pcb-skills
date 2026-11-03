@@ -875,7 +875,7 @@ point, high-current rails as pours or thick tracks, every signal over unbroken g
   |---|---|---|---|---|---|---|---|---|
   | A one-shot `auto` | 61 s | 0 | 2.2 mm | 440 mW | 122 / 39 mV | 581 | 4 | 0 |
   | B waves, default plan | 49 s | 0 | 0 | 158 mW | 22 / 38 mV | 510 | 2 | 0 |
-  | C waves + feeds + thermal | 73 s | 1 starved thermal (J4 GND) | 0 | 102 mW | 19 / 20 mV | 187 | 3 | 15 + 4 |
+  | C waves + feeds + thermal | 73 s | 1 starved thermal (J4 GND) | 0 | 102 mW* | 19 / 20 mV | 187 | 3 | 15 + 4 |
   | D C + buck wave + keepout | 106 s | 2 starved thermals | 5.4 mm | 124 mW | | 187 | 3 | 15 + 4 |
 
   Power first is the win: B against A cuts VIN loss 440 -> 158 mW and removes the last unreferenced signal copper at no
@@ -886,3 +886,59 @@ point, high-current rails as pours or thick tracks, every signal over unbroken g
   and 0.9 mm of 3V3 inside the buck box against ENC_B's 10.6 mm in C). The zones cost: +33 s, 5.4 mm off ground, +22 mW,
   one more starved thermal. Starved thermals on through-hole GND pads (J4) are the waves' remaining error; the stitch pass
   does not handle them. DIR runs 69-80 mm round the board edge on B.Cu in every arm: placement, not routing.
+
+  \* Corrected the same day: 102 mW came from a run where the finish could still rip and re-tidy VIN; with the waves
+  locked through the finish (the keepout fix) C measures 124 mW, the same as D, so the buck zone costs +4 s and 5.4 mm off
+  ground, not +22 mW.
+- **STARVE-1 The stitch pass never repaired a starved through-hole pad.** KiCad words it "PTH pad 1 [GND] of J4" with no
+  layer; `pad_by_desc` only matched "Pad 2 [GND] of U1 on F.Cu". The J4 case: the XT30's GND pin in a pocket of B.Cu
+  ground that the DIR perimeter track and the VIN_RAW pour cut off into an island, one spoke to the island. With the parse
+  fixed the stitch pass gives it a solid connection (the right call for a power connector's ground pin anyway) and both
+  wave arms (C, D) route CLEAN against the input. KRT's own answer is to downgrade starved_thermal to a warning
+  (fix_kicad_drc_settings), which this repo's guardrails forbid.
+- **FEED-2 Feeds at placement: the blocker was the helper, not the placement.** A `feed_room` row (pcbcheck, opt-in) runs
+  the feed search on an in-memory copy at placement time. First version: DRV8874 OUT2 "blocked by C12, C13 and VM's
+  feed". Moving C12/C13 up to 2.5 mm (23 legal positions, 2 min) and C10 as well (8 min) found nothing, and with all three
+  caps parked off the board OUT2 still failed: VM, planned first, took the straight-out slot with the widest field, and
+  a splayed flare clipped the neighbouring pin's tip because it turned right at the pin row. Two changes: a 0.4 mm
+  straight exit past the pin tips before any turn, and `plan_feeds()` (biggest current first, a pad with feed neighbours
+  on the same footprint splays away from them first and tries every length and width at that splay before falling back).
+  On the designer's own placement, caps where they were: VM straight, OUT2 splayed 50 degrees, OUT1 straight, all 3 vias;
+  `feed_room` 8 of 8 SMD feeds fit, 10 s. The lesson for the row's wording: "in the way" names what the last try hit, not
+  what must move; the search order was the real blocker. Also: a feed pour overlapping a same-net pour at equal priority
+  is a KiCad error (zones_intersect, the Q1 drain feed over the designer's VIN_RAW pour); feeds now take a priority above
+  any same-net pour they overlap. Arm E (waves + every feeds row + thermal vias, `plan_feeds`): CLEAN in 66 s, VIN loss
+  94 mW (one-shot 440, waves 158, waves with partial feeds 124), worst density 190 A/mm2, 0 mm of signal off ground,
+  `currents` fails VIN only. The `feeds` row still fails 4 helper-fed pins because their vias sit beyond the row's
+  within_mm and the row does not count pours; `pcb irdrop` is the better judge of a pour feed, and the row should learn
+  to read it.
+- **PLAN-1 Who writes the wave plan: a deterministic plan search matches the agents on 2 of 3 boards.** Bench
+  `tools/bench/plan_bench.py` (results `tools/bench/results/plan.jsonl`): the three finished rung-2 placements on Alex's
+  stackup, tracks and non-GND pours stripped, the same 7 feeds and U1/U2 thermal vias for every arm; only the plan
+  differs. Judges: clean, VIN loss and worst density (`pcb irdrop`), signal off ground (`refplane`), foreign track in
+  the switch-node box, `currents` fails, vias. Arms: rules (net classes: power, sense, rest), rules+zones (the buck's own
+  nets in a wave of their own, then sense and rest kept out of the switch-node box), one Sonnet agent per board (plan
+  summary, judges, rule results, at most 4 scored tries), and a search over three more plans built from the agents'
+  moves (VIN alone with `--escalation board` first; MOTOR_A first; both) plus zones with escalation on the whole power
+  wave. Ranking: pass limits (clean, `currents` fails and VIN loss no worse than rules + 10 %), then foreign, off ground,
+  VIN, `currents`, vias. A plain priority order was the wrong rule: the Opus2 agent's top plan by it traded 2.8x the
+  VIN loss and 5 `currents` fails for 14 mm of signal off ground.
+
+  | board | rules | rules+zones | best agent plan | best search plan |
+  |---|---|---|---|---|
+  | opus | off 1.8, foreign 3.5, 259 mW | off 2.1, foreign 0, 259 mW | off 0.2, 259 mW (split power waves) | vin-first: off 2.1, **167 mW** (the agent's own v3, identical) |
+  | sonnet | off 0.5, 99.5 mW | same | **off 0, 95.4 mW** (MOTOR_A first, a keepout strip at J1.1, 3V3 alone on F.Cu) | motorA-first: off 0.2, 96.3 mW; vin-first 0.7 / 78.5 |
+  | opus2 | off 0, foreign 16.4 | off 14.2, foreign 0 | off 2.2, 103.7 mW | zones + escalation: **off 0, foreign 0, 111.6 mW, J 194** (rules 324) |
+
+  Agent cost: 65k, 95k and 87k tokens (as the Agent tool reports them), 4 scored tries each; two of the three agents' first plans hung the
+  router (an edge keepout: 23 min; KRT's plane repair: 17 min), so waves now have a per-wave `timeout_s` (default 300 s)
+  after which the wave's nets go to the later waves. Agent errors: the Opus2 agent routed VIN at 0.6 mm thinking the
+  default was 0.2 (the class is 1.4); the Sonnet agent's J1.1 keepout partly works by landing the track in `refplane`'s
+  antipad exclusion, close to optimising the checker. The one general insight (the Opus agent): in a power wave KRT
+  joins pads the class width cannot reach with a 0.2 mm "net rescue" inside the wave, which is most of Opus's VIN loss;
+  VIN alone at `--escalation board` necks only the terminal (259 -> 167 mW). As a blanket rule it does not transfer
+  (escalation on the whole power wave: Opus better, Sonnet worse with a starved thermal, Opus2 off ground 14.2 -> 0 but
+  +10 % VIN), and "escalate only the nets left open" changed nothing (VIN is never open; the rescue connects it) and
+  was reverted. Reading: the agents' gains are per-board search over a few KRT settings, and a 6-plan search reproduces
+  most of it at zero tokens and one answer per run. n = 1 agent per board; the replicates were not run because the
+  decision does not hinge on agent spread unless an agent beats the search consistently, which it did on one board.
