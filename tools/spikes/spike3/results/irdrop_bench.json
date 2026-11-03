@@ -1,0 +1,323 @@
+{
+ "boards": 10,
+ "boards_with_feeds": 4,
+ "wall_s": {
+  "rung1-zener-a1": {
+   "feeds": 0.6,
+   "irdrop": 0.9
+  },
+  "rung1-skidl-a1": {
+   "feeds": 0.5,
+   "irdrop": 0.9
+  },
+  "plink-v1": {
+   "feeds": 0.7,
+   "irdrop": 1.3
+  },
+  "plink-fixed": {
+   "feeds": 0.8,
+   "irdrop": 0.7
+  },
+  "rung1-zener-a2-sonnet": {
+   "feeds": 0.7,
+   "irdrop": 0.6
+  },
+  "rung1-zener-a2-fable": {
+   "feeds": 0.6,
+   "irdrop": 0.6
+  },
+  "rung2-zener-a1-opus": {
+   "feeds": 0.7,
+   "irdrop": 5.6
+  },
+  "rung2-zener-a1-sonnet": {
+   "feeds": 1.0,
+   "irdrop": 3.2
+  },
+  "rung2-zener-a1-fable": {
+   "feeds": 1.1,
+   "irdrop": 3.2
+  },
+  "rung2-zener-a2-opus": {
+   "feeds": 0.6,
+   "irdrop": 11.7
+  }
+ },
+ "labels": [
+  {
+   "label": "R2-S-1",
+   "attempt": "rung2-zener-a1-sonnet",
+   "what": "VM fed by one 0.3 mm via and a 0.34 mm zone finger",
+   "feeds": "feeds:U2.11",
+   "irdrop": "irdrop:VIN:via@117.627,127.025"
+  },
+  {
+   "label": "R2-O-2",
+   "attempt": "rung2-zener-a1-opus",
+   "what": "VM fed only by a 0.335 mm pour neck",
+   "feeds": "feeds:U2.11",
+   "irdrop": "irdrop:VIN:neck:F.Cu@128.35,117.15"
+  },
+  {
+   "label": "R2-F-3",
+   "attempt": "rung2-zener-a1-fable",
+   "what": "VM fed 0.3 mm through an 0402 pad",
+   "feeds": "feeds:U1.11",
+   "irdrop": "irdrop:VIN:neck:F.Cu@119.25,134.45"
+  },
+  {
+   "label": "R2A2-O-1",
+   "attempt": "rung2-zener-a2-opus",
+   "what": "J3.1 fed only by four In2 thermal spokes",
+   "feeds": "feeds:J3.1",
+   "irdrop": "irdrop:5V:neck:In2.Cu@142.15,117.35"
+  },
+  {
+   "label": "R2A2-O-2",
+   "attempt": "rung2-zener-a2-opus",
+   "what": "C17 bulk cap through single vias in series",
+   "feeds": "feeds:C17.1",
+   "irdrop": "irdrop:VIN:via@120.5,130.9"
+  },
+  {
+   "label": "R2A2-O-3",
+   "attempt": "rung2-zener-a2-opus",
+   "what": "AMS1117 with no heat-sink copper (thermal)",
+   "feeds": null,
+   "irdrop": null
+  }
+ ],
+ "caught": {
+  "feeds": 5,
+  "irdrop": 5
+ },
+ "caught_either": 5,
+ "unexplained_fails": {
+  "feeds": 0,
+  "irdrop": 0
+ },
+ "triage": [
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "row": "feeds",
+   "id": "feeds:U2.11",
+   "labels": [
+    "R2-O-2"
+   ],
+   "known_true_positive": false,
+   "msg": "U2.11 (VIN) needs 2.5 A: 0 via(s) within 2.0 mm = 0.00 A (none), 0 track(s) touching = 0.00 A; total 0.00 A; a pour also reaches the pad, its neck is NOT sized"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "row": "irdrop",
+   "id": "irdrop:VIN:neck:F.Cu@128.35,117.15",
+   "labels": [
+    "R2-O-2"
+   ],
+   "known_true_positive": false,
+   "msg": "0.3 mm wide x 0.8 mm neck on F.Cu: 2.502 A across it against IPC-2221 1.355 A at 20 degC (x1.85), 257.3 A/mm2 (solve: U2.11)"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "row": "irdrop",
+   "id": "irdrop:VIN:neck:F.Cu@130.35,117.15",
+   "labels": [
+    "R2-O-2"
+   ],
+   "known_true_positive": false,
+   "msg": "0.3 mm wide x 3.4 mm neck on F.Cu: 2.5 A across it against IPC-2221 1.355 A at 20 degC (x1.84), 238.1 A/mm2 (solve: U2.11)"
+  },
+  {
+   "attempt": "rung2-zener-a1-opus",
+   "row": "irdrop",
+   "id": "irdrop:VIN:neck:F.Cu@133.85,116.95",
+   "labels": [
+    "R2-O-2"
+   ],
+   "known_true_positive": false,
+   "msg": "0.3 mm wide x 1.1 mm neck on F.Cu by U2.11: 2.5 A across it against IPC-2221 1.355 A at 20 degC (x1.84), 238.1 A/mm2 (solve: U2.11)"
+  },
+  {
+   "attempt": "rung2-zener-a1-sonnet",
+   "row": "feeds",
+   "id": "feeds:U2.11",
+   "labels": [
+    "R2-S-1"
+   ],
+   "known_true_positive": false,
+   "msg": "U2.11 (VIN) needs 2.5 A: 1 via(s) within 2.0 mm = 1.22 A (0.3), 0 track(s) touching = 0.00 A; total 1.22 A; a pour also reaches the pad, its neck is NOT sized"
+  },
+  {
+   "attempt": "rung2-zener-a1-sonnet",
+   "row": "irdrop",
+   "id": "irdrop:VIN:via@117.627,127.025",
+   "labels": [
+    "R2-S-1"
+   ],
+   "known_true_positive": false,
+   "msg": "1 x 0.3 mm via field: 2.5 A through the barrels against IPC-2221 internal 1.218 A on 25 um plating (x2.05; busiest barrel 2.5 A) (solve: U2.11)"
+  },
+  {
+   "attempt": "rung2-zener-a1-sonnet",
+   "row": "irdrop",
+   "id": "irdrop:VIN:neck:F.Cu@117.95,126.95",
+   "labels": [
+    "R2-S-1"
+   ],
+   "known_true_positive": false,
+   "msg": "0.3 mm wide x 0.5 mm neck on F.Cu by U2.11: 2.5 A across it against IPC-2221 1.355 A at 20 degC (x1.84), 239.3 A/mm2 (solve: U2.11)"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "row": "feeds",
+   "id": "feeds:U1.11",
+   "labels": [
+    "R2-F-3"
+   ],
+   "known_true_positive": true,
+   "msg": "U1.11 (VIN) needs 2.5 A: 0 via(s) within 2.0 mm = 0.00 A (none), 1 track(s) touching = 1.36 A; total 1.36 A; a pour also reaches the pad, its neck is NOT sized"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "row": "irdrop",
+   "id": "irdrop:VIN:neck:F.Cu@119.25,134.45",
+   "labels": [
+    "R2-F-3"
+   ],
+   "known_true_positive": true,
+   "msg": "0.3 mm wide x 1.6 mm neck on F.Cu by U1.11, C15.2: 2.666 A across it against IPC-2221 1.355 A at 20 degC (x1.97), 340.0 A/mm2 (solve: U1.11)"
+  },
+  {
+   "attempt": "rung2-zener-a1-fable",
+   "row": "irdrop",
+   "id": "irdrop:VIN:neck:F.Cu@119.65,136.45",
+   "labels": [],
+   "known_true_positive": true,
+   "msg": "0.5 mm wide x 0.9 mm neck on F.Cu by C15.2, C13.1: 2.515 A across it against IPC-2221 1.963 A at 20 degC (x1.28), 148.6 A/mm2 (solve: U1.11)"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "row": "feeds",
+   "id": "feeds:J3.1",
+   "labels": [
+    "R2A2-O-1"
+   ],
+   "known_true_positive": false,
+   "msg": "J3.1 (5V) needs 3.0 A: 0 via(s) within 2.0 mm = 0.00 A (none), 0 track(s) touching = 0.00 A; total 0.00 A; a pour also reaches the pad, its neck is NOT sized"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "row": "feeds",
+   "id": "feeds:C17.1",
+   "labels": [
+    "R2A2-O-2"
+   ],
+   "known_true_positive": false,
+   "msg": "C17.1 (VIN) needs 2.5 A: 0 via(s) within 2.0 mm = 0.00 A (none), 0 track(s) touching = 0.00 A; total 0.00 A; a pour also reaches the pad, its neck is NOT sized"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "row": "irdrop",
+   "id": "irdrop:VIN:via@120.5,130.9",
+   "labels": [
+    "R2A2-O-2"
+   ],
+   "known_true_positive": false,
+   "msg": "1 x 0.3 mm via field: 2.5 A through the barrels against IPC-2221 internal 1.218 A on 25 um plating (x2.05; busiest barrel 2.5 A) (solve: C17.1)"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "row": "irdrop",
+   "id": "irdrop:VIN:via@121.1,133.4",
+   "labels": [
+    "R2A2-O-2"
+   ],
+   "known_true_positive": false,
+   "msg": "1 x 0.3 mm via field: 2.5 A through the barrels against IPC-2221 internal 1.218 A on 25 um plating (x2.05; busiest barrel 2.5 A) (solve: C17.1)"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "row": "irdrop",
+   "id": "irdrop:5V:neck:In2.Cu@142.15,117.35",
+   "labels": [
+    "R2A2-O-1"
+   ],
+   "known_true_positive": false,
+   "msg": "0.3 mm wide x 0.3 mm neck on In2.Cu by J3.1: 0.977 A across it against IPC-2221 0.41 A at 20 degC (x2.38), 177.2 A/mm2 (solve: J3.1)"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "row": "irdrop",
+   "id": "irdrop:5V:neck:In2.Cu@144.35,117.35",
+   "labels": [
+    "R2A2-O-1"
+   ],
+   "known_true_positive": false,
+   "msg": "0.3 mm wide x 0.3 mm neck on In2.Cu by J3.1: 0.553 A across it against IPC-2221 0.41 A at 20 degC (x1.35), 99.0 A/mm2 (solve: J3.1)"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "row": "irdrop",
+   "id": "irdrop:5V:via@137.4,127.6",
+   "labels": [],
+   "known_true_positive": true,
+   "msg": "1 x 0.3 mm via field: 1.516 A through the barrels against IPC-2221 internal 1.218 A on 25 um plating (x1.25; busiest barrel 1.516 A) (solve: J3.1)"
+  },
+  {
+   "attempt": "rung2-zener-a2-opus",
+   "row": "irdrop",
+   "id": "irdrop:5V:via@134.6,127.6",
+   "labels": [],
+   "known_true_positive": true,
+   "msg": "1 x 0.3 mm via field: 1.484 A through the barrels against IPC-2221 internal 1.218 A on 25 um plating (x1.22; busiest barrel 1.484 A) (solve: J3.1)"
+  }
+ ],
+ "irdrop_summaries": {
+  "rung1-zener-a1": [],
+  "rung1-skidl-a1": [],
+  "plink-v1": [],
+  "plink-fixed": [],
+  "rung1-zener-a2-sonnet": [],
+  "rung1-zener-a2-fable": [],
+  "rung2-zener-a1-opus": [
+   "VIN from Q1.1,Q1.2,Q1.3, 1 solves: U2.11 2.5 A 28.81 mV; worst neck x1.85, worst via field x0.37, 3 places over; 4.5 s"
+  ],
+  "rung2-zener-a1-sonnet": [
+   "VIN from Q1.1,Q1.2,Q1.3, 1 solves: U2.11 2.5 A 10.12 mV; worst neck x1.84, worst via field x2.05, 2 places over; 2.4 s"
+  ],
+  "rung2-zener-a1-fable": [
+   "VIN from Q1.1,Q1.2,Q1.3, 1 solves: U1.11 2.5 A 24.93 mV; worst neck x1.97, worst via field x0.98, 2 places over; 2.5 s"
+  ],
+  "rung2-zener-a2-opus": [
+   "VIN from Q1.1,Q1.2,Q1.3, 4 solves: U2.11 2.5 A 7.77 mV; U1.4 2.8 A 5.59 mV; worst neck x0.7, worst via field x2.05, 2 places over; pad exits over IPC, not failed: U2.11 x1.5; 8.5 s",
+   "MOTOR_B from J1.2, 1 solves: U2.10 2.5 A 20.91 mV; worst neck x0.99, worst via field x0.68, 0 places over; pad exits over IPC, not failed: U2.10 x1.49; 0.3 s",
+   "MOTOR_A from J1.1, 1 solves: U2.8 2.5 A 16.48 mV; worst neck x0.96, worst via field x0.0, 0 places over; 0.3 s",
+   "VIN_RAW from J4.2, 1 solves: Q1.6 4 A 2.4 mV; worst neck x0.56, worst via field x0.33, 0 places over; 0.5 s",
+   "5V from L1.2, 1 solves: J3.1 3 A 6.57 mV; worst neck x2.38, worst via field x1.25, 4 places over; 1.6 s"
+  ]
+ },
+ "not_checked": {
+  "rung1-zener-a1": [
+   "irdrop: no irdrop block, so the feeds currents were not solved on the copper (necks, spokes, barrels)"
+  ],
+  "rung1-skidl-a1": [
+   "irdrop: no irdrop block, so the feeds currents were not solved on the copper (necks, spokes, barrels)"
+  ],
+  "plink-v1": [
+   "irdrop: no irdrop block, so the feeds currents were not solved on the copper (necks, spokes, barrels)"
+  ],
+  "plink-fixed": [
+   "irdrop: no irdrop block, so the feeds currents were not solved on the copper (necks, spokes, barrels)"
+  ],
+  "rung1-zener-a2-sonnet": [
+   "irdrop: no irdrop block, so the feeds currents were not solved on the copper (necks, spokes, barrels)"
+  ],
+  "rung1-zener-a2-fable": [
+   "irdrop: no irdrop block, so the feeds currents were not solved on the copper (necks, spokes, barrels)"
+  ],
+  "rung2-zener-a1-opus": [],
+  "rung2-zener-a1-sonnet": [],
+  "rung2-zener-a1-fable": [],
+  "rung2-zener-a2-opus": []
+ }
+}
