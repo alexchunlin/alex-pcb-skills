@@ -1,0 +1,640 @@
+{
+ "summary": {
+  "swapped I2C pins": {
+   "instances": 4,
+   "caught": 3,
+   "warn": 0,
+   "caught_on_topic": 3,
+   "n/a": 0,
+   "by_board": {
+    "rung1-zener-a2-sonnet": [
+     "missed",
+     "caught"
+    ],
+    "rung2-zener-a2-opus": [
+     "caught",
+     "caught"
+    ]
+   }
+  },
+  "missing pull-up": {
+   "instances": 4,
+   "caught": 4,
+   "warn": 0,
+   "caught_on_topic": 2,
+   "n/a": 0,
+   "by_board": {
+    "rung1-zener-a2-sonnet": [
+     "caught",
+     "caught"
+    ],
+    "rung2-zener-a2-opus": [
+     "caught",
+     "caught"
+    ]
+   }
+  },
+  "reversed diode": {
+   "instances": 2,
+   "caught": 1,
+   "warn": 0,
+   "caught_on_topic": 0,
+   "n/a": 1,
+   "by_board": {
+    "rung1-zener-a2-sonnet": [],
+    "rung2-zener-a2-opus": [
+     "caught",
+     "missed"
+    ]
+   }
+  },
+  "0.2 mm trace on a 3 A net": {
+   "instances": 3,
+   "caught": 3,
+   "warn": 0,
+   "caught_on_topic": 3,
+   "n/a": 1,
+   "by_board": {
+    "rung1-zener-a2-sonnet": [],
+    "rung2-zener-a2-opus": [
+     "caught",
+     "caught",
+     "caught"
+    ]
+   }
+  },
+  "decoupling cap 15 mm from its pin": {
+   "instances": 4,
+   "caught": 4,
+   "warn": 0,
+   "caught_on_topic": 4,
+   "n/a": 0,
+   "by_board": {
+    "rung1-zener-a2-sonnet": [
+     "caught",
+     "caught"
+    ],
+    "rung2-zener-a2-opus": [
+     "caught",
+     "caught"
+    ]
+   }
+  },
+  "connector pin map off by one": {
+   "instances": 4,
+   "caught": 4,
+   "warn": 0,
+   "caught_on_topic": 4,
+   "n/a": 0,
+   "by_board": {
+    "rung1-zener-a2-sonnet": [
+     "caught",
+     "caught"
+    ],
+    "rung2-zener-a2-opus": [
+     "caught",
+     "caught"
+    ]
+   }
+  }
+ },
+ "total": {
+  "instances": 21,
+  "caught": 19,
+  "caught_on_topic": 16
+ },
+ "baseline_fails": {
+  "rung1-zener-a2-sonnet": [
+   "fields:C1",
+   "fields:C2",
+   "fields:C3",
+   "fields:R1",
+   "fields:R2",
+   "policy:clearance_mm"
+  ],
+  "rung2-zener-a2-opus": [
+   "feeds:C17.1",
+   "feeds:J3.1",
+   "irdrop:5V:neck:In2.Cu@142.15,117.35",
+   "irdrop:5V:neck:In2.Cu@144.35,117.35",
+   "irdrop:5V:via@134.6,127.6",
+   "irdrop:5V:via@137.4,127.6",
+   "irdrop:VIN:via@120.5,130.9",
+   "irdrop:VIN:via@121.1,133.4"
+  ]
+ },
+ "mutants": [
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "swapped I2C pins",
+   "where": "U1 SDA/SCL (pins 14/13)",
+   "did": {
+    "op": "swap_pins",
+    "a": "U1.13 SCL -> SDA",
+    "b": "U1.14 SDA -> SCL"
+   },
+   "verdict": "missed",
+   "on_topic": false,
+   "new_fails": [],
+   "new_warns": [],
+   "n_rows": 41
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "swapped I2C pins",
+   "where": "J1 SDA/SCL (pins 3/4)",
+   "did": {
+    "op": "swap_pins",
+    "a": "J1.3 SDA -> SCL",
+    "b": "J1.4 SCL -> SDA"
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "connectors:J1",
+     "J1: pin 3: declared SDA, netlist SCL; pin 4: declared SCL, netlist SDA"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 41
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "missing pull-up",
+   "where": "R1 (SDA)",
+   "did": {
+    "op": "delete",
+    "deleted": "R1"
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "pullups:I2C:sda",
+     "SDA: no pull-up resistor to 3V3 (through default-closed jumpers)"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 40
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "missing pull-up",
+   "where": "R2 (SCL)",
+   "did": {
+    "op": "delete",
+    "deleted": "R2"
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "pullups:I2C:scl",
+     "SCL: no pull-up resistor to 3V3 (through default-closed jumpers)"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 40
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "reversed diode",
+   "where": "n/a: no diode on the board",
+   "verdict": "n/a"
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "0.2 mm trace on a 3 A net",
+   "where": "n/a: no net above 0.1 A",
+   "verdict": "n/a"
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "decoupling cap 15 mm from its pin",
+   "where": "C1 from U1.8",
+   "did": {
+    "op": "move_away",
+    "moved": "C1",
+    "to": [
+     123.24,
+     101.74
+    ],
+    "nearest_pad_mm": 14.7
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "decoupling:U1.8:C1",
+     "declared C1 (100nF 16V X7R) to U1.8: 14.705 mm centre, 14.0521 mm edge"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 41
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "decoupling cap 15 mm from its pin",
+   "where": "C2 from U1.5",
+   "did": {
+    "op": "move_away",
+    "moved": "C2",
+    "to": [
+     101.58,
+     103.02
+    ],
+    "nearest_pad_mm": 14.66
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "decoupling:U1.5:C2",
+     "declared C2 (100nF 16V X7R) to U1.5: 15.343 mm centre, 14.6738 mm edge"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 41
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "connector pin map off by one",
+   "where": "J1 pins 1-4",
+   "did": {
+    "op": "rotate_pins",
+    "map": {
+     "J1.1": "GND -> 3V3",
+     "J1.2": "3V3 -> SDA",
+     "J1.3": "SDA -> SCL",
+     "J1.4": "SCL -> GND"
+    }
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "connectors:J1",
+     "J1: pin 1: declared GND, netlist 3V3; pin 2: declared 3V3, netlist SDA; pin 3: declared SDA, netlist SCL; pin 4: declared SCL, netlist GND"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 41
+  },
+  {
+   "board": "rung1-zener-a2-sonnet",
+   "kind": "connector pin map off by one",
+   "where": "J2 pins 1-4",
+   "did": {
+    "op": "rotate_pins",
+    "map": {
+     "J2.1": "GND -> 3V3",
+     "J2.2": "3V3 -> SDA",
+     "J2.3": "SDA -> SCL",
+     "J2.4": "SCL -> GND"
+    }
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "connectors:J2",
+     "J2: pin 1: declared GND, netlist 3V3; pin 2: declared 3V3, netlist SDA; pin 3: declared SDA, netlist SCL; pin 4: declared SCL, netlist GND"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 41
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "swapped I2C pins",
+   "where": "no I2C: U2 PWM/DIR (pins 1/2) instead",
+   "did": {
+    "op": "swap_pins",
+    "a": "U2.1 PWM -> DIR",
+    "b": "U2.2 DIR -> PWM"
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "pinmaps:U2",
+     "U2 (DRV8874PWPR): pin 1 EN/IN1: declared PWM, netlist DIR; pin 2 PH/IN2: declared DIR, netlist PWM"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 161
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "swapped I2C pins",
+   "where": "no I2C: J2 ENC_A/ENC_B (pins 2/3) instead",
+   "did": {
+    "op": "swap_pins",
+    "a": "J2.2 ENC_A_IN -> ENC_B_IN",
+    "b": "J2.3 ENC_B_IN -> ENC_A_IN"
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "connectors:J2",
+     "J2: pin 2: declared ENC_A_IN, netlist ENC_B_IN; pin 3: declared ENC_B_IN, netlist ENC_A_IN"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 161
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "missing pull-up",
+   "where": "R12 (nFAULT, open drain)",
+   "did": {
+    "op": "delete",
+    "deleted": "R12"
+   },
+   "verdict": "caught",
+   "on_topic": false,
+   "new_fails": [
+    [
+     "calcs:i_nfault_ma",
+     "1000 * (3.3 / R('R12') + (3.3 - 1.9) / R('R13')): KeyError: 'no component R12'"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 160
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "missing pull-up",
+   "where": "R5 (ENC_A)",
+   "did": {
+    "op": "delete",
+    "deleted": "R5"
+   },
+   "verdict": "caught",
+   "on_topic": false,
+   "new_fails": [
+    [
+     "calcs:i_enc_pullup_ma",
+     "1000 * 3.3 / R('R5'): KeyError: 'no component R5'"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 160
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "reversed diode",
+   "where": "D4 SMAJ18A TVS on VIN",
+   "did": {
+    "op": "swap_pins",
+    "a": "D4.1 VIN -> GND",
+    "b": "D4.2 GND -> VIN"
+   },
+   "verdict": "caught",
+   "on_topic": false,
+   "new_fails": [
+    [
+     "irdrop:VIN:open:C17.1",
+     "C17.1 has no copper path from Q1.1,Q1.2,Q1.3 on VIN"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 160
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "reversed diode",
+   "where": "D3 BZT52C12 Q1 gate clamp",
+   "did": {
+    "op": "swap_pins",
+    "a": "D3.1 VIN -> Q1_GATE",
+    "b": "D3.2 Q1_GATE -> VIN"
+   },
+   "verdict": "missed",
+   "on_topic": false,
+   "new_fails": [],
+   "new_warns": [],
+   "n_rows": 161
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "0.2 mm trace on a 3 A net",
+   "where": "5V (1.4 mm -> 0.2)",
+   "did": {
+    "op": "track_width",
+    "segment": [
+     135.5,
+     128.95,
+     131.0,
+     128.95
+    ],
+    "was_mm": 1.4,
+    "now_mm": 0.2,
+    "layer": "F.Cu",
+    "length_mm": 4.5
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "currents:5V",
+     "5V 4.0 A at 20.0 degC rise: needs 1.335 mm outer (1.0 oz), 6.945 mm inner (0.5 oz); narrowest outer 0.2, inner None; pour on F.Cu, F.Cu, F.Cu, In2.Cu; outer 0.200 < 1.335"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 161
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "0.2 mm trace on a 3 A net",
+   "where": "VIN (1.4 mm -> 0.2)",
+   "did": {
+    "op": "track_width",
+    "segment": [
+     124.6,
+     123.9,
+     124.6,
+     126.6
+    ],
+    "was_mm": 1.4,
+    "now_mm": 0.2,
+    "layer": "F.Cu",
+    "length_mm": 2.7
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "currents:VIN",
+     "VIN 4.0 A at 20.0 degC rise: needs 1.335 mm outer (1.0 oz), 6.945 mm inner (0.5 oz); narrowest outer 0.2, inner None; pour on F.Cu, F.Cu, F.Cu, F.Cu, F.Cu, In2.Cu; outer 0.200 < 1.335"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 161
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "0.2 mm trace on a 3 A net",
+   "where": "MOTOR_A (0.8 mm -> 0.2)",
+   "did": {
+    "op": "track_width",
+    "segment": [
+     116.56,
+     108.6,
+     110.0,
+     108.6
+    ],
+    "was_mm": 0.8,
+    "now_mm": 0.2,
+    "layer": "F.Cu",
+    "length_mm": 6.57
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "currents:MOTOR_A",
+     "MOTOR_A 2.5 A at 20.0 degC rise: needs 0.698 mm outer (1.0 oz), 3.632 mm inner (0.5 oz); narrowest outer 0.2, inner None; outer 0.200 < 0.698"
+    ],
+    [
+     "feeds:U2.8",
+     "U2.8 (MOTOR_A) needs 2.5 A: 0 via(s) within 2.0 mm = 0.00 A (none), 1 track(s) touching = 1.01 A; total 1.01 A"
+    ],
+    [
+     "irdrop:MOTOR_A:neck:F.Cu@116.45,108.65",
+     "0.2 mm wide x 6.1 mm neck on F.Cu by U2.8: 2.501 A across it against IPC-2221 1.01 A at 20 degC (x2.48), 371.0 A/mm2 (solve: U2.8)"
+    ],
+    [
+     "irdrop:MOTOR_A:neck:F.Cu@110.45,108.65",
+     "0.2 mm wide x 6.1 mm neck on F.Cu: 2.5 A across it against IPC-2221 1.01 A at 20 degC (x2.47), 358.2 A/mm2 (solve: U2.8)"
+    ],
+    [
+     "irdrop:MOTOR_A:neck:F.Cu@112.45,108.65",
+     "0.2 mm wide x 6.1 mm neck on F.Cu: 2.5 A across it against IPC-2221 1.01 A at 20 degC (x2.47), 357.1 A/mm2 (solve: U2.8)"
+    ],
+    [
+     "irdrop:MOTOR_A:neck:F.Cu@114.45,108.65",
+     "0.2 mm wide x 6.1 mm neck on F.Cu: 2.5 A across it against IPC-2221 1.01 A at 20 degC (x2.47), 357.1 A/mm2 (solve: U2.8)"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 165
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "decoupling cap 15 mm from its pin",
+   "where": "C10 from U2.11 (VM)",
+   "did": {
+    "op": "move_away",
+    "moved": "C10",
+    "to": [
+     114.49,
+     129.44
+    ],
+    "nearest_pad_mm": 14.25
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "decoupling:U2.11",
+     "U2.11 VM on VIN: nearest cap C2 (10uF 50V X5R) at 7.678 mm centre, 6.2121 mm edge; others C11 8.214, C3 9.756, C1 9.861, C10 14.248, C17 20.714"
+    ],
+    [
+     "decoupling:U2.11:C10",
+     "declared C10 (100nF 50V X7R) to U2.11: 14.248 mm centre, 12.9527 mm edge"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 161
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "decoupling cap 15 mm from its pin",
+   "where": "C1 from U1.6 (PVIN)",
+   "did": {
+    "op": "move_away",
+    "moved": "C1",
+    "to": [
+     115.79,
+     112.57
+    ],
+    "nearest_pad_mm": 14.53
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "decoupling:U1.4",
+     "U1.4 PVIN on VIN: nearest cap C3 (100nF 50V X7R) at 4.921 mm centre, 3.9725 mm edge; others C2 5.189, C11 8.045, C10 12.990, C1 14.291, C17 21.018"
+    ],
+    [
+     "decoupling:U1.5",
+     "U1.5 PVIN on VIN: nearest cap C3 (100nF 50V X7R) at 4.600 mm centre, 3.6427 mm edge; others C2 5.070, C11 8.453, C10 12.933, C1 14.403, C17 20.579"
+    ],
+    [
+     "decoupling:U1.6:C1",
+     "declared C1 (10uF 50V X5R) to U1.6: 14.531 mm centre, 13.1453 mm edge"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 161
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "connector pin map off by one",
+   "where": "J3 pins 1-10",
+   "did": {
+    "op": "rotate_pins",
+    "map": {
+     "J3.1": "5V -> GND",
+     "J3.2": "GND -> 3V3",
+     "J3.3": "3V3 -> ISENSE",
+     "J3.4": "ISENSE -> PWM",
+     "J3.5": "PWM -> DIR",
+     "J3.6": "DIR -> nSLEEP",
+     "J3.7": "nSLEEP -> nFAULT",
+     "J3.8": "nFAULT -> ENC_A",
+     "J3.9": "ENC_A -> ENC_B",
+     "J3.10": "ENC_B -> 5V"
+    }
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "connectors:J3",
+     "J3: pin 1: declared 5V, netlist GND; pin 2: declared GND, netlist 3V3; pin 3: declared 3V3, netlist ISENSE; pin 4: declared ISENSE, netlist PWM; pin 5: declared PWM, netlist DIR; pin 6: declared DIR, "
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 157
+  },
+  {
+   "board": "rung2-zener-a2-opus",
+   "kind": "connector pin map off by one",
+   "where": "J2 pins 2-5",
+   "did": {
+    "op": "rotate_pins",
+    "map": {
+     "J2.2": "ENC_A_IN -> ENC_B_IN",
+     "J2.3": "ENC_B_IN -> 3V3",
+     "J2.4": "3V3 -> GND",
+     "J2.5": "GND -> ENC_A_IN"
+    }
+   },
+   "verdict": "caught",
+   "on_topic": true,
+   "new_fails": [
+    [
+     "connectors:J2",
+     "J2: pin 2: declared ENC_A_IN, netlist ENC_B_IN; pin 3: declared ENC_B_IN, netlist 3V3; pin 4: declared 3V3, netlist GND; pin 5: declared GND, netlist ENC_A_IN"
+    ]
+   ],
+   "new_warns": [],
+   "n_rows": 161
+  }
+ ]
+}
