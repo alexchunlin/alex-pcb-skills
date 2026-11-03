@@ -17,7 +17,9 @@ zone), the same feeds and thermal vias for every arm. Only the plan differs. Jud
   python3 -I tools/bench/plan_bench.py prep    --board opus|sonnet|opus2
   python3 -I tools/bench/plan_bench.py rules   --board B [--zones] > plan.json
   python3 -I tools/bench/plan_bench.py summary --board B             (what the agent arm reads)
-  python3 -I tools/bench/plan_bench.py score   --board B --plan plan.json --arm NAME [--tag T]
+  python3 -I tools/bench/plan_bench.py score   --board B --plan plan.json --arm NAME [--tag T] [--env K=V ...]
+  python3 -I tools/bench/plan_bench.py orders  --board B --plan rules.json --out DIR [--seeds 5]
+                                               (spike #4: the plan's waves under KRT's net orders, one plan file per arm)
   python3 -I tools/bench/plan_bench.py rescore --board B --run DIR [--tag T]      (judges only, on a finished run)
   python3 -I tools/bench/plan_bench.py table   [--results F]
   python3 -I tools/bench/plan_bench.py rank    [--results F]      PLAN-1 rule against the SIG-4 rule on the rescored rows
@@ -61,8 +63,8 @@ def netlist_of(board):
     return x
 
 
-def sh(cmd, cwd=None):
-    p = subprocess.run([str(c) for c in cmd], capture_output=True, text=True, cwd=cwd)
+def sh(cmd, cwd=None, env=None):
+    p = subprocess.run([str(c) for c in cmd], capture_output=True, text=True, cwd=cwd, env=env)
     return p.returncode, p.stdout, p.stderr
 
 
@@ -138,7 +140,7 @@ def judges(board, routed, waves):
     return {"clean": waves.get("clean"), "new_errors": waves.get("new_errors"), "airwires": m["ratsnest"]["airwires"],
             "vin_mW": ir.get("power_mW"), "vin_drop_mV": [s["drop_mV"] for s in ir.get("sinks", [])], "vin_J": ir.get("max_J_A_mm2"),
             "refplane_mm": round(sum(r["value"] or 0 for r in rp), 1), "foreign_mm": intr["foreign_mm"], "foreign_by_net": intr["by_net"],
-            "currents_fails": cur, "vias": m["vias"], "length_mm": m["length_mm"], "wall_s": waves.get("wall_s"), **sig}
+            "currents_fails": cur, "vias": m["vias"], "signal_vias": m.get("signal_vias"), "length_mm": m["length_mm"], "wall_s": waves.get("wall_s"), **sig}
 
 
 def rescore(board, run, tag="rescore"):
@@ -160,7 +162,38 @@ def rescore(board, run, tag="rescore"):
     return row
 
 
-def score(board, plan_path, arm, tag=""):
+def order_plans(board, plan_path, out_dir, seeds=5):
+    """Spike #4 (H2 on the waves): the same plan with every wave's KRT order changed. mps = as given (KRT's default);
+    original = `--ordering original` (each wave's patterns in name order); rand<N> = each wave's nets expanded by KRT's
+    own functions on the base board (pcbkrt.py nets) and shuffled with seed N + wave index, under `--ordering original`.
+    The global-plan arms are the mps plan scored with --env KICAD_GLOBAL_PLAN=1 KICAD_GLOBAL_PLAN_ORDER=<order>."""
+    import random
+    plan = json.load(open(plan_path))
+    b = base(board)
+    krt_py = os.environ.get("KRT_PY", "/tmp/pcb-ref/KiCadRoutingTools/.venv/bin/python")
+    out_dir = Path(out_dir); out_dir.mkdir(parents=True, exist_ok=True)
+    arms = {"mps": plan, "original": {**plan, "waves": [{**w, "args": (w.get("args") or []) + ["--ordering", "original"]} for w in plan["waves"]]}}
+    names = []
+    for w in plan["waves"]:
+        rc, out, err = sh([krt_py, "-I", ROOT / "skills/kicad-design/scripts/pcbkrt.py", "nets", b, *w["nets"]])
+        if rc:
+            raise RuntimeError(err[-400:])
+        names.append(json.loads(out.strip().splitlines()[-1]))
+    for n in range(1, seeds + 1):
+        ws = []
+        for i, (w, nm) in enumerate(zip(plan["waves"], names)):
+            nm = list(nm)
+            random.Random(n * 100 + i).shuffle(nm)
+            ws.append({**w, "nets": nm or w["nets"], "args": (w.get("args") or []) + ["--ordering", "original"]})
+        arms[f"rand{n}"] = {**plan, "waves": ws}
+    paths = {}
+    for k, v in arms.items():
+        paths[k] = str(out_dir / f"{board}-{k}.json")
+        json.dump(v, open(paths[k], "w"), indent=1)
+    return paths
+
+
+def score(board, plan_path, arm, tag="", env=None):
     b = base(board)
     run = SCRATCH / board / f"{arm}-{os.getpid()}-{int(time.time())}"
     run.mkdir(parents=True)
@@ -169,14 +202,15 @@ def score(board, plan_path, arm, tag=""):
             shutil.copy(f, run / f.name)
     pcb = run / b.name
     shutil.copy(plan_path, run / "plan.json")
-    rc, out, err = sh([PCB, "route", "waves", pcb, "--plan", run / "plan.json", "--work", run / "work"])
+    rc, out, err = sh([PCB, "route", "waves", pcb, "--plan", run / "plan.json", "--work", run / "work"],
+                      env={**os.environ, **(env or {})})
     (run / "waves.txt").write_text(out + err)
     try:
         waves = json.load(open(run / "waves.json"))
     except FileNotFoundError:
         return {"board": board, "arm": arm, "error": (out + err)[-600:]}
     row = {"ts": dt.datetime.now().isoformat(timespec="seconds"), "board": board, "arm": arm, "tag": tag, "run": str(run),
-           **judges(board, pcb, waves),
+           **judges(board, pcb, waves), **({"env": env} if env else {}),
            "plan_waves": [w.get("name") for w in json.load(open(run / "plan.json")).get("waves", [])],
            "feeds_placed": sum(1 for v in (waves["waves"][0].get("feeds") or {}).values() if "error" not in v)}
     RESULTS.parent.mkdir(parents=True, exist_ok=True)
@@ -275,7 +309,9 @@ def table(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["prep", "rules", "summary", "score", "rescore", "table", "rank"])
+    ap.add_argument("cmd", choices=["prep", "rules", "summary", "score", "rescore", "table", "rank", "orders"])
+    ap.add_argument("--env", nargs="*", default=[], help="score: K=V pairs for the router's environment (KRT's env knobs)")
+    ap.add_argument("--out"); ap.add_argument("--seeds", type=int, default=5)
     ap.add_argument("--board"); ap.add_argument("--plan"); ap.add_argument("--arm", default="custom"); ap.add_argument("--tag", default="")
     ap.add_argument("--run", help="rescore: an existing run directory under the scratch dir")
     ap.add_argument("--fast-max", type=float, default=0.0, help="rank: mm a bucket-3 net may run off ground (hard limit, default 0)")
@@ -289,7 +325,9 @@ def main():
     elif a.cmd == "summary":
         print(json.dumps(kpy("summary", base(a.board))))
     elif a.cmd == "score":
-        print(json.dumps(score(a.board, a.plan, a.arm, a.tag)))
+        print(json.dumps(score(a.board, a.plan, a.arm, a.tag, dict(e.split("=", 1) for e in a.env))))
+    elif a.cmd == "orders":
+        print(json.dumps(order_plans(a.board, a.plan, a.out, a.seeds), indent=1))
     elif a.cmd == "rescore":
         print(json.dumps(rescore(a.board, a.run, a.tag or "rescore"), indent=1))
     elif a.cmd == "rank":

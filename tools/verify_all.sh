@@ -26,7 +26,7 @@ printf '{"commit": "%s", "dirty": %s, "when": "%s"}\n' "$(git -C "$ROOT" rev-par
 #@ group @check = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcbq.py skills/kicad-design/scripts/pcbcli.py
 #@ group @lib = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcblib/**
 # none: paths no test reads (a watch wins: section 20 reads FINDINGS.md and every skills/**/*.md)
-#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README tools/spikes/** tools/bench/plink_signals.py tools/readme/**
+#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README tools/spikes/** tools/readme/** tools/bench/plink/** tools/bench/plink_signals.py
 SELECTED=ALL; EXPECT=""; CHANGED=""; RAN=""; CUR=""; CUR_N=0; CUR_OK=""
 case "${1:-}" in
   --*) P=$(python3 -I "$ROOT/tools/verify_select.py" "$@") || { rc=$?; printf '%s\n' "$P"; exit $rc; }
@@ -645,6 +645,33 @@ echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1
   done
 fi  #@ end 16
 
+if want 31; then  #@ watch: skills/kicad-design/scripts/pcbroute.py skills/kicad-design/scripts/pcbkrt.py skills/kicad-design/scripts/pcbq.py tools/bench/route_bench.py examples/rung2-zener-a*/board/**
+echo "== 31 signal vias and KRT's MPS conflict graph (spike #4)"
+T4="$V/spike4"; mkdir -p "$T4"
+# signal_vias: vias on nets with no filled inner-layer zone. The archived attempt-2 board: 64 vias, 37 of them on the
+# plane nets (GND In1/In2, VIN and 5V In2), 27 layer changes on 13 signal nets
+$PCB route measure "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" --json > "$T4/m.json"
+[ "$(jq_ "$T4/m.json" "(d['vias'], d['signal_vias'], d['plane_nets'], sum(d['signal_vias_by_net'].values()), len(d['signal_vias_by_net']))")" = "(64, 27, ['5V', 'GND', 'VIN'], 27, 13)" ] \
+  && ok "measure: attempt-2 board 64 vias, 27 signal vias on 13 nets, plane nets 5V GND VIN" || bad "measure signal_vias: $(jq_ "$T4/m.json" "(d['vias'], d.get('signal_vias'), d.get('plane_nets'))")"
+# pcb q conflicts: KRT's own MPS graph from the placement (tracks stripped on a temp copy, footprints sorted, pours kept).
+# The expected counts are the "MPS: N nets with K crossing conflicts" lines KRT printed when the route bench routed the
+# same boards (tools/bench/results/route.jsonl, tag spike4-h2, config outer): opus 31/41, sonnet 30/39, fable 33/56,
+# opus2 28/53
+if [ -x "${KRT_PY:-$REF/KiCadRoutingTools/.venv/bin/python}" ]; then
+  got=""
+  for b in rung2-zener-a1-opus rung2-zener-a1-sonnet rung2-zener-a1-fable rung2-zener-a2-opus; do
+    $PCB q "$ROOT"/examples/$b/board/*.kicad_pcb conflicts --json > "$T4/c-$b.json" 2>"$T4/c-$b.err"
+    got="$got $(jq_ "$T4/c-$b.json" "'%d/%d' % (d['nets'], d['conflicts'])")"
+  done
+  [ "$got" = " 31/41 30/39 33/56 28/53" ] && ok "pcb q conflicts matches KRT's routed-run MPS count on the four rung-2 boards:$got" || bad "pcb q conflicts:$got (want 31/41 30/39 33/56 28/53)"
+  [ "$(jq_ "$T4/c-rung2-zener-a2-opus.json" "(d['signal_conflicts'], d['rounds'], d['bipartite'], d['order'][:3], round(d['hpwl_mm'], 1))")" = "(40, 7, False, ['BOOT', 'COMP_RC', 'CPH'], 575.1)" ] \
+    && ok "conflicts on the attempt-2 board: 40 between signal nets, 7 MPS rounds, not bipartite, KRT's order starts BOOT COMP_RC CPH, HPWL 575.1 mm" \
+    || bad "conflicts detail: $(jq_ "$T4/c-rung2-zener-a2-opus.json" "(d['signal_conflicts'], d['rounds'], d['bipartite'], d['order'][:3], d['hpwl_mm'])")"
+else
+  nochecks "pcb q conflicts: KiCadRoutingTools not installed under $REF"
+fi
+fi  #@ end 31
+
 #@ plumbing
 # per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
 # Under --changed, each by its # watch: header.
@@ -656,7 +683,6 @@ if [ -n "$CHANGED" ]; then
   for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
   echo "verify_all --changed: ran$RAN"
 fi
-
 
 echo; echo "verify_all: $pass passed, $fail failed  ($V)"
 [ "$fail" = 0 ]
