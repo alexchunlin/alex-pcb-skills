@@ -25,6 +25,26 @@ Checks (v0):
                internal on the barrel) plus tracks touching it; a pour-only feed fails with its neck unsized (rung 2: the
                DRV8874 VM pin fed by one 0.3 mm via or a 0.34 mm pour finger on two of three boards, R2-T5)
   thermal_vias declared minimum stitching vias on a pad's net within `within_mm` of the pad (thermal pad to pour)
+  feed_room    placement-stage: every SMD `feeds` pad gets a trial pcblib plan_feeds on an in-memory copy (biggest
+               current first, neighbours splayed apart, each feed reserved for the next), so a pad whose feed cannot fit
+               fails at placement with the parts in the way, before any routing (FEED-2). Opt-in: {} or {"skip": [pads]}
+  refplane     every track off the ground net runs over solid ground fill on the copper layer next to it in the stack
+               (In1 under F.Cu, the last inner layer under B.Cu): sampled every step_mm, points next to the net's own
+               vias and through-hole pads skipped (the plane's antipad), per net the mm and the count of gaps crossed.
+               Opt-in: {"ground": "GND", "step_mm": 0.25, "max_gap_mm": 0, "mid_max_mm": 5, "antipad_mm": 0.5,
+               "connector_mm": 1.5, "skip_nets": []}; points within connector_mm of a through-hole pad of a footprint the net
+               lands on are skipped too (a track entering its own connector crosses the pin field's voids). Alex's
+               stackup: two solid ground planes, rails routed, signals only over unbroken ground (REFPLANE-1). The limit
+               follows the net's bucket from `signals` (SIG-1): 3 and 4 fail above max_gap_mm, 2 warns above mid_max_mm,
+               1 and the rails carry the mm as a cost only; each row has `bucket` and `gaps`
+  return_via   a via on a fast net moves its return from one ground plane to the other: the nearest ground via or
+               through-hole ground pad must be within max_mm_4 1.0 / max_mm_3 2.0 (fail) / max_mm_2 5.0 mm (warn);
+               bucket 1 is reported, rails skipped. Opt-in: {"ground": "GND"} (SIG-2)
+  exposure     same-layer exposure to an aggressor's copper (default: the switch node, an inductor net that reaches an
+               IC pin): track of every non-local signal net sampled every step_mm, samples within within_mm of the
+               aggressor's tracks, pads or zone fill on the same layer summed per net, times victim_weight for `signals`
+               victims; nets local to the aggressor (every pad on a footprint that also carries it) and rails left out.
+               Opt-in: {"aggressors": [], "within_mm": 1.0, "step_mm": 0.25, "victim_weight": 3, "max_mm": null} (SIG-3)
   calcs        formula rows: {id, expr, vars, min, max}; `R("R5")`, `C("C3")`, `L("L1")` read values from the
                netlist, earlier ids are variables; the brief's buck ripple, LDO dissipation and sense scaling
   fields       every BOM part (not DNP, not excluded from BOM) carries the required fields, default MPN, Manufacturer,
@@ -34,7 +54,8 @@ Checks (v0):
                setting until plain DRC read 0 (clearance 0.14/0.15, silk text 0.8); the policy block makes that a
                fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
-margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, calcs, feeds, accepted_warns, _notes.
+margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, refplane, return_via, exposure, feed_room, calcs, feeds,
+signals, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, os, re, subprocess, sys
@@ -47,14 +68,14 @@ import pcbq  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "calcs", "feeds", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
 
-def row(check, status, rid, msg, value=None, limit=None, objects=(), finding=""):
+def row(check, status, rid, msg, value=None, limit=None, objects=(), finding="", **extra):
     ROWS.append({"check": check, "status": status, "id": rid, "msg": msg, "value": value, "limit": limit,
-                 "objects": list(objects), "finding": finding})
+                 "objects": list(objects), "finding": finding, **extra})
 
 
 def arg(name, default=None):
@@ -623,6 +644,297 @@ def check_thermal_vias(CFG, NL, B):
     COVERAGE.append(f"thermal_vias: {len(tv)} pads; vias on the pad's net within within_mm of the pad centre")
 
 
+def check_feed_room(CFG, NL, B, board_path):
+    fr = CFG.get("feed_room")
+    if fr is None:
+        NOT_CHECKED.append("feed_room: no feed_room block, so whether each feeds pad has room for its pour and vias was not tried")
+        return
+    fr = fr if isinstance(fr, dict) else {}
+    from pcblib.board import Board
+    bd = Board(pcbnew.LoadBoard(board_path), board_path)   # a second copy: the trial copper never reaches the other rows
+    bd.clearance = pcbnew.ToMM(bd.b.GetDesignSettings().m_MinClearance) or 0.2
+    skip = set(fr.get("skip", []))
+    fps = pcbq.fp_map(bd.b)
+    rows = []
+    for f in CFG.get("feeds", []):
+        pad = f.get("pad", "")
+        if pad in skip:
+            continue
+        try:
+            pd = pcbq.pad_of(fps, pad.split(",")[0] if "," in pad else pad)
+        except SystemExit:
+            continue
+        if pd.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+            continue   # through-hole pins reach the planes through their barrel
+        rows.append((float(f["amps"]), pad, f))
+    res = bd.plan_feeds([(pad, amps) for amps, pad, _ in rows])
+    for amps, pad, f in sorted(rows, key=lambda r: -r[0]):
+        ref = pad.split(".")[0]
+        r = res[pad]
+        if "error" not in r:
+            row("feed_room", "pass", f"feed_room:{pad}", f"{pad} {amps} A: {r['vias']} vias fit (splay {r['splay']}, length {r['length']} mm, "
+                f"{r['across']} across), reserved for the pins after it", value=r["vias"], objects=[ref], finding="FEED-2")
+        else:
+            msg = r["error"]
+            blockers = sorted(set(re.findall(r"on ([A-Z]+[0-9]+)\.", msg)) | set(re.findall(r"inside feed_([A-Z]+[0-9]+_[0-9_]+)", msg)) - {ref})
+            row("feed_room", "fail", f"feed_room:{pad}", f"{pad} {amps} A: no room for a pour and vias; in the way: "
+                f"{', '.join(blockers) or 'see message'} ({msg[-160:]})", objects=[ref] + [b for b in blockers if not b.startswith(ref + "_")], finding="FEED-2")
+    COVERAGE.append(f"feed_room: {len(rows)} SMD feeds pads tried with pcblib pad_feed_search, biggest current first, each reserved")
+
+
+def check_refplane(CFG, NL, B):
+    rp = CFG.get("refplane")
+    if not rp:
+        NOT_CHECKED.append("refplane: no refplane block, so whether signals run over solid ground was not measured")
+        return
+    rp = rp if isinstance(rp, dict) else {}
+    gnd = rp.get("ground", "GND")
+    step = float(rp.get("step_mm", 0.25))
+    max_gap = float(rp.get("max_gap_mm", 0.0))
+    skip = set(rp.get("skip_nets", [])) | {gnd}
+    stack = list(B.GetEnabledLayers().CuStack())
+    if len(stack) < 3:
+        NOT_CHECKED.append(f"refplane: {len(stack)} copper layers, no inner reference plane to check")
+        return
+    zones = {}
+    unfilled = []
+    for z in B.Zones():
+        if z.GetIsRuleArea() or z.GetNetname() != gnd:
+            continue
+        for L in z.GetLayerSet().CuStack():
+            if z.HasFilledPolysForLayer(L) and z.GetFilledPolysList(L).OutlineCount():
+                zones.setdefault(L, []).append(z)
+            else:
+                unfilled.append(B.GetLayerName(L))
+    if unfilled:
+        CONFIG_WARNS.append(f"refplane: {gnd} zones with no fill on {sorted(set(unfilled))}; run `pcb route fill` first")
+    # the net's own vias and through-hole pads punch an antipad in every plane: skip points that close to them
+    # ... and the through-hole pads of every footprint the net lands on: a track entering its own connector crosses the
+    # antipads of the neighbouring pins on both planes alike, which no plan can avoid (SIG-4: 1.6 mm of nSLEEP under J3's
+    # pin field decided the opus board's hard limit)
+    holes = {}
+    for t in B.GetTracks():
+        if t.GetClass() == "PCB_VIA":
+            holes.setdefault(t.GetNetname(), []).append((t.GetPosition(), t.GetWidth(pcbnew.F_Cu) / 2))
+    fp_nets = {}
+    for f in B.GetFootprints():
+        for pd in f.Pads():
+            if pd.GetNetname():
+                fp_nets.setdefault(f.GetReference(), set()).add(pd.GetNetname())
+    conn = pcbnew.FromMM(float(rp.get("connector_mm", 1.5))) - pcbnew.FromMM(float(rp.get("antipad_mm", 0.5)))
+    for f in B.GetFootprints():
+        # a 2.54 mm pin field with the plane's clearance leaves no web between pins, so the halo here is connector_mm
+        pth = [(pd.GetPosition(), max(pd.GetSize().x, pd.GetSize().y) / 2 + conn) for pd in f.Pads() if pd.GetAttribute() == pcbnew.PAD_ATTRIB_PTH]
+        for n in fp_nets.get(f.GetReference(), ()):
+            holes.setdefault(n, []).extend(pth)
+    halo = pcbnew.FromMM(float(rp.get("antipad_mm", 0.5)))
+    per = {}
+    for t in B.GetTracks():
+        if t.GetClass() == "PCB_VIA" or t.GetNetname() in skip:
+            continue
+        L = t.GetLayer()
+        if L not in stack:
+            continue
+        i = stack.index(L)
+        refs = [stack[j] for j in (i - 1, i + 1) if 0 <= j < len(stack)]
+        a, b = t.GetStart(), t.GetEnd()
+        length = pcbnew.ToMM(t.GetLength())
+        n = max(1, int(length / step))
+        own = holes.get(t.GetNetname(), [])
+        d = per.setdefault(t.GetNetname(), {"mm": 0.0, "bad_mm": 0.0, "gaps": 0, "layers": {}, "where": []})
+        d["mm"] += length
+        prev_bad = False
+        for k in range(n + 1):
+            x = a.x + (b.x - a.x) * k / n; y = a.y + (b.y - a.y) * k / n
+            pt = pcbnew.VECTOR2I(int(x), int(y))
+            if any((pt.x - c.x) ** 2 + (pt.y - c.y) ** 2 <= (r + halo) ** 2 for c, r in own):
+                prev_bad = False
+                continue
+            ok = any(z.HitTestFilledArea(R, pt) for R in refs for z in zones.get(R, []))
+            if not ok:
+                d["bad_mm"] += length / (n + 1)
+                ln = B.GetLayerName(L)
+                d["layers"][ln] = d["layers"].get(ln, 0.0) + length / (n + 1)
+                if not prev_bad:
+                    d["gaps"] += 1
+                    if len(d["where"]) < 3:
+                        d["where"].append(f"({pcbnew.ToMM(pt.x):.1f}, {pcbnew.ToMM(pt.y):.1f}) {B.GetLayerName(L)}")
+            prev_bad = not ok
+    # SIG-1: the limit depends on the net's bucket. 3 and 4 are hard (max_gap_mm, 0 by default); 2 is a cost that warns
+    # above mid_max_mm; 1 and the rails are a cost only (the row carries the mm for the routing search to weigh).
+    buckets = signal_buckets(CFG, NL)
+    mid_max = float(rp.get("mid_max_mm", 5.0))
+    bad_total, by_layer, by_bucket = 0.0, {}, {}
+    for net, d in sorted(per.items()):
+        for k, v in d["layers"].items():
+            by_layer[k] = by_layer.get(k, 0.0) + v
+        bk = buckets.get(net, 1)
+        by_bucket[bk] = by_bucket.get(bk, 0.0) + d["bad_mm"]
+        if bk in (3, 4):
+            st, lim = ("fail" if d["bad_mm"] > max_gap + 1e-6 else "pass"), max_gap
+        elif bk == 2:
+            st, lim = ("warn" if d["bad_mm"] > mid_max + 1e-6 else "pass"), mid_max
+        else:
+            st, lim = "pass", None
+        bad_total += d["bad_mm"]
+        msg = (f"{net} [bucket {bk}]: {d['bad_mm']:.1f} of {d['mm']:.1f} mm not over solid {gnd} on the next layer, {d['gaps']} gap(s)"
+               + (f" ({', '.join(f'{k} {v:.1f} mm' for k, v in sorted(d['layers'].items()))}), first at {'; '.join(d['where'])}" if d["gaps"] else ""))
+        row("refplane", st, f"refplane:{net}", msg, value=round(d["bad_mm"], 2), limit=lim, objects=[net], finding="REFPLANE-1",
+            bucket=bk, gaps=d["gaps"])
+    COVERAGE.append(f"refplane: {len(per)} nets, tracks sampled every {step} mm against {gnd} fill on the adjacent layer(s); "
+                    f"{bad_total:.1f} mm unreferenced in total ({', '.join(f'{k} {v:.1f}' for k, v in sorted(by_layer.items()))}); "
+                    f"by bucket {', '.join(f'{k}: {v:.1f}' for k, v in sorted(by_bucket.items(), key=lambda kv: str(kv[0])))}")
+
+
+def signal_buckets(CFG, NL):
+    """net -> bucket from the `signals` block (SIG-1); nets the block does not name are bucket 1, rails P, GND skipped."""
+    import pcbsig
+    nets = {n: [(r, p, "") for r, p in nodes] for n, nodes in NL[2].items()}
+    if not CFG.get("signals"):
+        CONFIG_WARNS.append("signals: no signals block, so every net is bucket 1 (best effort over ground); see `pcb signals`")
+    return pcbsig.buckets(CFG, nets)
+
+
+def gnd_returns(B, gnd):
+    """Positions of the ground vias and through-hole pads: where a return current can move between In1 and In2."""
+    pts = [t.GetPosition() for t in B.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetname() == gnd]
+    for f in B.GetFootprints():
+        for pd in f.Pads():
+            if pd.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and pd.GetNetname() == gnd:
+                pts.append(pd.GetPosition())
+    return pts
+
+
+def check_return_via(CFG, NL, B):
+    """SIG-2: a via on a fast net moves its return from one ground plane to the other, so a ground via (or through-hole
+    ground pad) has to sit within max_mm of it. Hard for buckets 3 and 4, a warned cost for 2, cost only for 1."""
+    rv = CFG.get("return_via")
+    if rv is None:
+        NOT_CHECKED.append("return_via: no return_via block, so ground vias beside the fast nets' layer changes were not measured")
+        return
+    rv = rv if isinstance(rv, dict) else {}
+    gnd = rv.get("ground", "GND")
+    lim = {4: float(rv.get("max_mm_4", 1.0)), 3: float(rv.get("max_mm_3", 2.0)), 2: float(rv.get("max_mm_2", 5.0))}
+    stack = list(B.GetEnabledLayers().CuStack())
+    if len(stack) < 4:
+        NOT_CHECKED.append(f"return_via: {len(stack)} copper layers, one reference plane at most, no plane change to check")
+        return
+    buckets = signal_buckets(CFG, NL)
+    pts = gnd_returns(B, gnd)
+    per = {}
+    for t in B.GetTracks():
+        if t.GetClass() != "PCB_VIA" or t.GetNetname() in ("", gnd):
+            continue
+        n = t.GetNetname()
+        bk = buckets.get(n, 1)
+        if bk == "P":
+            continue
+        q = t.GetPosition()
+        d = min((pcbnew.ToMM(int(((q.x - g.x) ** 2 + (q.y - g.y) ** 2) ** 0.5)) for g in pts), default=999.0)
+        per.setdefault(n, []).append((round(d, 2), round(pcbnew.ToMM(q.x), 1), round(pcbnew.ToMM(q.y), 1)))
+    for n, vs in sorted(per.items()):
+        bk = buckets.get(n, 1)
+        worst = max(v[0] for v in vs)
+        bad = [v for v in vs if bk in lim and v[0] > lim[bk] + 1e-6]
+        st = "pass" if not bad else ("fail" if bk in (3, 4) else "warn")
+        where = "; ".join(f"({x}, {y}) {d} mm" for d, x, y in bad[:3])
+        msg = (f"{n} [bucket {bk}]: {len(vs)} via(s), nearest {gnd} via or through-hole pad {min(v[0] for v in vs)}-{worst} mm"
+               + (f"; {len(bad)} beyond {lim[bk]} mm: {where}" if bad else ""))
+        row("return_via", st, f"return_via:{n}", msg, value=worst, limit=lim.get(bk), objects=[n], finding="SIG-2",
+            bucket=bk, vias=len(vs), bad=len(bad))
+    COVERAGE.append(f"return_via: {sum(len(v) for v in per.values())} signal vias on {len(per)} nets against {len(pts)} {gnd} vias and "
+                    f"through-hole pads; limits bucket 4 {lim[4]}, 3 {lim[3]}, 2 {lim[2]} mm")
+
+
+def check_exposure(CFG, NL, B):
+    """SIG-3: same-layer exposure to an aggressor's copper. Every track of a non-local signal net sampled every step_mm;
+    a sample within within_mm of the aggressor's copper on the same layer (tracks, pads, zone fill) counts. Per net the
+    exposed mm, weighted by victim_weight for victims; nets local to the aggressor (every pad on a footprint that also
+    carries the aggressor) and the rails are left out. Aggressors default to the switch node: the inductor net that
+    also reaches an IC pin."""
+    ex = CFG.get("exposure")
+    if ex is None:
+        NOT_CHECKED.append("exposure: no exposure block, so signal copper beside the switch node on the same layer was not measured")
+        return
+    ex = ex if isinstance(ex, dict) else {}
+    within = pcbnew.FromMM(float(ex.get("within_mm", 1.0)))
+    step = float(ex.get("step_mm", 0.25))
+    vw = float(ex.get("victim_weight", 3.0))
+    max_mm = ex.get("max_mm")
+    buckets = signal_buckets(CFG, NL)
+    import pcbsig
+    victims = pcbsig.victims(CFG)
+    aggr = list(ex.get("aggressors") or [])
+    if not aggr:
+        rails = set((CFG.get("rails") or {}).keys())
+        for f in B.GetFootprints():
+            if not f.GetReference().startswith("L"):
+                continue
+            for pd in f.Pads():
+                n = pd.GetNetname()
+                if n and n not in rails and any(q.GetParentFootprint().GetReference().startswith("U") for g in B.GetFootprints() for q in g.Pads() if q.GetNetname() == n):
+                    aggr.append(n)
+        aggr = sorted(set(aggr))
+    if not aggr:
+        NOT_CHECKED.append("exposure: no aggressor named and no switch node found (an inductor net that reaches an IC pin)")
+        return
+    # the aggressor's copper per layer: effective shapes of its tracks and pads, filled polys of its zones
+    shapes, polys = {}, {}
+    carriers = set()
+    for t in B.GetTracks():
+        if t.GetNetname() in aggr:
+            if t.GetClass() == "PCB_VIA":
+                for L in B.GetEnabledLayers().CuStack():
+                    shapes.setdefault(L, []).append(t.GetEffectiveShape(L))
+            else:
+                shapes.setdefault(t.GetLayer(), []).append(t.GetEffectiveShape(t.GetLayer()))
+    for f in B.GetFootprints():
+        for pd in f.Pads():
+            if pd.GetNetname() in aggr:
+                carriers.add(f.GetReference())
+                for L in pd.GetLayerSet().CuStack():
+                    shapes.setdefault(L, []).append(pd.GetEffectiveShape(L))
+    for z in B.Zones():
+        if z.GetNetname() in aggr and not z.GetIsRuleArea():
+            for L in z.GetLayerSet().CuStack():
+                if z.HasFilledPolysForLayer(L):
+                    polys.setdefault(L, []).append(z.GetFilledPolysList(L))
+    local = {n for n, nodes in NL[2].items() if nodes and all(r in carriers for r, _ in nodes)}
+    per = {}
+    for t in B.GetTracks():
+        n = t.GetNetname()
+        if t.GetClass() == "PCB_VIA" or n in aggr or n in local or buckets.get(n, 1) == "P" or gnd_like(n) or not n:
+            continue
+        L = t.GetLayer()
+        if L not in shapes and L not in polys:
+            continue
+        a, b = t.GetStart(), t.GetEnd()
+        length = pcbnew.ToMM(t.GetLength())
+        k = max(1, int(length / step))
+        hit = 0
+        for i in range(k):
+            pt = pcbnew.VECTOR2I(int(a.x + (b.x - a.x) * (i + 0.5) / k), int(a.y + (b.y - a.y) * (i + 0.5) / k))
+            if any(sh.Collide(pt, within) for sh in shapes.get(L, [])) or any(pl.Collide(pt, within) for pl in polys.get(L, [])):
+                hit += 1
+        if hit:
+            d = per.setdefault(n, {"mm": 0.0, "layers": {}})
+            d["mm"] += length * hit / k
+            ln = B.GetLayerName(L)
+            d["layers"][ln] = d["layers"].get(ln, 0.0) + length * hit / k
+    total = 0.0
+    for n, d in sorted(per.items(), key=lambda kv: -kv[1]["mm"]):
+        w = vw if n in victims else 1.0
+        cost = d["mm"] * w
+        total += cost
+        st = "pass" if max_mm is None or cost <= float(max_mm) + 1e-6 else ("fail" if n in victims else "warn")
+        msg = (f"{n} [bucket {buckets.get(n, 1)}{', victim' if n in victims else ''}]: {d['mm']:.1f} mm within {pcbnew.ToMM(within):g} mm of "
+               f"{'/'.join(aggr)} copper on the same layer ({', '.join(f'{k} {v:.1f}' for k, v in sorted(d['layers'].items()))}), weighted {cost:.1f}")
+        row("exposure", st, f"exposure:{n}", msg, value=round(cost, 2), limit=max_mm, objects=[n], finding="SIG-3",
+            bucket=buckets.get(n, 1), victim=n in victims, mm=round(d["mm"], 2))
+    COVERAGE.append(f"exposure: aggressors {', '.join(aggr)}, local nets left out {', '.join(sorted(local))}; "
+                    f"{len(per)} nets exposed, {total:.1f} mm weighted in total")
+
+
 def check_calcs(CFG, NL, B):
     rows = CFG.get("calcs", [])
     if not rows:
@@ -751,7 +1063,10 @@ def main():
               ("test_points", lambda: check_test_points(CFG, NL, B, bringup)), ("silk", lambda: check_silk(CFG, NL, B, bringup)),
               ("margin", lambda: check_margin(CFG, NL, B)), ("policy", lambda: check_policy(CFG, NL, B)),
               ("fields", lambda: check_fields(CFG, NL, B)), ("currents", lambda: check_currents(CFG, NL, B)),
-              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("calcs", lambda: check_calcs(CFG, NL, B)),
+              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("refplane", lambda: check_refplane(CFG, NL, B)),
+              ("return_via", lambda: check_return_via(CFG, NL, B)), ("exposure", lambda: check_exposure(CFG, NL, B)),
+              ("feed_room", lambda: check_feed_room(CFG, NL, B, board)),
+              ("calcs", lambda: check_calcs(CFG, NL, B)),
               ("feeds", lambda: check_feeds(CFG, NL, B))]
     for name, fn in checks:
         if only and name not in only:

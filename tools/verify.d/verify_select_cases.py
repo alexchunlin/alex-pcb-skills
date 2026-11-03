@@ -60,7 +60,7 @@ CASES = [
     ("bench labels", ["tools/bench/labels.json"], {"bench.sh"}),
     ("the selector", ["tools/verify_select.py"], set()),
     ("a new unmapped tools dir", ["tools/newtool/run.py"], "ALL"),
-    ("pcblib (the bench runs drc, check, fab only)", [S + "pcblib/board.py"], {"17", "18", "19", "16"}),
+    ("pcblib (the bench runs drc, check, fab only; 28 tests pad_feed)", [S + "pcblib/board.py"], {"17", "18", "19", "16", "28"}),
     ("a plink archive", ["examples/plink/v1-fb32540.tar.gz"], {"bench.sh"}),
 ]
 for name, paths, want in CASES:

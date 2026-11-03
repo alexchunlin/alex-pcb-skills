@@ -13,6 +13,8 @@ placement, routes, zones, silk. When KiCad 11 replaces SWIG with the IPC API, th
     b.place("U1", 112.7, 112.7, 0)                    # by reference; raises on an unknown ref
     b.route("SDA", ["U1.14", (112.0, 109.5), "J1.3"])  # points are (x, y) mm or "REF.PAD"; width from the net class
     b.via(110.6, 112.7, "GND")
+    b.thermal_vias("U2")                              # via grid inside the exposed pad (the router never adds these, ROUTE-T1)
+    b.pad_feed("U2", "11", 2.5)                       # pour finger + vias sized for 2.5 A out of a fine-pitch power pin
     b.zone("GND", "In1.Cu")                           # whole board inset 0.5 mm, thermal reliefs
     b.text("Qwiic", 103.3, 103.2); b.text("rev A", 112.7, 112.0, layer="B.SilkS")   # B.* text is mirrored for you
     b.refdes("U1", visible=True, at=(108.2, 112.0)); b.hide_refdes()
@@ -27,6 +29,10 @@ Traps handled here (do not work around them in scripts):
   - GetNetsByName() returns an unmanaged map: net() uses FindNet (R1-Z1-T4).
   - FOOTPRINT.SetField() creates a visible field at the origin; GetFieldByName does not exist in 10.0.1 (R1-S1-T5).
   - BOX2I.Merge into a temporary from GetBoundingBox aborts the interpreter (P1-T6).
+  - SaveBoard re-nets a new via that sits in another net's stale zone fill and touches nothing of its own net (a VIN
+    feed via inside the old GND pour came back GND, a 0.185 mm short to a VIN pad): save() unfills the zones first
+    when this session added vias or tracks, and fill() pours them again (ROUTE-T4). unfill_and_save() does the same
+    for scripts that hold a raw BOARD.
   - LSET(layer) has no single-layer constructor in 10.0.1 (P1-T6).
 """
 import math, os, re
@@ -50,6 +56,14 @@ def _layers(board):
     for i in range(1, 31):
         if hasattr(pcbnew, f"In{i}_Cu"):
             LAYER[f"In{i}.Cu"] = getattr(pcbnew, f"In{i}_Cu")
+
+
+def unfill_and_save(board, path):
+    """Clear every zone fill, then save: KiCad's save re-nets a via that touches only another net's stale fill
+    (ROUTE-T4). Refill afterwards (Board.load(path).fill())."""
+    for z in board.Zones():
+        z.UnFill()
+    pcbnew.SaveBoard(path, board)
 
 
 def layer_id(name):
@@ -77,6 +91,7 @@ class Board:
         self._padnet = {}
         self.vias_added = 0
         self.tracks_added = 0
+        self._dirty = False   # copper added since the last save: the next save unfills first (ROUTE-T4)
 
     # ------------------------------------------------------------------ construction
     @classmethod
@@ -261,6 +276,7 @@ class Board:
             t.SetStart(a); t.SetEnd(b); t.SetWidth(w); t.SetLayer(layer_id(layer)); t.SetNet(ni)
             self.b.Add(t)
             self.tracks_added += 1
+            self._dirty = True
         return self
 
     def via(self, x, y, net, size=None, layers=("F.Cu", "B.Cu")):
@@ -272,7 +288,295 @@ class Board:
         v.SetDrill(FromMM(drill)); v.SetWidth(FromMM(d)); v.SetNet(self.net(net))
         self.b.Add(v)
         self.vias_added += 1
+        self._dirty = True
         return v
+
+    def return_vias(self, nets, max_mm=2.0, gnd="GND", size=None, rings=(0.8, 1.0, 1.2, 1.5, 1.8, 2.0), step_deg=30, dry=False):
+        """SIG-2: a ground via beside every via of `nets` that has none within max_mm. A via on a fast net moves its return
+        current from one ground plane to the other, and the planes only meet at ground vias and through-hole ground
+        pads. Candidates on rings around the signal via (nearest first, step_deg apart) are checked at the board
+        clearance against other nets' pads, vias, tracks and filled zones on every copper layer and against the board
+        edge; the first clear one is placed. Returns {"placed": [...], "covered": n, "skipped": [(net, x, y, why)]}."""
+        d, drill = size or getattr(self, "via_default", (0.6, 0.3))
+        clr = getattr(self, "clearance", 0.2)
+        margin = FromMM(d / 2 + clr)
+        b = self.b
+        returns = [xy(t.GetPosition()) for t in b.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetname() == gnd]
+        for f in b.GetFootprints():
+            for q in f.Pads():
+                if q.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and q.GetNetname() == gnd:
+                    returns.append(xy(q.GetPosition()))
+        edge = b.GetBoardEdgesBoundingBox()
+        ex0, ey0, ex1, ey1 = ToMM(edge.GetLeft()), ToMM(edge.GetTop()), ToMM(edge.GetRight()), ToMM(edge.GetBottom())
+        edge_clr = getattr(self, "edge_clearance", 0.3)
+        layers = list(b.GetEnabledLayers().CuStack())
+        zones = [(z, L) for z in b.Zones() if not z.GetIsRuleArea() and z.GetNetname() != gnd for L in z.GetLayerSet().CuStack() if z.HasFilledPolysForLayer(L)]
+        pads = [q for f in b.GetFootprints() for q in f.Pads()]
+        tracks = [t for t in b.GetTracks()]
+
+        def clear(x, y):
+            if not (ex0 + edge_clr + d / 2 <= x <= ex1 - edge_clr - d / 2 and ey0 + edge_clr + d / 2 <= y <= ey1 - edge_clr - d / 2):
+                return "board edge"
+            pt = mm(x, y)
+            for q in pads:
+                if q.GetNetname() != gnd and q.HitTest(pt, margin):
+                    return f"{q.GetParentFootprint().GetReference()}.{q.GetNumber()} ({q.GetNetname()})"
+                if q.GetNetname() == gnd and q.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and q.HitTest(pt, FromMM(d / 2)):
+                    return "a ground pad hole"
+            for t in tracks:
+                if t.GetClass() == "PCB_VIA":
+                    v = xy(t.GetPosition())
+                    if math.hypot(v[0] - x, v[1] - y) < d / 2 + ToMM(t.GetWidth(pcbnew.F_Cu)) / 2 + (clr if t.GetNetname() != gnd else 0.0):
+                        return f"a {t.GetNetname()} via"
+                elif t.GetNetname() != gnd and t.HitTest(pt, margin):
+                    return f"a {t.GetNetname()} track"
+            for z, L in zones:
+                if z.GetFilledPolysList(L).Collide(pt, margin):
+                    return f"the {z.GetNetname()} pour on {b.GetLayerName(L)}"
+            return None
+
+        out = {"placed": [], "covered": 0, "skipped": []}
+        for t in [t for t in tracks if t.GetClass() == "PCB_VIA" and t.GetNetname() in nets]:
+            x, y = xy(t.GetPosition())
+            if any(math.hypot(gx - x, gy - y) <= max_mm for gx, gy in returns):
+                out["covered"] += 1
+                continue
+            placed = None; last = ""
+            for r in rings:
+                if r > max_mm + 1e-9:
+                    break
+                for a in range(0, 360, step_deg):
+                    cx = round(x + r * math.cos(math.radians(a)), 3); cy = round(y + r * math.sin(math.radians(a)), 3)
+                    why = clear(cx, cy)
+                    if why is None:
+                        placed = (cx, cy); break
+                    last = why
+                if placed:
+                    break
+            if placed:
+                if not dry:
+                    v = self.via(placed[0], placed[1], gnd, size=(d, drill))
+                    tracks.append(v)
+                returns.append(placed)
+                out["placed"].append((t.GetNetname(), x, y, placed[0], placed[1], round(math.hypot(placed[0] - x, placed[1] - y), 2)))
+            else:
+                out["skipped"].append((t.GetNetname(), x, y, f"no clear spot within {max_mm} mm, last hit {last}"))
+        return out
+
+    def _pad_frame(self, p):
+        """Pad centre, its half-extents along x and y after rotation, in mm."""
+        c = xy(p.GetPosition()); sx, sy = ToMM(p.GetSize().x), ToMM(p.GetSize().y)
+        a = round(p.GetOrientationDegrees()) % 180
+        if a == 90:
+            sx, sy = sy, sx
+        elif a != 0:
+            raise ValueError(f"pad at {a} degrees: only 0/90/180/270 are handled")
+        return c, sx / 2, sy / 2
+
+    def thermal_vias(self, ref, pad=None, pitch=1.0, size=None, margin=0.4, layers=("F.Cu", "B.Cu")):
+        """A via grid inside a footprint's exposed pad (the largest pad unless `pad` names one), on the pad's net. The
+        router strips and never adds these (ROUTE-T1: no thermal vias under the DRV8874 in any KRT config). Prefer the
+        stock `_ThermalVias` footprint where KiCad has one; this is for vendored footprints. Grid points within the board
+        clearance of another net's pad are skipped and listed in `self.thermal_skipped`. Returns the via count."""
+        f = self.fp(ref)
+        p = self.pad(ref, pad) if pad else max(f.Pads(), key=lambda q: q.GetSize().x * q.GetSize().y)
+        (cx, cy), hx, hy = self._pad_frame(p)
+        nx = max(1, int((2 * hx - 2 * margin) / pitch) + 1); ny = max(1, int((2 * hy - 2 * margin) / pitch) + 1)
+        dvia = (size or getattr(self, "via_default", (0.6, 0.3)))[0]
+        clr = getattr(self, "clearance", 0.2)
+        others = [q for g in self.b.GetFootprints() for q in g.Pads() if q.GetNetname() != p.GetNetname()
+                  and not (g.GetReference() == ref and q.GetNumber() == "")]   # the footprint's own paste-aperture pads
+        n, self.thermal_skipped = 0, []
+        for i in range(nx):
+            for j in range(ny):
+                x, y = cx + (i - (nx - 1) / 2) * pitch, cy + (j - (ny - 1) / 2) * pitch
+                hit = next((q for q in others if q.HitTest(mm(x, y), FromMM(dvia / 2 + clr))), None)
+                if hit is not None:   # a QFN's exposed pad sits 0.2 mm from its own pins and nearby caps
+                    self.thermal_skipped.append(f"({x:.2f}, {y:.2f}) near {hit.GetParentFootprint().GetReference()}.{hit.GetNumber()}")
+                    continue
+                self.via(x, y, p.GetNetname(), size=size, layers=layers)
+                n += 1
+        return n
+
+    @staticmethod
+    def via_amps(drill_mm, rise_c=20.0, plating_mm=0.025):
+        """IPC-2221 internal on the barrel, 25 um plating: pcbcheck's `feeds` formula, so a pad_feed passes its row."""
+        area_mil2 = math.pi * (drill_mm / 0.0254) * (plating_mm / 0.0254)
+        return 0.024 * rise_c ** 0.44 * area_mil2 ** 0.725
+
+    @staticmethod
+    def _inside(pt, poly):
+        x, y = pt; inside = False
+        for (x1, y1), (x2, y2) in zip(poly, poly[1:] + poly[:1]):
+            if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+                inside = not inside
+        return inside
+
+    def _area_hits(self, outline, net, clr, priority, skip=(), step=0.1):
+        """Points of `outline` (0.1 mm grid) within `clr` of another net's pad or via, or inside another net's zone of
+        equal or higher priority (a feed pour; the ground pours rank lower and pull back on their own)."""
+        xs = [p[0] for p in outline]; ys = [p[1] for p in outline]
+        pts = [(x0, y0) for i in range(int((max(xs) - min(xs)) / step) + 1) for j in range(int((max(ys) - min(ys)) / step) + 1)
+               for x0, y0 in [(min(xs) + i * step, min(ys) + j * step)] if self._inside((x0, y0), outline)]
+        skip_ids = {(q.GetParentFootprint().GetReference(), q.GetNumber()) for q in skip}
+        others = [q for f in self.b.GetFootprints() for q in f.Pads()
+                  if q.GetNetname() != net and (q.GetParentFootprint().GetReference(), q.GetNumber()) not in skip_ids]
+        vias = [(xy(t.GetPosition()), ToMM(t.GetWidth(pcbnew.F_Cu)) / 2, t.GetNetname()) for t in self.b.GetTracks()
+                if t.GetClass() == "PCB_VIA" and t.GetNetname() != net]
+        zones = []
+        for z in self.b.Zones():
+            if not z.GetIsRuleArea() and z.GetNetname() != net and z.GetAssignedPriority() >= priority:
+                zones.append(([xy(z.GetCornerPosition(i)) for i in range(z.GetNumCorners())], z.GetNetname(), z.GetZoneName()))
+        hits, seen = [], set()
+        for x, y in pts:
+            pt = mm(x, y)
+            near = [q for q in others if abs(ToMM(q.GetPosition().x) - x) < 3 and abs(ToMM(q.GetPosition().y) - y) < 3]
+            for q in near:
+                key = (q.GetParentFootprint().GetReference(), q.GetNumber())
+                if key not in seen and q.HitTest(pt, FromMM(clr)):
+                    seen.add(key); hits.append(f"pour at ({x:.2f}, {y:.2f}) on {key[0]}.{key[1]} ({q.GetNetname()})")
+            for (vx, vy), r, vn in vias:
+                if ("v", vx, vy) not in seen and math.hypot(vx - x, vy - y) < r + clr:
+                    seen.add(("v", vx, vy)); hits.append(f"pour at ({x:.2f}, {y:.2f}) on a {vn} via at ({vx:.2f}, {vy:.2f})")
+            for poly, zn, name in zones:
+                if name not in seen and self._inside((x, y), poly):
+                    seen.add(name); hits.append(f"pour at ({x:.2f}, {y:.2f}) inside {name} ({zn})")
+        return hits
+
+    def plan_feeds(self, rows, dry=False):
+        """pad_feed_search over many pins at once (FEED-2): biggest current first, and a pad with other feed pads beside it
+        on the same footprint tries splaying away from them first, so neighbours fan apart instead of the first one taking
+        the straight-out slot (DRV8874 VM beside OUT2). rows: [(\"U2.11\", 2.5), ...]. Returns {pad: result or error}."""
+        out = {}
+        pads = {}
+        for pad, _ in rows:
+            ref, nums = pad.split(".", 1)
+            ps = [self.pad(ref, n) for n in nums.split(",")]
+            pads[pad] = (ref, sum(xy(q.GetPosition())[0] for q in ps) / len(ps), sum(xy(q.GetPosition())[1] for q in ps) / len(ps))
+        for pad, amps in sorted(rows, key=lambda r: -r[1]):
+            ref, nums = pad.split(".", 1)
+            ref_, px, py = pads[pad]
+            near = [(x, y) for k, (r2, x, y) in pads.items() if k != pad and r2 == ref and math.hypot(x - px, y - py) < 2.5]
+            prefer = 0
+            if near:
+                q = self.pad(ref, nums.split(",")[0]); _, hx, hy = self._pad_frame(q)
+                allp = [xy(o.GetPosition()) for o in self.fp(ref).Pads()]
+                fx, fy = sum(a for a, _ in allp) / len(allp), sum(b for _, b in allp) / len(allp)
+                d = ((1.0 if px >= fx else -1.0), 0.0) if hx >= hy else (0.0, (1.0 if py >= fy else -1.0))
+                n = (-d[1], d[0])
+                ox, oy = sum(x for x, _ in near) / len(near), sum(y for _, y in near) / len(near)
+                prefer = 1 if (px - ox) * n[0] + (py - oy) * n[1] > 0 else -1
+            splays = (30 * prefer, 50 * prefer, 70 * prefer, 0, -30 * prefer) if prefer else (0, 30, -30, 50, -50)
+            try:
+                out[pad] = self.pad_feed_search(ref, nums, amps, splays=splays, splay_first=bool(prefer))
+            except ValueError as e:
+                out[pad] = {"error": str(e)}
+        return out
+
+    def pad_feed_search(self, ref, num, amps, splays=(0, 30, -30, 50, -50), lengths=(1.0, 1.8, 2.6), acrosses=(3, 2, 1),
+                        splay_first=False, **kw):
+        """pad_feed over a small grid of splay x length x across, first fit wins (fewest changes from straight-out,
+        short, wide first; with splay_first, every length and width at the first splay before the next, so a preferred
+        direction is not given up for a wider field). Raises with the last collision when nothing fits; the placement
+        then needs to move."""
+        import itertools
+        last = None
+        grid = (((sp, ln, ac) for sp in splays for ln in lengths for ac in acrosses) if splay_first else
+                ((sp, ln, ac) for ln in lengths for ac in acrosses for sp in splays))
+        for splay, length, across in grid:
+            if True:
+                if True:
+                    try:
+                        r = self.pad_feed(ref, num, amps, length=length, splay=splay, across=across, **kw)
+                        r.update(splay=splay, length=length, across=across)
+                        return r
+                    except ValueError as e:
+                        last = e
+        raise ValueError(f"pad_feed_search {ref}.{num}: nothing fits in {len(splays) * len(lengths) * len(acrosses)} tries; last: {last}")
+
+    def pad_feed(self, ref, num, amps, layer="F.Cu", length=1.0, splay=0.0, size=None, pitch=None, across=3, rise_c=20.0,
+                 priority=3, layers=("F.Cu", "B.Cu"), check=True, exit=0.4):
+        """Feed a fine-pitch power pin the way the rung-2 designers did by hand (R2A2-T1): a pour on the pad's net that
+        covers the pad, leaves the package along the pad's long axis at the pad's width, flares over `length` mm and
+        ends in a field of vias, as many as IPC-2221 needs for `amps` at `rise_c` (0.3 mm drill: 1.22 A each, so 2.5 A
+        gets 3). `num` may be "4,5,6": adjacent pins on one net on one side share one pour. `splay` turns the flare and
+        the via field by that many degrees off straight-out, so neighbouring power pins on different nets fan apart
+        (DRV8874 OUT2/VM: -40 and +40). Before anything is added every via is checked against other nets' pads and vias
+        at the board clearance; a collision raises with the parts it hit (check=False skips that). The router then treats
+        the feed as existing copper and does not neck the pin (ROUTE-T1: 0.2 mm into VM in every KRT config).
+        Returns {"vias", "amps_capacity", "outline", "vias_xy"}."""
+        nums = [x.strip() for x in str(num).split(",")]
+        pads = [self.pad(ref, x) for x in nums]
+        net = pads[0].GetNetname()
+        if any(q.GetNetname() != net for q in pads):
+            raise ValueError(f"pad_feed {ref}.{num}: pads on different nets")
+        frames = [self._pad_frame(q) for q in pads]
+        _, hx, hy = frames[0]
+        allp = [xy(q.GetPosition()) for q in self.fp(ref).Pads()]          # pad centroid, not the footprint origin
+        fx, fy = sum(a for a, _ in allp) / len(allp), sum(b for _, b in allp) / len(allp)   # (vendored SOIC-8: origin at pin 1)
+        cxm = sum(f[0][0] for f in frames) / len(frames); cym = sum(f[0][1] for f in frames) / len(frames)
+        if hx >= hy:
+            d = (1.0 if cxm >= fx else -1.0, 0.0)
+        else:
+            d = (0.0, 1.0 if cym >= fy else -1.0)
+        nrm = (-d[1], d[0])
+        along = [(f[0][0] - cxm) * d[0] + (f[0][1] - cym) * d[1] for f in frames]
+        perp = [(f[0][0] - cxm) * nrm[0] + (f[0][1] - cym) * nrm[1] for f in frames]
+        hl = max(a + (f[1] if d[0] else f[2]) for a, f in zip(along, frames))
+        hw_lo = min(q - (f[2] if d[0] else f[1]) for q, f in zip(perp, frames))
+        hw_hi = max(q + (f[2] if d[0] else f[1]) for q, f in zip(perp, frames))
+        dvia, drill = size or getattr(self, "via_default", (0.6, 0.3))
+        pitch = pitch or round(dvia + 0.35, 2)
+        n = max(1, math.ceil(amps / self.via_amps(drill, rise_c)))
+        k = min(n, across); rows = math.ceil(n / k)
+        half = max(k * pitch / 2, (hw_hi - hw_lo) / 2)
+        mid = (hw_hi + hw_lo) / 2
+        a = math.radians(splay)
+        d2 = (d[0] * math.cos(a) - d[1] * math.sin(a), d[0] * math.sin(a) + d[1] * math.cos(a)); n2 = (-d2[1], d2[0])
+        def at(t, s):                                # pad frame: t along the pad axis from the group centre, s across
+            return (cxm + d[0] * t + nrm[0] * s, cym + d[1] * t + nrm[1] * s)
+        ex, ey = at(hl + exit, mid)                  # straight out past the pin row's tips before any turn (FEED-2)
+        ox, oy = ex + d2[0] * length, ey + d2[1] * length
+        def fat(t, s):                               # field frame: from the end of the flare, along the splayed axis
+            return (ox + d2[0] * t + n2[0] * s, oy + d2[1] * t + n2[1] * s)
+        depth = rows * pitch
+        outline = [at(min(along), hw_lo), at(hl + exit, hw_lo), fat(0, -half), fat(depth, -half), fat(depth, half), fat(0, half),
+                   at(hl + exit, hw_hi), at(min(along), hw_hi)]
+        outline = [(round(x, 4), round(y, 4)) for x, y in outline]
+        spots = []
+        for r in range(rows):
+            for c in range(k):
+                if len(spots) < n:
+                    spots.append(fat((r + 0.5) * pitch, (c - (k - 1) / 2) * pitch))
+        if check:
+            clr = getattr(self, "clearance", 0.2)
+            hits = self._area_hits(outline, net, clr, priority, skip=pads)
+            for x, y in spots:
+                pt = mm(x, y)
+                for f in self.b.GetFootprints():
+                    for q in f.Pads():
+                        if q.GetNetname() != net and q.HitTest(pt, FromMM(dvia / 2 + clr)):
+                            hits.append(f"via ({x:.2f}, {y:.2f}) on {f.GetReference()}.{q.GetNumber()} ({q.GetNetname()})")
+                for t in self.b.GetTracks():
+                    if t.GetClass() == "PCB_VIA" and t.GetNetname() != net:
+                        v = xy(t.GetPosition())
+                        if math.hypot(v[0] - x, v[1] - y) < dvia / 2 + ToMM(t.GetWidth(pcbnew.F_Cu)) / 2 + clr:
+                            hits.append(f"via ({x:.2f}, {y:.2f}) on a {t.GetNetname()} via at ({v[0]:.2f}, {v[1]:.2f})")
+            if hits:
+                raise ValueError(f"pad_feed {ref}.{num}: {len(hits)} collision(s), try splay/length/across: " + "; ".join(hits[:4]))
+        lid = layer_id(layer)
+        for z in self.b.Zones():   # KiCad: intersecting zones need distinct priorities; a same-net pour it overlaps ranks below
+            if z.GetIsRuleArea() or z.GetNetname() != net or not z.IsOnLayer(lid):
+                continue
+            poly = [xy(z.GetCornerPosition(i)) for i in range(z.GetNumCorners())]
+            if any(self._inside(q, poly) for q in outline) or any(self._inside(q, outline) for q in poly):
+                priority = max(priority, z.GetAssignedPriority() + 1)
+        self.zone(net, layer, outline=outline, clearance=getattr(self, "clearance", 0.2), min_width=0.2, thermal=False, priority=priority,
+                  name=f"feed_{ref}_{'_'.join(nums)}")
+        for x, y in spots:
+            self.via(x, y, net, size=(dvia, drill), layers=layers)
+        return {"vias": len(spots), "amps_capacity": round(len(spots) * self.via_amps(drill, rise_c), 2), "outline": outline,
+                "vias_xy": [(round(x, 3), round(y, 3)) for x, y in spots]}
 
     def line(self, a, b, layer="F.SilkS", width=0.15):
         s = pcbnew.PCB_SHAPE(self.b)
@@ -391,8 +695,14 @@ class Board:
 
     # ------------------------------------------------------------------ fill / save
     def save(self, path=None):
+        """Save. When vias or tracks were added since the last save the zone fills are cleared first (ROUTE-T4: SaveBoard
+        re-nets a new via inside another net's stale fill); fill() pours them again, so call it before handing the board on."""
         path = path or self.path
-        pcbnew.SaveBoard(path, self.b)
+        if self._dirty:
+            unfill_and_save(self.b, path)
+            self._dirty = False
+        else:
+            pcbnew.SaveBoard(path, self.b)
         return path
 
     def fill(self, passes=2):

@@ -1,0 +1,871 @@
+{
+ "_about": "MotorGo Plink v1 as a routing benchmark (tools/bench/plink_signals.py writes this). The board is the designer's; the bench keeps its placement and pours and re-routes. Currents are assumptions: 1.5 A per channel, 1.5 A into the buck.",
+ "project": "motorgo_plink routing bench",
+ "policy": {
+  "clearance_mm": 0.12,
+  "track_mm": 0.12,
+  "via_drill_mm": 0.3,
+  "via_dia_mm": 0.4,
+  "hole_clearance_mm": 0.25,
+  "silk_text_mm": 0.8,
+  "_why": "the designer's own setup: JLC 4-layer minimums"
+ },
+ "rails": {
+  "+BATT": {
+   "v": 12.0,
+   "source": "J11 DC jack, 6-17 V"
+  },
+  "+5V": {
+   "v": 5.0,
+   "source": "U6 TPS54620 through D4, or USB VBUS"
+  },
+  "Net-(C23-Pad1)": {
+   "v": 5.3,
+   "source": "U6 buck output before D4"
+  },
+  "+3.3V": {
+   "v": 3.3,
+   "source": "U8 AMS1117-3.3"
+  },
+  "GND": {}
+ },
+ "copper_oz": {
+  "outer": 1.0,
+  "inner": 0.5
+ },
+ "rise_c": 20,
+ "currents": {
+  "+BATT": 6.0,
+  "+5V": 3.0,
+  "Net-(C23-Pad1)": 3.0,
+  "+3.3V": 0.5,
+  "/motor_controls1/motor_out1": 1.5,
+  "/motor_controls1/motor_out2": 1.5,
+  "/motor_controls2/motor_out1": 1.5,
+  "/motor_controls2/motor_out2": 1.5,
+  "/motor_controls3/motor_out1": 1.5,
+  "/motor_controls3/motor_out2": 1.5,
+  "/motor_controls4/motor_out1": 1.5,
+  "/motor_controls4/motor_out2": 1.5
+ },
+ "feeds": [
+  {
+   "pad": "U3.11",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "VM"
+  },
+  {
+   "pad": "U4.11",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "VM"
+  },
+  {
+   "pad": "U5.11",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "VM"
+  },
+  {
+   "pad": "U9.11",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "VM"
+  },
+  {
+   "pad": "U3.8",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "OUTx"
+  },
+  {
+   "pad": "U3.10",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "OUTx"
+  },
+  {
+   "pad": "U4.8",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "OUTx"
+  },
+  {
+   "pad": "U4.10",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "OUTx"
+  },
+  {
+   "pad": "U5.8",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "OUTx"
+  },
+  {
+   "pad": "U5.10",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "OUTx"
+  },
+  {
+   "pad": "U9.8",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "OUTx"
+  },
+  {
+   "pad": "U9.10",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "OUTx"
+  },
+  {
+   "pad": "U6.4,5,6",
+   "amps": 1.5,
+   "within_mm": 3.5,
+   "_why": "PVIN"
+  },
+  {
+   "pad": "L1.2",
+   "amps": 3.0,
+   "within_mm": 3.5,
+   "_why": "buck output"
+  },
+  {
+   "pad": "J11.1",
+   "amps": 6.0,
+   "within_mm": 4.0,
+   "_why": "the jack"
+  }
+ ],
+ "thermal_vias": {
+  "U3": {
+   "pad": "17",
+   "min": 9,
+   "within_mm": 3.0
+  },
+  "U4": {
+   "pad": "17",
+   "min": 9,
+   "within_mm": 3.0
+  },
+  "U5": {
+   "pad": "17",
+   "min": 9,
+   "within_mm": 3.0
+  },
+  "U9": {
+   "pad": "17",
+   "min": 9,
+   "within_mm": 3.0
+  },
+  "U6": {
+   "pad": "15",
+   "min": 4,
+   "within_mm": 1.5
+  }
+ },
+ "refplane": {
+  "ground": "GND"
+ },
+ "return_via": {
+  "ground": "GND"
+ },
+ "exposure": {
+  "aggressors": [
+   "Net-(C22-Pad1)",
+   "/motor_controls1/motor_out1",
+   "/motor_controls1/motor_out2",
+   "/motor_controls2/motor_out1",
+   "/motor_controls2/motor_out2",
+   "/motor_controls3/motor_out1",
+   "/motor_controls3/motor_out2",
+   "/motor_controls4/motor_out1",
+   "/motor_controls4/motor_out2"
+  ],
+  "within_mm": 1.0,
+  "victim_weight": 3
+ },
+ "signals": {
+  "_about": "SIG-1 for the Plink: driver edge per net with the source of the number; `pcb signals` computes knee and bucket. Every rise time is a stated assumption except USB full speed (spec 4-20 ns) and the DRV8874 OUTx 150 ns.",
+  "m2_EN": {
+   "driver": "U1 GPIO -> U3.1 EN/IN1 (PWM)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "m2_PH": {
+   "driver": "U1 GPIO -> U3.2 PH/IN2",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "Net-(U3-IPROPI)": {
+   "driver": "U3.6 IPROPI current mirror into Rp1 4.87k",
+   "t_rise_ns": 150,
+   "source": "follows the bridge current, which steps at the OUTx edge (DRV8874 tRISE 150 ns); weak aggressor",
+   "victim": true,
+   "note": "analog, 4.87k source impedance, ADC input on U1"
+  },
+  "Net-(U3-nFAULT)": {
+   "driver": "U3.4 open-drain (fall); R10 10k pull-up to +5V (rise); nSLEEP tied to it",
+   "t_rise_ns": 20,
+   "source": "assumption: DRV8874 open-drain pull-down into ~20 pF, 20 ns; rise is the RC",
+   "victim": false,
+   "slowed_by": [
+    "R10 10k pull-up (rise only)"
+   ]
+  },
+  "Net-(U3-IMODE)": {
+   "driver": "Rmode1 to GND (DC config)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U3-PMODE)": {
+   "driver": "R11 to +5V (DC config)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U3-CPH)": {
+   "driver": "U3.13 charge-pump switch into C5 22 nF",
+   "t_rise_ns": 2000,
+   "source": "no edge spec; slew bound by I/C, tens of mA into 22 nF over ~5 V >= 2 us; fVCP 400 kHz",
+   "victim": false
+  },
+  "Net-(U3-CPL)": {
+   "driver": "U3.14 charge-pump switch into C5 22 nF",
+   "t_rise_ns": 2000,
+   "source": "as CPH",
+   "victim": false
+  },
+  "Net-(U3-VCP)": {
+   "driver": "U3.12 VCP into C3 100 nF (VM + ~5 V)",
+   "t_rise_ns": null,
+   "source": "DC with 400 kHz ripple",
+   "victim": false
+  },
+  "/motor_controls2/motor_out1": {
+   "driver": "U3.10 OUTx (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "1.5 A edges: the magnetic aggressor for the IPROPI nets, not a fast one"
+  },
+  "/motor_controls2/motor_out2": {
+   "driver": "U3.8 OUTx (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "1.5 A edges: the magnetic aggressor for the IPROPI nets, not a fast one"
+  },
+  "m1_EN": {
+   "driver": "U1 GPIO -> U4.1 EN/IN1 (PWM)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "m1_PH": {
+   "driver": "U1 GPIO -> U4.2 PH/IN2",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "Net-(U4-IPROPI)": {
+   "driver": "U4.6 IPROPI current mirror into Rp2 4.87k",
+   "t_rise_ns": 150,
+   "source": "follows the bridge current, which steps at the OUTx edge (DRV8874 tRISE 150 ns); weak aggressor",
+   "victim": true,
+   "note": "analog, 4.87k source impedance, ADC input on U1"
+  },
+  "Net-(U4-nFAULT)": {
+   "driver": "U4.4 open-drain (fall); R12 10k pull-up to +5V (rise); nSLEEP tied to it",
+   "t_rise_ns": 20,
+   "source": "assumption: DRV8874 open-drain pull-down into ~20 pF, 20 ns; rise is the RC",
+   "victim": false,
+   "slowed_by": [
+    "R12 10k pull-up (rise only)"
+   ]
+  },
+  "Net-(U4-IMODE)": {
+   "driver": "Rmode2 to GND (DC config)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U4-PMODE)": {
+   "driver": "R13 to +5V (DC config)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U4-CPH)": {
+   "driver": "U4.13 charge-pump switch into C9 22 nF",
+   "t_rise_ns": 2000,
+   "source": "no edge spec; slew bound by I/C, tens of mA into 22 nF over ~5 V >= 2 us; fVCP 400 kHz",
+   "victim": false
+  },
+  "Net-(U4-CPL)": {
+   "driver": "U4.14 charge-pump switch into C9 22 nF",
+   "t_rise_ns": 2000,
+   "source": "as CPH",
+   "victim": false
+  },
+  "Net-(U4-VCP)": {
+   "driver": "U4.12 VCP into C7 100 nF (VM + ~5 V)",
+   "t_rise_ns": null,
+   "source": "DC with 400 kHz ripple",
+   "victim": false
+  },
+  "/motor_controls1/motor_out1": {
+   "driver": "U4.10 OUTx (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "1.5 A edges: the magnetic aggressor for the IPROPI nets, not a fast one"
+  },
+  "/motor_controls1/motor_out2": {
+   "driver": "U4.8 OUTx (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "1.5 A edges: the magnetic aggressor for the IPROPI nets, not a fast one"
+  },
+  "m3_EN": {
+   "driver": "U1 GPIO -> U5.1 EN/IN1 (PWM)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "m3_PH": {
+   "driver": "U1 GPIO -> U5.2 PH/IN2",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "Net-(U5-IPROPI)": {
+   "driver": "U5.6 IPROPI current mirror into Rp3 4.87k",
+   "t_rise_ns": 150,
+   "source": "follows the bridge current, which steps at the OUTx edge (DRV8874 tRISE 150 ns); weak aggressor",
+   "victim": true,
+   "note": "analog, 4.87k source impedance, ADC input on U1"
+  },
+  "Net-(U5-nFAULT)": {
+   "driver": "U5.4 open-drain (fall); R14 10k pull-up to +5V (rise); nSLEEP tied to it",
+   "t_rise_ns": 20,
+   "source": "assumption: DRV8874 open-drain pull-down into ~20 pF, 20 ns; rise is the RC",
+   "victim": false,
+   "slowed_by": [
+    "R14 10k pull-up (rise only)"
+   ]
+  },
+  "Net-(U5-IMODE)": {
+   "driver": "Rmode3 to GND (DC config)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U5-PMODE)": {
+   "driver": "R15 to +5V (DC config)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U5-CPH)": {
+   "driver": "U5.13 charge-pump switch into C13 22 nF",
+   "t_rise_ns": 2000,
+   "source": "no edge spec; slew bound by I/C, tens of mA into 22 nF over ~5 V >= 2 us; fVCP 400 kHz",
+   "victim": false
+  },
+  "Net-(U5-CPL)": {
+   "driver": "U5.14 charge-pump switch into C13 22 nF",
+   "t_rise_ns": 2000,
+   "source": "as CPH",
+   "victim": false
+  },
+  "Net-(U5-VCP)": {
+   "driver": "U5.12 VCP into C11 100 nF (VM + ~5 V)",
+   "t_rise_ns": null,
+   "source": "DC with 400 kHz ripple",
+   "victim": false
+  },
+  "/motor_controls3/motor_out1": {
+   "driver": "U5.10 OUTx (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "1.5 A edges: the magnetic aggressor for the IPROPI nets, not a fast one"
+  },
+  "/motor_controls3/motor_out2": {
+   "driver": "U5.8 OUTx (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "1.5 A edges: the magnetic aggressor for the IPROPI nets, not a fast one"
+  },
+  "m4_EN": {
+   "driver": "U1 GPIO -> U9.1 EN/IN1 (PWM)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "m4_PH": {
+   "driver": "U1 GPIO -> U9.2 PH/IN2",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "Net-(U9-IPROPI)": {
+   "driver": "U9.6 IPROPI current mirror into Rp4 4.87k",
+   "t_rise_ns": 150,
+   "source": "follows the bridge current, which steps at the OUTx edge (DRV8874 tRISE 150 ns); weak aggressor",
+   "victim": true,
+   "note": "analog, 4.87k source impedance, ADC input on U1"
+  },
+  "Net-(U9-nFAULT)": {
+   "driver": "U9.4 open-drain (fall); R36 10k pull-up to +5V (rise); nSLEEP tied to it",
+   "t_rise_ns": 20,
+   "source": "assumption: DRV8874 open-drain pull-down into ~20 pF, 20 ns; rise is the RC",
+   "victim": false,
+   "slowed_by": [
+    "R36 10k pull-up (rise only)"
+   ]
+  },
+  "Net-(U9-IMODE)": {
+   "driver": "Rmode4 to GND (DC config)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U9-PMODE)": {
+   "driver": "R37 to +5V (DC config)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U9-CPH)": {
+   "driver": "U9.13 charge-pump switch into C28 22 nF",
+   "t_rise_ns": 2000,
+   "source": "no edge spec; slew bound by I/C, tens of mA into 22 nF over ~5 V >= 2 us; fVCP 400 kHz",
+   "victim": false
+  },
+  "Net-(U9-CPL)": {
+   "driver": "U9.14 charge-pump switch into C28 22 nF",
+   "t_rise_ns": 2000,
+   "source": "as CPH",
+   "victim": false
+  },
+  "Net-(U9-VCP)": {
+   "driver": "U9.12 VCP into C26 100 nF (VM + ~5 V)",
+   "t_rise_ns": null,
+   "source": "DC with 400 kHz ripple",
+   "victim": false
+  },
+  "/motor_controls4/motor_out1": {
+   "driver": "U9.10 OUTx (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "1.5 A edges: the magnetic aggressor for the IPROPI nets, not a fast one"
+  },
+  "/motor_controls4/motor_out2": {
+   "driver": "U9.8 OUTx (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "1.5 A edges: the magnetic aggressor for the IPROPI nets, not a fast one"
+  },
+  "/connectors.enc1.cs": {
+   "driver": "U1 GPIO -> J14.1 (encoder chip select / enable)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "/connectors.enc2.cs": {
+   "driver": "U1 GPIO -> J16.1 (encoder chip select / enable)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "/connectors.enc3.cs": {
+   "driver": "U1 GPIO -> J18.1 (encoder chip select / enable)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "/connectors.enc4.cs": {
+   "driver": "U1 GPIO -> J20.1 (encoder chip select / enable)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "/connectors.enc_scl": {
+   "driver": "U1 GPIO open-drain (fall), R32 pull-up to +3.3V (rise); I2C",
+   "t_rise_ns": 3,
+   "source": "the fall is the GPIO's own edge (assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength); the rise is the pull-up RC",
+   "victim": false,
+   "slowed_by": [
+    "R32 pull-up (rise only)"
+   ],
+   "note": "I2C at 400 kHz; four JST drops on the encoder bus"
+  },
+  "/connectors.enc_sda": {
+   "driver": "U1 GPIO open-drain (fall), R33 pull-up to +3.3V (rise); I2C",
+   "t_rise_ns": 3,
+   "source": "the fall is the GPIO's own edge (assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength); the rise is the pull-up RC",
+   "victim": false,
+   "slowed_by": [
+    "R33 pull-up (rise only)"
+   ],
+   "note": "I2C at 400 kHz; four JST drops on the encoder bus"
+  },
+  "/i2c_1.scl": {
+   "driver": "U1 GPIO open-drain (fall), R39 pull-up to +3.3V (rise); I2C",
+   "t_rise_ns": 3,
+   "source": "the fall is the GPIO's own edge (assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength); the rise is the pull-up RC",
+   "victim": false,
+   "slowed_by": [
+    "R39 pull-up (rise only)"
+   ],
+   "note": "I2C at 400 kHz; four JST drops on the encoder bus"
+  },
+  "/i2c_1.sda": {
+   "driver": "U1 GPIO open-drain (fall), R38 pull-up to +3.3V (rise); I2C",
+   "t_rise_ns": 3,
+   "source": "the fall is the GPIO's own edge (assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength); the rise is the pull-up RC",
+   "victim": false,
+   "slowed_by": [
+    "R38 pull-up (rise only)"
+   ],
+   "note": "I2C at 400 kHz; four JST drops on the encoder bus"
+  },
+  "scl": {
+   "driver": "U1 GPIO open-drain (fall), R31 pull-up to +3.3V (rise); I2C",
+   "t_rise_ns": 3,
+   "source": "the fall is the GPIO's own edge (assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength); the rise is the pull-up RC",
+   "victim": false,
+   "slowed_by": [
+    "R31 pull-up (rise only)"
+   ],
+   "note": "I2C at 400 kHz; four JST drops on the encoder bus"
+  },
+  "sda": {
+   "driver": "U1 GPIO open-drain (fall), R30 pull-up to +3.3V (rise); I2C",
+   "t_rise_ns": 3,
+   "source": "the fall is the GPIO's own edge (assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength); the rise is the pull-up RC",
+   "victim": false,
+   "slowed_by": [
+    "R30 pull-up (rise only)"
+   ],
+   "note": "I2C at 400 kHz; four JST drops on the encoder bus"
+  },
+  "gpio43": {
+   "driver": "U1.U0TXD UART, LED through 1k",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "gpio44": {
+   "driver": "U1.U0RXD UART, LED through 1k",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength",
+   "victim": false
+  },
+  "gpio21": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio35": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio36": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio37": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio38": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio39": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio40": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio41": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio42": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio47": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "gpio48": {
+   "driver": "U1 GPIO to the J4/J7 headers (spare I/O)",
+   "t_rise_ns": 3,
+   "source": "assumption: ESP32-S3 GPIO, 3.3 V CMOS edge 3 ns at the default drive strength; use unknown, the edge is the GPIO's",
+   "victim": false,
+   "note": "spare header I/O: bucket by the driver's edge, a slower use would relax it"
+  },
+  "Net-(D1-K)": {
+   "driver": "gpio44 through LED D1 and R1 1k",
+   "t_rise_ns": 3,
+   "source": "follows the UART edge through the LED",
+   "victim": false
+  },
+  "Net-(D2-K)": {
+   "driver": "gpio43 through LED D2 and R2 1k",
+   "t_rise_ns": 3,
+   "source": "follows the UART edge through the LED",
+   "victim": false
+  },
+  "Net-(D3-K)": {
+   "driver": "+3.3V through LED D3 and R3 1k (power LED)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "boot": {
+   "driver": "R8 5.1k pull-up, button J2, header pin; GPIO0 strap",
+   "t_rise_ns": null,
+   "source": "button and RC at boot only",
+   "victim": false
+  },
+  "reset": {
+   "driver": "R9 5.1k pull-up, button J3, header pin; EN",
+   "t_rise_ns": null,
+   "source": "button and RC",
+   "victim": false
+  },
+  "p26": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "p31": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "p32": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "p33": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "p35": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "p36": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "p37": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "p38": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "p40": {
+   "driver": "none on this board: J4 to J7 pass-through",
+   "t_rise_ns": null,
+   "source": "no driver on the board",
+   "victim": false
+  },
+  "usb_d+": {
+   "driver": "U1.14 USB_D+ to R6 0R",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 full speed, driver edge 4-20 ns by the spec, 4 ns taken",
+   "victim": false,
+   "note": "differential pair, 90 ohm; route as a pair (bucket 3 by edge, the pair rule from USB)"
+  },
+  "usb_d-": {
+   "driver": "U1.13 USB_D- to R7 0R",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 full speed, driver edge 4-20 ns by the spec, 4 ns taken",
+   "victim": false,
+   "note": "differential pair, 90 ohm; route as a pair (bucket 3 by edge, the pair rule from USB)"
+  },
+  "Net-(R6-Pad2)": {
+   "driver": "R6 to U2.6 (USBLC6)",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 full speed, driver edge 4-20 ns by the spec, 4 ns taken",
+   "victim": false,
+   "note": "differential pair, 90 ohm; route as a pair (bucket 3 by edge, the pair rule from USB)"
+  },
+  "Net-(R7-Pad2)": {
+   "driver": "R7 to U2.4 (USBLC6)",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 full speed, driver edge 4-20 ns by the spec, 4 ns taken",
+   "victim": false,
+   "note": "differential pair, 90 ohm; route as a pair (bucket 3 by edge, the pair rule from USB)"
+  },
+  "Net-(J1-DP1)": {
+   "driver": "U2.1 to J1 DP1/DP2",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 full speed, driver edge 4-20 ns by the spec, 4 ns taken",
+   "victim": false,
+   "note": "differential pair, 90 ohm; route as a pair (bucket 3 by edge, the pair rule from USB)"
+  },
+  "Net-(J1-DN1)": {
+   "driver": "U2.3 to J1 DN1/DN2",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 full speed, driver edge 4-20 ns by the spec, 4 ns taken",
+   "victim": false,
+   "note": "differential pair, 90 ohm; route as a pair (bucket 3 by edge, the pair rule from USB)"
+  },
+  "Net-(J1-CC1)": {
+   "driver": "R4 5.1k to GND (USB-C sink CC)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(J1-CC2)": {
+   "driver": "R5 5.1k to GND (USB-C sink CC)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(C22-Pad1)": {
+   "driver": "U6.11/12 PH (TPS54620 internal FETs): the switch node",
+   "t_rise_ns": 3,
+   "source": "assumption: no SW edge spec in the datasheet, 3 ns as rung 2",
+   "victim": false,
+   "note": "SW; In1 is its return"
+  },
+  "Net-(U6-BOOT)": {
+   "driver": "U6.13 BOOT, rides on SW through C22",
+   "t_rise_ns": 3,
+   "source": "same edge as SW",
+   "victim": false
+  },
+  "Net-(C23-Pad1)": {
+   "rail": true,
+   "driver": "L1.2: the buck output before D4 ORs it onto +5V",
+   "source": "rail: judged by irdrop and currents"
+  },
+  "Net-(U6-COMP)": {
+   "driver": "U6.8 COMP error amplifier output, R19 3.92k",
+   "t_rise_ns": null,
+   "source": "DC or slow analog",
+   "victim": true
+  },
+  "Net-(C1-Pad1)": {
+   "driver": "COMP through R19: C1 68 pF / C20 6.8 nF",
+   "t_rise_ns": null,
+   "source": "DC or slow analog",
+   "victim": true
+  },
+  "Net-(U6-VSENSE)": {
+   "driver": "+5V side through R24 53.6k / R25 10k",
+   "t_rise_ns": null,
+   "source": "DC or slow analog",
+   "victim": true
+  },
+  "Net-(U6-RT/CLK)": {
+   "driver": "U6.1 RT bias through R18 53.6k",
+   "t_rise_ns": null,
+   "source": "DC or slow analog",
+   "victim": true
+  },
+  "Net-(U6-SS/TR)": {
+   "driver": "U6.9 SS into C18 2.2 nF",
+   "t_rise_ns": null,
+   "source": "DC or slow analog",
+   "victim": true
+  },
+  "Net-(U6-EN)": {
+   "driver": "+BATT through R16 102k / R17 36.5k (UVLO)",
+   "t_rise_ns": null,
+   "source": "DC or slow analog",
+   "victim": true
+  },
+  "Net-(U10-C1)": {
+   "driver": "U10.4 C1 (LIS3MDL internal cap pin)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U10-SD0/SA1)": {
+   "driver": "R46 address strap",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U11-SDO/SA0)": {
+   "driver": "R49 address strap",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "Net-(U11-CS)": {
+   "driver": "R50 pull-up (I2C mode)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  }
+ }
+}

@@ -806,3 +806,255 @@ nets, wide-class nets left to the layout script), since all 30 min of reaction w
   FAILS on 12 nets (pass 2 equals pass 1). A copy of the attempt regenerated once with the fixed tool and regen-checked
   again says **REGENERATES**: netlist, DRC, placement and per-net copper identical across the handed-in tree and both
   passes, only the gerber-order warns of R1-A2-T2 (not part of the verdict). R2A2-O-4 is closed by the tool.
+
+## Routing session 4: config first, judges, feed helpers (2026-11-02)
+
+Hypothesis stated with Alex before any code: the 30 min of reaction in rung-2 attempt 2 came from how the router was
+configured, not from routing needing a designer. Null: some of it is a gap configuration cannot close. Measured on the
+route bench (four rung-2 placements, tracks stripped, pours kept), then on the attempt-2 placement end to end. Alex's
+stackup, stated this session and now the policy the judges check: In1 and In2 both solid GND, 3V3/5V routed point to
+point, high-current rails as pours or thick tracks, every signal over unbroken ground.
+
+- **ROUTE-T1 Outer-only routing is free; wide nets are not a config problem.** KRT's own recipe (`--layers F.Cu In1.Cu
+  In2.Cu B.Cu --layer-costs 1 -1 -1 1`) took inner-layer track from 138 / 200 / 200 / 0.2 mm to 0 on all four boards
+  with the same clean/open result and equal or fewer vias (37->36, 43->38, 54->52, 46->46). KRT already reads the net
+  class widths ("auto-read netclass track widths for 7 non-Default nets"); explicit `--power-nets` was mixed (Opus: narrow
+  copper 53->11 mm but 1 airwire; Fable: 5x slower) and `--no-power-tap-neckdown` did nothing or worse. Every config
+  necked the fine-pitch power pins (0.2 mm plane taps and rescues into DRV8874 VM/OUT, TPS54620 PVIN, from KRT's own
+  `narrowed` report), failed `currents` on 2-5 nets where the designers' copper failed none, and placed no thermal vias
+  under the exposed pads. `pcb route auto` now routes outer-only by default (`--inner-tracks` lifts it); the skill says to
+  draw wide-class nets and thermal vias before calling it. Side-by-side renders were shown to Alex in the session.
+- **ROUTE-T2 KiCad sorts tracks by UUID on save and KRT writes random UUIDs**, so the same copper came back from a refill in
+  a different order each run, and KRT's second pass (which reads tracks in file order) routed differently: verify 27's
+  order check failed 1 run in 2 once pass 2 had work to do. `canonical()` now derives every segment/arc/via UUID from its
+  content (uuid5) and runs on each pass's output before the refill; two routes that differ only in KRT's UUIDs are then
+  byte-identical after canon + fill.
+- **ROUTE-T3 KRT's rip-up order iterates a set of net names**, so pass 2 on one byte-identical input differed 1 run in 4
+  ("Blocking obstacles: 3V3, unconnected-(U1.U:10)" against the reverse). `PYTHONHASHSEED=0` for every KRT call (route
+  auto and the bench): 6/6 identical; verify 27 three runs green.
+- **ROUTE-T4 `SaveBoard` re-nets a new via that sits in another net's stale zone fill** and touches nothing of its own net:
+  a PVIN feed via inside the old GND pour came back GND, a 0.185 mm clearance error to C1.1 (VIN) and an IPROPI airwire
+  the router could not close. `Board.save()` unfills the zones when vias or tracks were added since the last save (a first version keyed on the session's counters unfilled fill()'s own saves: verify 17/19 caught 12 clearance errors and 17 dangling vias), `unfill_and_save()`
+  does it for raw boards (the stitch pass and the freerouting SES import had the same hazard); verify 28 reproduces the
+  bug with a plain save (`['GND', 'VIN']`) and passes with the fix.
+- **REFPLANE-1 `refplane` row (pcbcheck, opt-in, on in the project template).** Every non-ground track sampled every
+  0.25 mm against GND fill on the adjacent copper layer, own vias and through-hole pads skipped (antipads); per net the
+  unreferenced mm and gap count, 0.5 s a board. Attempt-2 board: F.Cu 0.5 mm off ground, B.Cu 212 mm (In2 is the VIN/5V
+  plane), 14 of 29 nets fail. Positive control: In2 converted to GND on the router's copper, 290 -> 5.1 mm (DIR along the
+  board edge where the plane pulls back, 0.2 mm of 3V3 at a via). Prior art: nothing in KRT, kct or this repo checks it.
+- **IRDROP-1 `pcb irdrop`**: the net rasterised by KiCad's own hit tests (fill as poured, so spokes and necks are real) at
+  0.1 mm, vias as barrel conductances, solved with scipy under `uv` (KiCad's isolated Python has no numpy). Selftest: a
+  10 x 1 mm 1 oz strip at 1 A gives 4.8651 mV and 28.57 A/mm2, exactly rho L / (w t). 2.5 s a net. On the attempt-2 board
+  the hottest 5V copper outside any pad is the In2 spokes into J3.1 (184 A/mm2): the reviewer's R2A2-O-1 found from
+  physics, no declared row. VIN, designer against router-only: 11.7 vs 36.2 mV at VM, 55 vs 166 mW. Prior art: kct's
+  `power_trace` flags 3 narrow traces on both boards alike; KRT has pour-resistance helpers but no network solve.
+- **FEED-1 `pcblib` `thermal_vias()` and `pad_feed()` / `pad_feed_search()`.** Prior art measured first: KiCad ships
+  `_ThermalVias` variants (the DRV8874's HTSSOP-16 has one: config, no code); `kct stitch --thermal` added 0 vias with
+  defaults and with explicit GND/In1 settings (it only looks beside a pad, never in it); KRT's QFN fan-out is one stub or
+  via per pad at one width. `pad_feed` draws the designers' hand feed (pour at pad width out of the package, flare, a
+  via field sized by the `feeds` row's own IPC formula: 0.3 mm drill 1.22 A, so 2.5 A gets 3), pads grouped
+  ("4,5,6"), splay to fan neighbours apart, direction from the pad centroid (the vendored SOIC-8's origin is pin 1), and
+  a pre-check of the whole pour and every via against other nets that raises with the parts in the way. On the attempt-2
+  placement with outer-only `route auto` (designer / pours without vias / router only / helpers): feeds fails 2 / 7 / 4
+  / 3 of 9, thermal vias 12+4 / 0 / 0 / 15+4, VIN drop at VM 11.7 / 24.5 / 36.2 / 11.3 mV, I2R 55 / 112 / 166 / 54 mW;
+  helpers and router-only both route CLEAN. The helpers give back the designer's VIN feed; OUT2 does not fit beside VM
+  under this placement (C12/C13, the charge-pump caps, sit where both fields want to go) and Q1's source pins collide
+  with D3: the feed has to be planned at placement, which is the first wave of Alex's wave idea. `pad_feed_search` costs
+  ~27 s on this board (0.1 mm area check times the grid); fine for a layout script, worth a faster check later.
+- **WAVES-1 `pcb route waves`: routing in waves is mostly KRT configuration.** Prior art first: KRT already has `--nets`
+  per call, `--layers/--layer-costs`, `--keepout` (gr_poly / gr_rect on User.2, "hard keepout, all routed nets"),
+  `--guide-corridor` (User.1, the bus-zone idea) and never rips locked copper. So the driver is thin: wave 0 is pcblib
+  code (pad_feed_search on the plan's feeds, thermal_vias), each later wave one KRT call with its nets, layers and
+  keepout polygons, its copper locked after so later waves and the finishing `auto` cannot rip it, unlocked at the end;
+  no plan = wide classes (>= 0.5 mm), then Sense classes, then the rest. The verdict compares against the untouched
+  input (a first version let `auto` treat the waves' output as the baseline and called a starved thermal the waves made
+  "inherited": CLEAN when it was not; `auto --baseline` fixes that). Test: the attempt-2 placement on Alex's stackup (In2
+  turned to GND, designer hand-feeds removed; 71 airwires, VIN and 5V now routed), all arms deterministic:
+
+  | arm | wall | new errors | signal off ground | VIN I2R | VIN drop PVIN / VM | worst J | currents fails | thermal vias |
+  |---|---|---|---|---|---|---|---|---|
+  | A one-shot `auto` | 61 s | 0 | 2.2 mm | 440 mW | 122 / 39 mV | 581 | 4 | 0 |
+  | B waves, default plan | 49 s | 0 | 0 | 158 mW | 22 / 38 mV | 510 | 2 | 0 |
+  | C waves + feeds + thermal | 73 s | 1 starved thermal (J4 GND) | 0 | 102 mW* | 19 / 20 mV | 187 | 3 | 15 + 4 |
+  | D C + buck wave + keepout | 106 s | 2 starved thermals | 5.4 mm | 124 mW | | 187 | 3 | 15 + 4 |
+
+  Power first is the win: B against A cuts VIN loss 440 -> 158 mW and removes the last unreferenced signal copper at no
+  time cost; C's feeds cut it to 102 mW and the worst current density 581 -> 187 A/mm2. Keepouts work while a wave runs
+  (signals hugged the box edge) but only hold if the finish cannot rip the wave (first run: nSLEEP re-routed through the
+  box after an early unlock); a keepout that covers a subsystem's own pins pushes that subsystem's nets (SS, BOOT) to the
+  unconstrained finish, so the zone needs its own wave first (D: buck nets, then sense and rest kept out; only COMP, SS
+  and 0.9 mm of 3V3 inside the buck box against ENC_B's 10.6 mm in C). The zones cost: +33 s, 5.4 mm off ground, +22 mW,
+  one more starved thermal. Starved thermals on through-hole GND pads (J4) are the waves' remaining error; the stitch pass
+  does not handle them. DIR runs 69-80 mm round the board edge on B.Cu in every arm: placement, not routing.
+
+  \* Corrected the same day: 102 mW came from a run where the finish could still rip and re-tidy VIN; with the waves
+  locked through the finish (the keepout fix) C measures 124 mW, the same as D, so the buck zone costs +4 s and 5.4 mm off
+  ground, not +22 mW.
+- **STARVE-1 The stitch pass never repaired a starved through-hole pad.** KiCad words it "PTH pad 1 [GND] of J4" with no
+  layer; `pad_by_desc` only matched "Pad 2 [GND] of U1 on F.Cu". The J4 case: the XT30's GND pin in a pocket of B.Cu
+  ground that the DIR perimeter track and the VIN_RAW pour cut off into an island, one spoke to the island. With the parse
+  fixed the stitch pass gives it a solid connection (the right call for a power connector's ground pin anyway) and both
+  wave arms (C, D) route CLEAN against the input. KRT's own answer is to downgrade starved_thermal to a warning
+  (fix_kicad_drc_settings), which this repo's guardrails forbid.
+- **FEED-2 Feeds at placement: the blocker was the helper, not the placement.** A `feed_room` row (pcbcheck, opt-in) runs
+  the feed search on an in-memory copy at placement time. First version: DRV8874 OUT2 "blocked by C12, C13 and VM's
+  feed". Moving C12/C13 up to 2.5 mm (23 legal positions, 2 min) and C10 as well (8 min) found nothing, and with all three
+  caps parked off the board OUT2 still failed: VM, planned first, took the straight-out slot with the widest field, and
+  a splayed flare clipped the neighbouring pin's tip because it turned right at the pin row. Two changes: a 0.4 mm
+  straight exit past the pin tips before any turn, and `plan_feeds()` (biggest current first, a pad with feed neighbours
+  on the same footprint splays away from them first and tries every length and width at that splay before falling back).
+  On the designer's own placement, caps where they were: VM straight, OUT2 splayed 50 degrees, OUT1 straight, all 3 vias;
+  `feed_room` 8 of 8 SMD feeds fit, 10 s. The lesson for the row's wording: "in the way" names what the last try hit, not
+  what must move; the search order was the real blocker. Also: a feed pour overlapping a same-net pour at equal priority
+  is a KiCad error (zones_intersect, the Q1 drain feed over the designer's VIN_RAW pour); feeds now take a priority above
+  any same-net pour they overlap. Arm E (waves + every feeds row + thermal vias, `plan_feeds`): CLEAN in 66 s, VIN loss
+  94 mW (one-shot 440, waves 158, waves with partial feeds 124), worst density 190 A/mm2, 0 mm of signal off ground,
+  `currents` fails VIN only. The `feeds` row still fails 4 helper-fed pins because their vias sit beyond the row's
+  within_mm and the row does not count pours; `pcb irdrop` is the better judge of a pour feed, and the row should learn
+  to read it.
+- **PLAN-1 Who writes the wave plan: a deterministic plan search matches the agents on 2 of 3 boards.** Bench
+  `tools/bench/plan_bench.py` (results `tools/bench/results/plan.jsonl`): the three finished rung-2 placements on Alex's
+  stackup, tracks and non-GND pours stripped, the same 7 feeds and U1/U2 thermal vias for every arm; only the plan
+  differs. Judges: clean, VIN loss and worst density (`pcb irdrop`), signal off ground (`refplane`), foreign track in
+  the switch-node box, `currents` fails, vias. Arms: rules (net classes: power, sense, rest), rules+zones (the buck's own
+  nets in a wave of their own, then sense and rest kept out of the switch-node box), one Sonnet agent per board (plan
+  summary, judges, rule results, at most 4 scored tries), and a search over three more plans built from the agents'
+  moves (VIN alone with `--escalation board` first; MOTOR_A first; both) plus zones with escalation on the whole power
+  wave. Ranking: pass limits (clean, `currents` fails and VIN loss no worse than rules + 10 %), then foreign, off ground,
+  VIN, `currents`, vias. A plain priority order was the wrong rule: the Opus2 agent's top plan by it traded 2.8x the
+  VIN loss and 5 `currents` fails for 14 mm of signal off ground.
+
+  | board | rules | rules+zones | best agent plan | best search plan |
+  |---|---|---|---|---|
+  | opus | off 1.8, foreign 3.5, 259 mW | off 2.1, foreign 0, 259 mW | off 0.2, 259 mW (split power waves) | vin-first: off 2.1, **167 mW** (the agent's own v3, identical) |
+  | sonnet | off 0.5, 99.5 mW | same | **off 0, 95.4 mW** (MOTOR_A first, a keepout strip at J1.1, 3V3 alone on F.Cu) | motorA-first: off 0.2, 96.3 mW; vin-first 0.7 / 78.5 |
+  | opus2 | off 0, foreign 16.4 | off 14.2, foreign 0 | off 2.2, 103.7 mW | zones + escalation: **off 0, foreign 0, 111.6 mW, J 194** (rules 324) |
+
+  Agent cost: 65k, 95k and 87k tokens (as the Agent tool reports them), 4 scored tries each; two of the three agents' first plans hung the
+  router (an edge keepout: 23 min; KRT's plane repair: 17 min), so waves now have a per-wave `timeout_s` (default 300 s)
+  after which the wave's nets go to the later waves. Agent errors: the Opus2 agent routed VIN at 0.6 mm thinking the
+  default was 0.2 (the class is 1.4); the Sonnet agent's J1.1 keepout partly works by landing the track in `refplane`'s
+  antipad exclusion, close to optimising the checker. The one general insight (the Opus agent): in a power wave KRT
+  joins pads the class width cannot reach with a 0.2 mm "net rescue" inside the wave, which is most of Opus's VIN loss;
+  VIN alone at `--escalation board` necks only the terminal (259 -> 167 mW). As a blanket rule it does not transfer
+  (escalation on the whole power wave: Opus better, Sonnet worse with a starved thermal, Opus2 off ground 14.2 -> 0 but
+  +10 % VIN), and "escalate only the nets left open" changed nothing (VIN is never open; the rescue connects it) and
+  was reverted. Reading: the agents' gains are per-board search over a few KRT settings, and a 6-plan search reproduces
+  most of it at zero tokens and one answer per run. n = 1 agent per board; the replicates were not run because the
+  decision does not hinge on agent spread unless an agent beats the search consistently, which it did on one board.
+
+## Routing session 5: signal classes, per-bucket judges, plan re-rank (2026-11-03)
+
+Alex's decision at the end of session 4: rank signals by class, not "signal" as one thing. Four aggressor buckets by the
+knee frequency of the DRIVER's edge, f_knee ~= 0.5 / t_rise (not the clock or PWM rate): 1 under 1 MHz (best effort over
+ground), 2 at 1-50 MHz (over ground, short gap crossings penalised, spacing from aggressors), 3 at 50-500 MHz (hard: 0 mm
+off ground, no split or edge crossings, a GND via beside every layer change, out of hot zones), 4 above 500 MHz (hard
+plus impedance, pairs, length match). Second axis: victims (analog, high impedance) want distance from aggressors more
+than ground.
+
+- **SIG-1 Classification of the rung-2 nets (`pcb signals`, the `signals` block in checks.json).** The designer records
+  per net what the tools cannot measure: the driver pin, the rise time of its edge with the source of the number (a
+  datasheet line or an explicit assumption), the parts on the board that slow it, and a victim flag; `pcbsig.py` computes
+  the knee and the bucket, lists every net the netlist has that the block does not (treated as bucket 1), and exits 1 on
+  a net the netlist lacks. The three rung-2 boards share one topology, so `tools/bench/rung2_signals.py` holds the facts
+  once per role and writes each board's block with its names and references. Result on all three (table shown to Alex):
+  bucket 3: 7 nets (SW, BOOT, PWM, DIR, nSLEEP, ENC_A_IN, ENC_B_IN), bucket 2: 7 (MOTOR_A/B, nFAULT, the fault LED
+  anode, IPROPI, ENC_A/B), bucket 1: 11-14 (the buck's COMP/FB/RT/SS, the charge pump, ISENSE, gate, LEDs), bucket 4:
+  none; victims 7-9 (IPROPI, ISENSE, COMP, COMP_RC, FB, RT, SS, and on a1-opus EN and VREF). The surprises Alex expected:
+  the MCU's PWM, DIR and nSLEEP land in bucket 3 (a 3.3 V GPIO edge assumed 3 ns, nothing on the board slows it; a 100 R +
+  100 pF at the header would make them bucket 2), while the motor outputs are bucket 2 (DRV8874 tRISE 150 ns, datasheet),
+  so the motor rails are the magnetic aggressor for the sense nets rather than a fast one. The encoder series resistors
+  only slow the header side (ENC_A 45 ns, bucket 2); the encoder side (ENC_A_IN, 10 ns assumed push-pull) stays bucket 3.
+  Datasheet numbers: DRV8874 tRISE/tFALL 150 ns, fVCP 400 kHz; everything else is a stated assumption in the block
+  (SW 3 ns: the TPS54620 datasheet gives no edge rate; nFAULT fall 20 ns; encoder 10 ns). Prior art measured: KRT's
+  `find-high-speed-nets` skill (an agent prompt: name patterns, then a datasheet web search, then series-passive
+  propagation) on the a2-opus nets: 16 of 25 signal nets unmatched (SW, BOOT, DIR, nSLEEP, MOTOR_A/B, nFAULT, the buck's
+  analog nodes), 6 wrong (its "EN" substring puts ISENSE and VSENSE in its 10 ns tier, "LED" the power LED), 3 agree; it
+  has no victim axis and its tiers are clock-rate names, not edges. kct has no net classification. Smallest change:
+  data in checks.json (where every other intent row lives), buckets computed, nothing in the judges yet.
+- **SIG-2 `return_via` row: a bucket-3 via with no ground via beside it, on every PLAN-1 plan.** With In1 and In2 both
+  ground, a signal via moves its return from one plane to the other, and the return has to cross through a ground via
+  or through-hole ground pad near it. The row measures, per via of a non-rail net, the distance to the nearest one:
+  buckets 3 and 4 fail beyond 2.0 / 1.0 mm, bucket 2 warns beyond 5.0, bucket 1 is reported. Prior art measured first:
+  KRT `route_planes.py --add-gnd-vias` is the same test (nearest GND via or PTH pad within `--gnd-via-distance`, default
+  2.0 mm) followed by placement, applied to every non-ground via without a class (the VIN and 5V vias included); on the
+  opus2 rules board it checked 47 vias, found 5 already covered, placed 0 ("no clear space within 2.0 mm" for the other
+  42, a 0.8 mm centre-to-centre minimum) and wrote two values into the .kicad_pro, which this repo's guardrails forbid.
+  Its `find-high-speed-nets` skill recommends 3 mm for 100 MHz-1 GHz and 5 mm for 10-100 MHz; this row's 2 mm for bucket
+  3 is the tighter of the two, on a board small enough that it costs nothing. kct has no return-via check. Measured on
+  all 36 PLAN-1 runs with a scratch script before the row existed: the fast nets carry 6-15 vias per board, none with a
+  GND via within 1 mm and at most 2 within 2 mm, worst 19 mm (opus, PWM); the archived attempt-2 board: 5 bucket-3 nets
+  fail (DIR, ENC_A_IN, ENC_B_IN, PWM, nSLEEP, 3.1-9.1 mm). So this limit fails every plan of the search today: the gap
+  is a placement step after routing (a GND via beside each fast-net via, which is what KRT meant to do), not a choice
+  among plans. The row is in the bench's judges; the re-rank (step 3) will show it as a hard limit no plan meets.
+- **SIG-3 `exposure` row replaces `foreign_mm`.** The PLAN-1 "foreign track in the switch-node box" counted any track of a
+  non-local net inside the box on any layer, so B.Cu under the SW node (two solid planes between) counted the same as
+  F.Cu beside it. `exposure` samples every track of a non-local signal net every 0.25 mm and counts the mm within 1.0 mm
+  of the aggressor's copper (tracks, pads, zone fill) on the same layer, times 3 for `signals` victims; the aggressor
+  defaults to the switch node (the inductor net that also reaches an IC pin), nets local to it (every pad on a
+  footprint that also carries the aggressor: BOOT, SW) and the rails are left out. On the opus2 rules board: foreign_mm
+  16.4 against exposure 0.8 (SS, 0.3 mm on F.Cu, a victim); on the archived attempt-2 board 0.4. Prior art: kct `analyze
+  current-sense` reports, per sense net, only the single nearest high-current net on the same layer with its parallel
+  run and gap, passes unless 10 mm parallel under 0.5 mm, and named 3V3 as the high-current net even with `--hicur-net
+  SW MOTOR_A MOTOR_B VIN` given; kct `analyze signal-integrity` found 0 crosstalk risks and 0 impedance discontinuities
+  on both boards. All three rows run in 0.85 s on a board; the bench's `judges()` now records `fast_off_mm`, `fast_gaps`,
+  `mid_off_mm`, `off_by_bucket`, `return_via_bad`, `return_via_worst_mm`, `exposure_mm` beside the old columns, and
+  `plan_bench.py rescore --board B --run DIR` re-judges a finished run without routing (for step 3).
+- **SIG-4 Re-rank of PLAN-1 under the class rule, and `pcb route waves --search`: the winner changes on one board of
+  three; the return-via limit needs a placement step, which now exists.** Hypothesis (stated before running):
+  class-aware ranking picks plans that keep bucket-3 nets fully referenced at a VIN cost within the limit, and changes
+  the winner on at least one board. Null: same winners, or no plan meets the bucket-3 hard limits on some board.
+  Method: the 31 PLAN-1 runs re-judged in place (`plan_bench.py rescore`, no routing), ranked by `pcbsig.plan_rank`:
+  hard limits clean, bucket-3/4 off ground 0 mm, currents fails and VIN loss no worse than the rules plan + 10 %; then
+  cost = bucket-2 mm x 1 + bucket-1 and rail mm x 0.2 + exposure x 1 + VIN mW x 0.1 + currents fails x 5 + vias x 0.05
+  (10 mW of VIN loss weighs as 1 mm of a bucket-2 net off ground). PLAN-1's priority order computed on the same rows.
+
+  | board | PLAN-1 winner | SIG-4 winner (cost) | pass hard limits | with return_via hard | sensitivity (each weight x0.5, x2) |
+  |---|---|---|---|---|---|
+  | opus | agent (split power waves, 259 mW) | agent v3 = search vin-first = both (167 mW), 43.7, a four-way tie | 9 of 11 | 0 | stable |
+  | opus2 | rules+zones+esc (foreign 0) | **rules** 24.4 (zones+esc 27.8) | 3 of 10 | 0 | stable |
+  | sonnet | agent (MOTOR_A first, 80 mW) | same 20.8; search vin-first 21.1 | 8 of 10 | 0 | flips to vin-first at VIN x2 or vias x0.5 |
+
+  Readings. (1) opus2 is the hypothesis's case: the box judge had rewarded the zone plans for 0 mm of foreign track in
+  the switch-node box; the same-layer judge sees 0.8 mm beside SW for rules against 2.7 for zones+esc, and the zone
+  plans' keepouts push nSLEEP (bucket 3) 12.3 mm along the x = 149.5 board edge where the plane pulls back, which the
+  hard limit rejects; rules wins at 10 mW less VIN loss. (2) opus first came out as the null in disguise: 10 of 11
+  plans failed on 1.6-1.9 mm of nSLEEP on B.Cu at (122, 134), and the survivor was the agent's 259 mW plan. The gap
+  was J3's pin field: a 2.54 mm through-hole header with the plane clearance leaves no copper between its pins on
+  either plane, so a track entering its own connector always crosses a void. `refplane` now skips points within
+  `connector_mm` (1.5) of the through-hole pads of footprints the net lands on (its own vias and pads were already
+  skipped); re-judged, 9 of 11 pass and the 167 mW plans tie. The 0 mm limit is brittle to sub-millimetre voids; the
+  next kind to look for is a neighbouring net's via antipad, and the answer should again be the void's cause, not an
+  allowance. (3) sonnet is a tie: the agent's plan and the search's vin-first differ by 0.1 and swap under a 2x weight
+  change. (4) The null's second half held everywhere before placement: `return_via` failed on every plan on every
+  board (4-15 bucket-3 vias with no ground via within 2 mm), so it was not a plan filter. `pcb route return-vias`
+  (pcblib `return_vias`: rings 0.8-2.0 mm, 30 degrees apart, checked at the board clearance against other nets' pads,
+  vias, tracks and pour fill on every layer and the board edge) closes it: on the opus2 winner 6 vias in 0.8 s, DRC
+  clean, 8 bad vias to 1 (an ENC_B_IN via boxed in by J2's pins); the search now runs it before the verdict.
+  Verdict: hypothesis supported on 1 of 3 boards (opus2), ties on opus and sonnet, and the return-via half of the null
+  was a placement gap, as predicted.
+
+  **`pcb route waves --search`** (`plan_variants`: rules, zones, rail-first, motor-first, both, zones-esc from the
+  board's own classes and the hot loop; six `waves` runs in parallel; the SIG-4 judges; `pcbsig.plan_rank`; the winner
+  written with search.json). On the three prepped rung-2 boards with 3 jobs it reproduces PLAN-1's numbers exactly
+  (deterministic, zero tokens): opus2 rules 101.58 mW, sonnet rail-first 78.45 mW, opus rail-first = both 166.72 mW,
+  in 172-235 s a board. With return vias: every plan on every board clean, bucket-3 vias without a return 0 (opus,
+  sonnet) and 0-1 (opus2), winners unchanged, costs +0.2-0.6 from the extra vias, 168-236 s a board.
+- **PLINK-0 The MotorGo Plink judged as its designer left it (the baseline for the routing benchmark Alex wants).**
+  65 x 56 mm, 4 layers (In1 and In2 ground: Alex's stackup), 117 footprints, 106 nets with 2+ pins, 1271 tracks at
+  0.12-0.25 mm, 342 vias, power as F.Cu pours; one Default net class (0.12 / 0.12). Classified in
+  `tools/bench/plink_signals.py` -> `tools/bench/plink/checks.json`: 41 bucket-3 nets (ESP32-S3 GPIO at an assumed 3 ns:
+  8 motor EN/PH, 4 encoder selects, 6 I2C lines, UART, 11 spare header GPIOs; the USB pair at the 4 ns full-speed edge;
+  SW and BOOT), 16 bucket-2 (8 motor outputs at 150 ns, 4 nFAULT, 4 IPROPI), 44 bucket-1, 10 victims; currents are
+  assumptions (1.5 A a channel, 6 A at the jack). The judges on the designer's copper, 0.9 s: refplane 8.7 mm off
+  ground in total, 3.4 mm on 6 bucket-3 nets (sub-millimetre gaps, the longest 1.0 mm on enc_scl); return_via 8 of 46
+  nets fail (USB D+/D-, I2C, encoder selects, UART: 2.3-5.6 mm to the nearest ground via); exposure 0 (nothing within 1
+  mm of SW or the motor pours on the same layer); +BATT irdrop from J11 to four VM pins and PVIN at 1.5 A each: 148 mW,
+  8-31 mV, worst 193 A/mm2 on F.Cu at (124.6, 97.0); thermal vias under the four DRV8874 pads 1, 4, 2, 2 (the config
+  asks 9). `currents` and `feeds` fail on every row because they size tracks and the board is pour-fed: not a judge
+  for this board. The published board is not clean: 4 airwires (U8.3 and C24.1 on +5V, R24.1, R8.2) and 71 DRC
+  errors with the JLC pack (40 copper-to-edge, 5 shorting_items, 1 zones_intersect), so the +5V irdrop returns NaN
+  (the LDO input is open). Bench plumbing: `BOARDS["plink"]` keeps placement and pours, strips tracks and vias, writes
+  classes from the config (`pcb route classes`: +BATT W2.35, +5V W0.9, motor outputs W0.35, victims Sense) and takes
+  feeds (15) and thermal vias (5 pads) from it; `default_plan` now puts every class wider than Default in the power
+  wave (the 0.35 mm motor outputs included). Not run: the benchmark waits for the readiness list in the handoff.

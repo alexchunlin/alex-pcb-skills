@@ -11,6 +11,10 @@ zones are refilled and the result is measured with `pcb route measure --drc`:
   vias, length    via count and total track length in mm; `part` is the same for the DRV8874's nets (R2-T2)
   wall_s          router wall time (export/import and refill are `overhead_s`)
   setup_changed   the board-setup minimums differ from the input's (a router that loosened the rules to read 0, R1-A2-T5)
+  inner_mm        track length on the inner layers, which are planes on every rung-2 board (R2A2-T1: signals on the planes)
+  narrow          nets in a wide net class (track width above Default's) with a track under the class width (R2A2-T1:
+                  0.2 mm stubs on the 4 A rails; KRT reads only the Default class unless --power-nets says otherwise)
+  feeds, currents the board's archived checks.json rows of those two families, run on the routed copper (R2A2-O-1, O-2)
 
 Routers (env paths): freerouting 2.5.0 jar (`FREEROUTING_JAR`, `JAVA`; DSN out of pcbnew, SES back in), KiCadRoutingTools
 (`KRT_DIR`, `KRT_PY`; reads and writes the .kicad_pcb), kct (`KCT`), and `designer` = the archived copper as handed in.
@@ -23,7 +27,7 @@ Scratch: /tmp/alexpcb-route/run-<pid>. Results append to tools/bench/results/rou
 """
 from __future__ import annotations
 
-import argparse, datetime as dt, glob, json, os, shutil, subprocess, sys, time
+import argparse, datetime as dt, fnmatch, glob, json, os, re, shutil, subprocess, sys, time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,7 +39,7 @@ JAVA = os.environ.get("JAVA", "/opt/homebrew/opt/openjdk/bin/java")
 KRT_DIR = os.environ.get("KRT_DIR", "/tmp/pcb-ref/KiCadRoutingTools")
 KRT_PY = os.environ.get("KRT_PY", os.path.join(KRT_DIR, ".venv/bin/python"))
 KCT = os.environ.get("KCT", "kct")
-BOARDS = {a: f"examples/rung2-zener-a1-{a}/board" for a in ("sonnet", "opus", "fable")}
+BOARDS = {**{a: f"examples/rung2-zener-a1-{a}/board" for a in ("sonnet", "opus", "fable")}, "opus2": "examples/rung2-zener-a2-opus/board"}
 VARIANTS = {"tracks": [], "all": ["--zones"]}
 # router -> config name -> extra arguments. KRT: --no-fix-drc-settings keeps the board setup as the designer set it (its
 # default rewrites the .kicad_pro floors to the routed values, R1-A2-T5 as a feature); --escalation off keeps the net-class
@@ -43,7 +47,13 @@ VARIANTS = {"tracks": [], "all": ["--zones"]}
 CONFIGS = {
     "freerouting": {"default": [], "precision": ["--router.optimizer.improvement_threshold=0.5"]},
     "krt": {"default": ["--no-fix-drc-settings", "--escalation", "off"], "board": ["--no-fix-drc-settings", "--escalation", "board"],
-            "raw": []},
+            "raw": [],
+            # @OUTER: tracks on F.Cu/B.Cu only, the inner layers obstacle-only with vias through them (KRT's own recipe for
+            # --layer-costs -1); @POWER: every wide-class net at its class width (R2A2-T1). Both expand per board.
+            "outer": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER"],
+            "power": ["--no-fix-drc-settings", "--escalation", "off", "@POWER"],
+            "outer_power": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "@POWER"],
+            "outer_noneck": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "--no-power-tap-neckdown"]},
     "kct": {"default": [], "negotiated": ["--strategy", "negotiated"]},
 }
 
@@ -69,6 +79,64 @@ def pcb_json(*args, cwd=None):
     return json.loads(out.strip().splitlines()[-1])
 
 
+def cu_layers(pcb: Path) -> list[str]:
+    ls = re.findall(r'\(\d+ "((?:F|B|In\d+)\.Cu)" (?:signal|power|mixed|jumper)', pcb.read_text())
+    return sorted(set(ls), key=lambda l: (l != "F.Cu", l == "B.Cu", l))   # F.Cu, In1..n, B.Cu
+
+
+def wide_classes(pro: Path) -> list[tuple[str, float]]:
+    """(net pattern, class track width) for every class wider than Default, from the .kicad_pro (the designer's intent)."""
+    ns = json.loads(pro.read_text()).get("net_settings", {})
+    w = {c["name"]: float(c.get("track_width") or 0) for c in ns.get("classes", [])}
+    base = w.get("Default", 0.0)
+    return [(x["pattern"], w[x["netclass"]]) for x in ns.get("netclass_patterns", []) if w.get(x.get("netclass"), 0) > base + 1e-9]
+
+
+def expand(extra: list[str], pcb: Path) -> list[str]:
+    out = []
+    for a in extra:
+        if a == "@OUTER":
+            ls = cu_layers(pcb)
+            out += ["--layers", *ls, "--layer-costs", *["1.0" if l in ("F.Cu", "B.Cu") else "-1" for l in ls]]
+        elif a == "@POWER":
+            wc = wide_classes(pcb.with_suffix(".kicad_pro"))
+            if wc:
+                out += ["--power-nets", *[p for p, _ in wc], "--power-nets-widths", *[str(x) for _, x in wc]]
+        else:
+            out.append(a)
+    return out
+
+
+def rules(routed: str, m: dict, board: str, out_dir: Path) -> dict:
+    """The H-tool measurements: inner-layer track length, wide-class nets under their class width, and the archived
+    checks.json feeds/currents rows run on this copper."""
+    pcb = Path(routed)
+    r = {"inner_mm": round(sum(v for k, v in (m.get("length_per_layer_mm") or {}).items() if k.startswith("In")), 1)}
+    nw = m.get("net_width_mm") or {}
+    narrow = {}   # net -> [narrowest width, class width, mm of track under the class width]
+    for pat, w in wide_classes(pcb.with_suffix(".kicad_pro")):
+        for net, by_w in nw.items():
+            under = {float(k): v for k, v in by_w.items() if float(k) + 1e-6 < w}
+            if fnmatch.fnmatchcase(net, pat) and under:
+                narrow[net] = [min(under), w, round(sum(under.values()), 2)]
+    r["narrow"] = narrow
+    r["narrow_mm"] = round(sum(v[2] for v in narrow.values()), 2)
+    src = ROOT / BOARDS[board]
+    cfg, xml = src.parent / "checks.json", next(src.glob("*.xml"), None)
+    if cfg.exists():
+        out = out_dir / "pcbcheck.json"
+        cmd = [PCB, "check", routed, str(cfg), "--only", "feeds,currents", "--out", str(out)] + (["--netlist", str(xml)] if xml else [])
+        sh(cmd, cwd=out_dir, log=str(out_dir / "pcbcheck.log"))
+        try:
+            rows = json.load(open(out))["rows"]
+            for fam in ("feeds", "currents"):
+                fr = [x for x in rows if x["check"] == fam]
+                r[fam] = {"n": len(fr), "fail": [x["id"].split(":", 1)[1] for x in fr if x["status"] == "fail"]}
+        except Exception as e:  # noqa: BLE001
+            r["rules_error"] = f"{type(e).__name__}: {e}"[:200]
+    return r
+
+
 def prep(board: str, variant: str, run: Path) -> tuple[Path, dict]:
     """Copy the archived project, strip its copper, measure the start state."""
     src = ROOT / BOARDS[board]
@@ -80,6 +148,7 @@ def prep(board: str, variant: str, run: Path) -> tuple[Path, dict]:
             shutil.copy(f, d / f.name)
             if f.suffix == ".kicad_pcb":
                 pcb = d / f.name
+    pcb_json("route", "canon", str(pcb))   # KRT routes in footprint-file order; `pcb route auto` sorts first (P6-T6)
     strip = pcb_json("route", "strip", str(pcb), *VARIANTS[variant])
     start = pcb_json("route", "measure", str(pcb), "--drc")
     d = start.get("drc", {})
@@ -94,7 +163,7 @@ def run_router(router: str, cfg: str, pcb: Path, out_dir: Path, timeout: int) ->
         if f.suffix in (".kicad_pro", ".kicad_prl"):
             shutil.copy(f, out_dir / f.name)
     routed = out_dir / pcb.name
-    extra = CONFIGS[router][cfg]
+    extra = expand(CONFIGS[router][cfg], pcb)
     r = {"rc": None, "wall_s": None, "overhead_s": 0.0, "timeout": False, "log": str(out_dir / "router.log")}
     if router == "freerouting":
         t = time.time()
@@ -117,7 +186,7 @@ def run_router(router: str, cfg: str, pcb: Path, out_dir: Path, timeout: int) ->
             r["error"] = "no .ses written"
     elif router == "krt":
         cmd = [KRT_PY, os.path.join(KRT_DIR, "py_router/route.py"), str(pcb), str(routed), "--json-out", str(out_dir / "krt.json"), *extra]
-        rc, out, err, wall, to = sh(cmd, cwd=KRT_DIR, timeout=timeout, log=r["log"])
+        rc, out, err, wall, to = sh(cmd, cwd=KRT_DIR, timeout=timeout, log=r["log"], env={**os.environ, "PYTHONHASHSEED": "0"})   # ROUTE-T3
         r.update(rc=rc, wall_s=round(wall, 1), timeout=to)
         try:
             j = json.load(open(out_dir / "krt.json"))
@@ -168,6 +237,7 @@ def row_of(board, variant, router, cfg, rep, start, rr, m):
              min_width_mm=m["min_width_mm"], via_sizes=m["via_sizes"], plain_errors=d.get("plain_errors"), packed_errors=d.get("packed_errors"),
              errors_total=d.get("errors_total"), plain_by_type=d.get("plain_by_type"), setup_changed=m.get("setup_changed", False),
              part=m.get("part"), board_file=m["board"])
+    r.update(rules(m["board"], m, board, Path(m["board"]).parent))
     r["clean"] = bool(r["airwires"] == 0 and r["plain_errors"] == 0 and r["packed_errors"] == 0)
     return r
 
@@ -183,7 +253,10 @@ def fmt_row(r):
             f"air {r.get('airwires_start', '?'):>3}->{r.get('airwires', '?'):<3} err {str(r.get('plain_errors')):>3}/{str(r.get('packed_errors')):<3} "
             f"vias {str(r.get('vias')):>3} len {str(r.get('length_mm')):>7} minw {str(r.get('min_width_mm')):<6} "
             f"part air {p.get('airwires', '?')} vias {p.get('vias', '?')} len {p.get('length_mm', '?')}  "
-            f"wall {str(r.get('wall_s')):>6}s +{r.get('overhead_s', 0)}s  setup {'CHANGED' if r.get('setup_changed') else 'kept'}  {say}")
+            f"wall {str(r.get('wall_s')):>6}s +{r.get('overhead_s', 0)}s  setup {'CHANGED' if r.get('setup_changed') else 'kept'}  "
+            f"inner {r.get('inner_mm', '?')}mm narrow {len(r.get('narrow') or {})}/{r.get('narrow_mm', '?')}mm "
+            f"feeds fail {len((r.get('feeds') or {}).get('fail', []))}/{(r.get('feeds') or {}).get('n', '?')} "
+            f"currents fail {len((r.get('currents') or {}).get('fail', []))}/{(r.get('currents') or {}).get('n', '?')}  {say}")
 
 
 def table(results: Path, md=False):

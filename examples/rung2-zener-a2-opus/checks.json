@@ -529,5 +529,188 @@
    "match": "rail VIN_RAW",
    "reason": "VIN_RAW (before Q1) is probed on J4 pin 2 (+), a 3.5 mm THT pad; a test point on the 4 A pour adds nothing. BRINGUP step 2/3 uses J4 pin 2."
   }
- ]
+ ],
+ "signals": {
+  "_about": "SIG-1: per-net driver edge, with the source of the number; `pcb signals` computes knee (0.5/t_rise) and bucket. Rails are judged by irdrop/currents, not knee. Assumptions are marked; replace them with measured edges when a scope is on the board.",
+  "SW": {
+   "driver": "U1.11/12 PH (TPS54620 internal FETs)",
+   "t_rise_ns": 3,
+   "source": "assumption: the TPS54620 datasheet gives no SW edge rate (min on-time 94 ns is the nearest number); monolithic 6 A sync bucks measure 2-5 ns on SW, 3 ns taken",
+   "victim": false,
+   "note": "the aggressor the stackup policy is built around; In1 is its return"
+  },
+  "BOOT": {
+   "driver": "U1.13 BOOT, rides on SW through C4 100 nF",
+   "t_rise_ns": 3,
+   "source": "same edge as SW (the bootstrap cap ties the node to SW)",
+   "victim": false
+  },
+  "PWM": {
+   "driver": "MCU GPIO on J3 -> U2.1 EN/IN1",
+   "t_rise_ns": 3,
+   "source": "assumption: MCU GPIO behind the control header, 3.3 V CMOS edge 3 ns; no series R on the board or the cable",
+   "victim": false,
+   "slowed_by": [],
+   "note": "U2.1 has only the internal 100 k pull-down; a 100 R + 100 pF RC at the header would make it 22 ns (bucket 2)"
+  },
+  "DIR": {
+   "driver": "MCU GPIO on J3 -> U2.2 PH/IN2",
+   "t_rise_ns": 3,
+   "source": "assumption: MCU GPIO behind the control header, 3.3 V CMOS edge 3 ns; no series R on the board or the cable",
+   "victim": false,
+   "note": "toggles rarely; the bucket follows the edge, not the rate"
+  },
+  "nSLEEP": {
+   "driver": "MCU GPIO on J3 -> U2.3 nSLEEP",
+   "t_rise_ns": 3,
+   "source": "assumption: MCU GPIO behind the control header, 3.3 V CMOS edge 3 ns; no series R on the board or the cable",
+   "victim": false,
+   "note": "toggles rarely; the bucket follows the edge, not the rate"
+  },
+  "ENC_A_IN": {
+   "driver": "encoder output on J2.2",
+   "t_rise_ns": 10,
+   "source": "assumption: push-pull 3.3 V CMOS encoder output, 10 ns (the brief names no encoder); an open-collector hall encoder would be 100 ns-1 us (bucket 1-2)",
+   "victim": false,
+   "slowed_by": [
+    "R5 10k pull-up (rise only, open-collector encoders)"
+   ]
+  },
+  "ENC_B_IN": {
+   "driver": "encoder output on J2.3",
+   "t_rise_ns": 10,
+   "source": "assumption: as ENC_A_IN",
+   "victim": false,
+   "slowed_by": [
+    "R6 10k pull-up (rise only, open-collector encoders)"
+   ]
+  },
+  "ENC_A": {
+   "driver": "ENC_A_IN through R7 1k",
+   "t_rise_ns": 45.1,
+   "source": "R7 1k into the header-side load (~20 pF ribbon + MCU input): 2.2 RC = 44 ns, root-sum-square with the 10 ns source edge",
+   "victim": false,
+   "slowed_by": [
+    "R7 1k series"
+   ]
+  },
+  "ENC_B": {
+   "driver": "ENC_B_IN through R8 1k",
+   "t_rise_ns": 45.1,
+   "source": "as ENC_A",
+   "victim": false,
+   "slowed_by": [
+    "R8 1k series"
+   ]
+  },
+  "MOTOR_A": {
+   "driver": "U2.8 OUT1 (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "2 A edges: the magnetic aggressor for the sense nets (victim spacing), not a fast one"
+  },
+  "MOTOR_B": {
+   "driver": "U2.10 OUT2 (DRV8874)",
+   "t_rise_ns": 150,
+   "source": "DRV8874 datasheet tRISE/tFALL 150 ns (OUTx 10-90 %, VM 24 V)",
+   "victim": false,
+   "note": "as MOTOR_A"
+  },
+  "nFAULT": {
+   "driver": "U2.4 open-drain (fall); R12 10k pull-up to 3V3 (rise)",
+   "t_rise_ns": 20,
+   "source": "assumption: no nFAULT edge spec in the DRV8874 datasheet; open-drain pull-down into ~20 pF taken as 20 ns; the rise is R12 x ~20 pF ~ 0.4 us",
+   "victim": false,
+   "slowed_by": [
+    "R12 10k pull-up (rise only)"
+   ]
+  },
+  "LED_FAULT": {
+   "driver": "nFAULT through the fault LED D2 (cathode on nFAULT); R13 1k from 3V3",
+   "t_rise_ns": 20,
+   "source": "follows nFAULT's fall through the LED (series part)",
+   "victim": false
+  },
+  "LED_PWR": {
+   "driver": "5V through R9 1k (DC)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  },
+  "IPROPI": {
+   "driver": "U2.6 IPROPI current mirror into R10 2.74k",
+   "t_rise_ns": 150,
+   "source": "the mirror follows the bridge current, which steps at the OUTx edge (tRISE 150 ns); weak aggressor (IIPROPI <= 3 mA)",
+   "victim": true,
+   "note": "analog, 2.74k source impedance, ~1.2 V/A; noise here is current-regulation error"
+  },
+  "ISENSE": {
+   "driver": "IPROPI through R11 1k / C14 100 nF",
+   "t_rise_ns": 220000,
+   "source": "RC 100 us, 2.2 RC",
+   "victim": true,
+   "slowed_by": [
+    "R11 1k + C14 100 nF"
+   ],
+   "note": "ADC line to the header; high impedance"
+  },
+  "VSENSE": {
+   "driver": "5V through the feedback divider R1 52.3k / R2 10k (DC)",
+   "t_rise_ns": null,
+   "source": "DC feedback node",
+   "victim": true,
+   "note": "error-amplifier input, ~8 k source impedance; noise here is duty-cycle noise"
+  },
+  "COMP": {
+   "driver": "U1.8 COMP error-amplifier output",
+   "t_rise_ns": null,
+   "source": "compensation node, bandwidth about the crossover (tens of kHz)",
+   "victim": true
+  },
+  "COMP_RC": {
+   "driver": "COMP through R3 2.2k",
+   "t_rise_ns": null,
+   "source": "as COMP",
+   "victim": true
+  },
+  "RT": {
+   "driver": "U1.1 RT/CLK bias through R4 68.1k (DC)",
+   "t_rise_ns": null,
+   "source": "DC; the resistor sets fsw",
+   "victim": true,
+   "note": "high-impedance node; pickup here is frequency jitter"
+  },
+  "SS": {
+   "driver": "U1.9 SS into C9 10 nF (slow ramp)",
+   "t_rise_ns": null,
+   "source": "soft-start ramp, milliseconds",
+   "victim": true,
+   "note": "mild victim: matters at start-up only"
+  },
+  "CPH": {
+   "driver": "U2.13 CPH charge-pump switch into C13 22 nF",
+   "t_rise_ns": 2000,
+   "source": "no edge spec; slew bound by I/C: tens of mA into 22 nF over ~5 V is >= 2 us; fVCP 400 kHz (datasheet)",
+   "victim": false
+  },
+  "CPL": {
+   "driver": "U2.14 CPL charge-pump switch into C13 22 nF",
+   "t_rise_ns": 2000,
+   "source": "as CPH",
+   "victim": false
+  },
+  "VCP": {
+   "driver": "U2.12 VCP charge-pump output into C12 100 nF (VM + ~5 V)",
+   "t_rise_ns": null,
+   "source": "DC with 400 kHz ripple",
+   "victim": false
+  },
+  "Q1_GATE": {
+   "driver": "Q1.4 gate: R14 100k to GND, D3 zener clamp (DC)",
+   "t_rise_ns": null,
+   "source": "DC",
+   "victim": false
+  }
+ }
 }
