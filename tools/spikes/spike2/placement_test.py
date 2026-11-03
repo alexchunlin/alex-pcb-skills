@@ -64,18 +64,28 @@ def cmd_priors(a):
         roles = defaultdict(list)
         fallback = []
         for m in rows:
+            # the satellite of a role is the nearest part of that class on the pin's net (pad to pad): every other cap
+            # on a shared 3V3 rail belongs to some other IC. VDD and VDDIO on one net are one role.
+            best = {}
             for s in m["sats"]:
                 c = sat_class(s)
                 if c is None or s["back"]:
                     continue
-                d = math.hypot(s["dx"], s["dy"])
-                if d > 30:   # a part on the same rail at the far end of the board is not a satellite
+                if c in ("bulk cap", "bypass cap") and not s["other_gnd"]:
                     continue
-                cls_stats[c].append((s["dx"], s["dy"], s["rot"], d, s["pin"]))
-                if s["ref"].upper().startswith("C") and s["other_gnd"]:
+                pin = "VDDx" if s["pin"] in ("VDD", "VDDIO") else s["pin"]
+                dpad = m["pins"].get(s["pin"], {}).get(s["ref"])
+                if dpad is None:
+                    continue
+                k = (pin, c)
+                if k not in best or dpad < best[k][0]:
+                    best[k] = (dpad, s, pin)
+            for (pin, c), (dpad, s, _) in best.items():
+                cls_stats[c].append((s["dx"], s["dy"], s["rot"], dpad, pin))
+                if c in ("bulk cap", "bypass cap"):
                     band = "bulk" if c == "bulk cap" else "bypass"
-                    roles[f"{s['pin']}|C|{band}"].append((s["dx"], s["dy"], s["rot"]))
-                    if s["pin"] in ("VDD", "VDDIO", "VIN", "VOUT"):
+                    roles[f"{pin}|C|{band}"].append((s["dx"], s["dy"], s["rot"]))
+                    if pin in ("VDDx", "VIN", "VOUT"):
                         fallback.append((s["dx"], s["dy"], s["rot"]))
         summ = {}
         for c, xs in sorted(cls_stats.items()):
@@ -131,7 +141,7 @@ def one(mode, seed, priors):
                        capture_output=True, text=True, cwd=KRT_DIR, env={**os.environ, "PYTHONHASHSEED": "0"})
     try:
         qj = json.load(open(d / "quick.json"))
-        rec["quick"] = {"failed": qj.get("failed"), "vias": qj.get("vias"), "routed": qj.get("routed")}
+        rec["quick"] = {"failed": qj.get("failed"), "vias": qj.get("total_vias"), "open_pad_pairs": len(qj["pad_pairs_open"]) if isinstance(qj.get("pad_pairs_open"), list) else (qj.get("pad_pairs_open") or {}).get("count")}
     except (OSError, ValueError):
         rec["quick"] = {"error": q.stderr[-200:]}
     r = subprocess.run([str(PCB), "route", "auto", str(seeded), "--out", str(d / "auto.kicad_pcb"), "--work", str(d / "autowork")],

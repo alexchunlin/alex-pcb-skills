@@ -61,6 +61,7 @@ def main():
         f = fps[ref]
         nets = [p.GetNetname() for p in f.Pads()]
         pin = next((ic_nets[n] for n in nets if n in ic_nets and not n.upper().startswith("GND")), None)
+        pin = "VDDx" if pin in ("VDD", "VDDIO") else pin
         band = coarse_band("C", value_band("C", f.GetValue())) if ref.startswith("C") else "-"
         pool = None
         if priors is not None:

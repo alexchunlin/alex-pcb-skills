@@ -114,10 +114,21 @@ def main():
             done.add((x["key"], x["ref"]))
     except OSError:
         pass
-    with open(out, "a") as f:
+    started = set()
+    try:
+        started = {tuple(l.split()) for l in open(out + ".started")}
+    except OSError:
+        pass
+    with open(out, "a") as f, open(out + ".started", "a") as st:
         for j in jobs:
             if (j["key"], j["ref"]) in done:
                 continue
+            if (j["key"], j["ref"]) in started:   # this board took the process down last time (a loader crash)
+                f.write(json.dumps({"ok": False, "why": "the board crashed KiCad's loader", "key": j["key"], "ref": j["ref"], "part": j["part"]}) + "\n")
+                f.flush()
+                continue
+            st.write(f"{j['key']} {j['ref']}\n")
+            st.flush()
             try:
                 r = measure(j)
             except Exception as e:   # one unreadable board must not stop the pass

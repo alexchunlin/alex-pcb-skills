@@ -283,6 +283,15 @@ def cmd_emit(a, work):
                     pattern["max_mm"] = pct(d, 0.9)
                 rows.append({"kind": "refstat", "part": part, "pin": cp, "pattern": pattern, "support": round(sup, 3),
                              "n": s["n"], "n_board": len(d), "dist_median_mm": pct(d, 0.5)})
+    # one row per two-pin part seen from both of its IC pins (EN -> IC:3V3 and 3V3 -> IC:EN are the same resistor)
+    keep = []
+    for r in rows:
+        to = r["pattern"].get("to", "")
+        twin = next((x for x in rows if x is not r and x["part"] == r["part"] and to == "IC:" + x["pin"]
+                     and x["pattern"].get("to") == "IC:" + r["pin"] and x["pattern"].get("class") == r["pattern"].get("class")), None)
+        if twin is None or (r["support"], r["pin"]) > (twin["support"], twin["pin"]):
+            keep.append(r)
+    rows = keep
     json.dump({"_doc": "refstat rows from tools/corpus/refstat.py emit over bshada/open-schematics (spike 2); one row per "
                        "(part, pin, feature) with support >= %.2f; max_mm = the corpus p90 pad-to-pad distance where 20+ boards "
                        "measured it" % a.min_support, "rows": rows}, open(ROWS_OUT, "w"), indent=1)

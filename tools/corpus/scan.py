@@ -266,8 +266,9 @@ def cmd_boards(a):
 def cmd_licences(a):
     import subprocess
     rows = load_index()
-    repos = sorted({r["repo"] for r in rows if r.get("licence") is None and r["repo"] and "/" in r["repo"]})
-    got = {}
+    cache_p = Path(a.work) / "licences.json"
+    got = json.load(open(cache_p)) if cache_p.exists() else {}
+    repos = sorted({r["repo"] for r in rows if r["repo"] and "/" in r["repo"]} - set(got))
     for k in range(0, len(repos), 50):
         chunk = repos[k:k + 50]
         q = "query {" + " ".join(
@@ -281,6 +282,10 @@ def cmd_licences(a):
         for i, name in enumerate(chunk):
             v = d.get(f"r{i}")
             got[name] = "NOT_FOUND" if v is None else ((v.get("licenseInfo") or {}).get("spdxId") or "NONE")
+    json.dump(got, open(cache_p, "w"), indent=0)
+    if a.no_apply:
+        print(f"licences: {len(got)} repos cached in {cache_p}"); return
+    rows = load_index()
     for r in rows:
         if r["repo"] in got:
             r["licence"] = got[r["repo"]]
@@ -307,6 +312,7 @@ def main(argv):
     ap.add_argument("--jobs", type=int, default=6)
     ap.add_argument("--target", type=int, default=200)
     ap.add_argument("--parts", default="AMS1117-3.3,LSM6DS3,ESP32-WROOM-32,ESP32-S3-WROOM-1")
+    ap.add_argument("--no-apply", action="store_true", help="licences: query and cache only (another pass is writing the index)")
     ap.add_argument("--cap", type=int, default=300, help="board-bearing hits per common part to fetch boards for")
     a = ap.parse_args(argv)
     {"index": cmd_index, "boards": cmd_boards, "licences": cmd_licences, "summary": cmd_summary}[a.mode](a)

@@ -17,6 +17,14 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")
 OUT = os.path.join(ROOT, "docs/img/spikes")
 os.makedirs(OUT, exist_ok=True)
 ax.use("dark")
+PAL = ax.colors()
+
+
+def vline(a, x, label):
+    """A vertical threshold on a horizontal-bar chart, dashed in the warning color with a short label."""
+    a.axvline(x, color=PAL["warning"], linestyle=(0, (4, 3)), linewidth=1)
+    lo = a.get_ylim()[0]   # bars are inverted: the bottom of the axis is the largest y
+    a.text(x, lo - 0.15, " " + label, color=PAL["warning"], fontsize=8.5, va="bottom")
 
 
 def jl(p):
@@ -28,13 +36,13 @@ idx = jl("tools/bench/data/corpus-index.jsonl")
 parts = ["AMS1117-3.3", "ESP32-WROOM-32", "ESP32-S3-WROOM-1", "LSM6DS3", "DRV8874", "TPS54620"]
 repos = [len({r["repo"] for r in idx if r["part"] == p}) for p in parts]
 boards = [len({r["repo"] for r in idx if r["part"] == p and r.get("board") and r["board"].get("match")}) for p in parts]
-fig, (a, b) = plt.subplots(1, 2, figsize=(12, 3.8))
+fig, (a, b) = plt.subplots(1, 2, figsize=(13, 3.8), gridspec_kw={"wspace": 0.45})
 ax.bars(a, parts, repos, xlabel="Repositories with the part placed in a schematic, count", ylabel="Part")
-ax.ref_line(a, 30, "30 needed", status="warning")
+vline(a, 30, "30 needed")
 summ = json.load(open(os.path.join(ROOT, "tools/spikes/spike2/corpus-summary.json")))
 ax.title(a, "Instances per part", "bshada/open-schematics, %d of %d shards, %d rows; one count per owner/repo" % (summ["shards_read"], summ["shards"], summ["rows"]))
 ax.bars(b, parts, boards, xlabel="Repositories with a matching .kicad_pcb, count", ylabel="Part")
-ax.ref_line(b, 30, "30 needed", status="warning")
+vline(b, 30, "30 needed")
 ax.title(b, "With a board", "A board file in the row names the part and its reference")
 ax.save(fig, os.path.join(OUT, "2-instances.png"), dpi=160)
 plt.close(fig)
@@ -43,7 +51,7 @@ plt.close(fig)
 rb = json.load(open(os.path.join(ROOT, "tools/spikes/spike2/refstat-bench.json")))
 labs = [("existing rows", rb["all"]["base"]["recall_fail"]), ("existing + refstat", rb["all"]["refstat"]["recall_fail"])]
 df = rb["decoupling_feed_majors"]
-fig, (a, b) = plt.subplots(1, 2, figsize=(12, 3.2))
+fig, (a, b) = plt.subplots(2, 1, figsize=(9, 5.6), gridspec_kw={"hspace": 0.9})
 ax.bars(a, [l for l, _ in labs], [v for _, v in labs], xlabel="Labels caught as a fail, count of %d" % rb["all"]["base"]["labels"], ylabel="Config")
 ax.title(a, "Replay recall, 10 boards", "pcb check with each board's checks.json, then with the %d refstat rows added" % rb["n_rows"])
 cats = ["decoupling/feed majors caught by existing rows", "caught only by refstat", "refstat fails, no label"]
@@ -66,20 +74,17 @@ ax.save(fig, os.path.join(OUT, "2-triage-kinds.png"), dpi=160)
 plt.close(fig)
 
 # 4. placement: prior vs uniform
-pr = os.path.join(ROOT, "tools/spikes/spike2/placement-results.jsonl")
-if os.path.exists(pr):
-    rows = jl("tools/spikes/spike2/placement-results.jsonl")
-    c = ax.colors()
-    fig, a = plt.subplots(figsize=(8, 3.6))
-    for i, mode in enumerate(("prior", "uniform")):
-        v = sorted(r["auto"]["vias"] for r in rows if r["mode"] == mode and r.get("auto", {}).get("clean"))
-        if v:
-            a.plot(v, [k / len(v) for k in range(1, len(v) + 1)], drawstyle="steps-post", label=f"{mode} ({len(v)} clean)", lw=2.0, color=c[i])
-    a.axvline(26, ls="--", color="#d9a21b", lw=1.2)
-    a.text(26.3, 0.05, "designer 26 vias", color="#d9a21b", fontsize=8.5)
-    a.set_xlabel("Vias after pcb route auto, count"); a.set_ylabel("Share of clean routes, fraction")
-    ax.label_lines(a)
-    ax.title(a, "Prior-seeded vs uniform", "rung-1 Sonnet board, C1-C3 re-placed 50 times each, routed with KRT")
+ps = os.path.join(ROOT, "tools/spikes/spike2/placement-summary.json")
+if os.path.exists(ps):
+    sm = json.load(open(ps))
+    modes = ["prior-seeded", "uniform"]
+    fig, (a, b) = plt.subplots(1, 2, figsize=(12, 2.6), gridspec_kw={"wspace": 0.45})
+    ax.bars(a, modes, [sm["prior"]["clean"], sm["uniform"]["clean"]], highlight="prior-seeded",
+            xlabel="Seeds routed clean by pcb route auto, count of 50", ylabel="Seeding")
+    ax.title(a, "Clean routes", "rung-1 Sonnet board, the LSM6DS3's C1-C3 re-placed; red: the corpus prior")
+    ax.bars(b, modes, [sm["prior"]["router_calls_to_designer_vias"], sm["uniform"]["router_calls_to_designer_vias"]], highlight="prior-seeded",
+            xlabel="Router calls per clean route at or under the designer's 26 vias, count", ylabel="Seeding")
+    ax.title(b, "Router calls", "50 seeds / clean seeds; every clean route had 15 to 24 vias")
     ax.save(fig, os.path.join(OUT, "2-placement.png"), dpi=160)
     plt.close(fig)
 print("charts ->", OUT)
