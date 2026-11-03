@@ -277,5 +277,6 @@ unguided.
 - `tools/verify_all.sh`: section 30, sections 29/30 moved before the plumbing block.
 - `tools/spikes/spike4/` (new): `perturb.py`, `perturb_kpy.py`, `waves_arms.sh`, `h3_plans.py`, `feeds.py`, `report.py`.
 - `tools/bench/results/route.jsonl` (spike4-h2 rows), `plan.jsonl` (spike4-h2-waves, spike4-h3), `placements.jsonl`
-  (new; 84 spike4-h1 rows, plus 2 spike4-h1q rows from the abandoned `--quick 2` labels).
+  (new; 84 spike4-h1 rows, plus 2 spike4-h1q rows from the abandoned `--quick 2` labels), `replay.jsonl` (the replay
+  run: 24 labels, 0 false fails).
 - `docs/spikes/spike-4-topology.md`, `docs/img/spikes/4-ordering.png`, `docs/img/spikes/4-conflicts-hpwl.png`.
