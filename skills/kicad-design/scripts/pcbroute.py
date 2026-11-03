@@ -15,7 +15,8 @@
                                                     errors the input already had are inherited, not the router's. Writes
                                                     route.json beside the output; exit 1 unless clean (P6-T4)
   measure BOARD [--json] [--drc] [--pack jlcpcb] [--ref-value DRV8874]
-                                                    copper as numbers: tracks, vias, length, widths, airwires left
+                                                    copper as numbers: tracks, vias, signal_vias (vias on nets with no
+                                                    filled inner-layer zone, spike #4), length, widths, airwires left
                                                     (pcb q ratsnest), setup minimums, the nets of the footprint whose value
                                                     matches --ref-value (the 0.65 mm pitch part, R2-T2) and with --drc the
                                                     dual DRC of `pcb drc` (plain, packed, errors_total)
@@ -114,12 +115,22 @@ def c_fill(args):
     return bd.summary()
 
 
+def plane_nets(b):
+    """Nets with a filled zone on an inner copper layer: their vias are plane taps (stitch, fan-out), not layer changes."""
+    inner = {l for l in b.GetEnabledLayers().CuStack() if l not in (pcbnew.F_Cu, pcbnew.B_Cu)}
+    return {z.GetNetname() for z in b.Zones() if z.GetNetname() and z.IsFilled()
+            and any(z.GetFilledPolysList(l).OutlineCount() for l in z.GetLayerSet().CuStack() if l in inner)}
+
+
 def copper(b):
     tracks, vias, length, widths, per_layer = 0, 0, 0.0, {}, {}
     via_sizes, net_minw = {}, {}
+    planes, sig_vias = plane_nets(b), {}
     for t in b.GetTracks():
         if t.GetClass() == "PCB_VIA":
             vias += 1
+            if t.GetNetname() not in planes:
+                sig_vias[t.GetNetname()] = sig_vias.get(t.GetNetname(), 0) + 1
             k = f"{ToMM(t.GetWidth()):.2f}/{ToMM(t.GetDrillValue()):.2f}"
             via_sizes[k] = via_sizes.get(k, 0) + 1
         else:
@@ -132,7 +143,10 @@ def copper(b):
             nw[str(w)] = round(nw.get(str(w), 0.0) + l, 3)
             ln = b.GetLayerName(t.GetLayer())
             per_layer[ln] = round(per_layer.get(ln, 0.0) + l, 3)
-    return {"tracks": tracks, "vias": vias, "length_mm": round(length, 3), "min_width_mm": min(widths) if widths else None,
+    # signal_vias: vias on nets with no filled inner-layer zone, the layer changes a router chose (spike #4: `vias` also
+    # counts plane stitching, which the P6-T4 stitch pass adds and the designers placed by hand)
+    return {"tracks": tracks, "vias": vias, "signal_vias": sum(sig_vias.values()), "signal_vias_by_net": dict(sorted(sig_vias.items())),
+            "plane_nets": sorted(planes), "length_mm": round(length, 3), "min_width_mm": min(widths) if widths else None,
             "widths": {str(k): v for k, v in sorted(widths.items())}, "via_sizes": via_sizes, "length_per_layer_mm": per_layer,
             "net_width_mm": dict(sorted(net_minw.items()))}   # net -> {track width: length mm}
 
@@ -171,7 +185,7 @@ def c_measure(args):
                         "packed_by_type": d["packed"]["by_type"].get("error", {}), "sentinel": d.get("sentinel"), "rc": p.returncode}
         except Exception as e:  # noqa: BLE001
             r["drc"] = {"error": f"{e}: {p.stdout[-300:]} {p.stderr[-300:]}", "rc": p.returncode}
-    say("PCBROUTE measure", path, "tracks", r["tracks"], "vias", r["vias"], "length", r["length_mm"], "minw", r["min_width_mm"],
+    say("PCBROUTE measure", path, "tracks", r["tracks"], "vias", r["vias"], "signal_vias", r["signal_vias"], "length", r["length_mm"], "minw", r["min_width_mm"],
         "airwires", r["ratsnest"]["airwires"], "open", r["open"])
     if "part" in r:
         say("PCBROUTE part", r["part"]["ref"], r["part"]["value"], "nets", r["part"]["nets"], "airwires", r["part"]["airwires"],

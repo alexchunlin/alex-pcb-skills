@@ -138,7 +138,7 @@ def judges(board, routed, waves):
     return {"clean": waves.get("clean"), "new_errors": waves.get("new_errors"), "airwires": m["ratsnest"]["airwires"],
             "vin_mW": ir.get("power_mW"), "vin_drop_mV": [s["drop_mV"] for s in ir.get("sinks", [])], "vin_J": ir.get("max_J_A_mm2"),
             "refplane_mm": round(sum(r["value"] or 0 for r in rp), 1), "foreign_mm": intr["foreign_mm"], "foreign_by_net": intr["by_net"],
-            "currents_fails": cur, "vias": m["vias"], "length_mm": m["length_mm"], "wall_s": waves.get("wall_s"), **sig}
+            "currents_fails": cur, "vias": m["vias"], "signal_vias": m.get("signal_vias"), "length_mm": m["length_mm"], "wall_s": waves.get("wall_s"), **sig}
 
 
 def rescore(board, run, tag="rescore"):

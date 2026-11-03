@@ -573,18 +573,6 @@ echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1
   done
 fi  #@ end 16
 
-#@ plumbing
-# per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
-# Under --changed, each by its # watch: header.
-mkdir -p "$ROOT/tools/verify.d"
-for f in "$ROOT"/tools/verify.d/*.sh; do [ -f "$f" ] && want "${f##*/}" && . "$f"; done
-unit_end
-# --changed: every unit the plan selected must have run (a broken want() or loop ran nothing and passed)
-if [ -n "$CHANGED" ]; then
-  for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
-  echo "verify_all --changed: ran$RAN"
-fi
-
 if want 29; then  #@ watch: skills/kicad-design/scripts/pcbsig.py skills/kicad-design/scripts/pcbroute.py tools/bench/rung2_signals.py tools/bench/plan_bench.py tools/bench/results/plan.jsonl examples/rung2-zener-a*/checks.json
 echo "== 29 signal classes and the plan search pieces: pcb signals, plan_variants, pcbsig.plan_rank (SIG-1, SIG-4)"
 S="$V/sig"; mkdir -p "$S"
@@ -625,7 +613,30 @@ import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json'))
 $PCB check "$S/rv.kicad_pcb" "$S/rvc.json" --only return_via --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$S/rvj.json" > /dev/null 2>&1
 placed=$(grep -o "[0-9]* ground vias placed" "$S/rv.txt" | cut -d' ' -f1); fails=$(jq_ "$S/rvj.json" "sum(1 for r in d['rows'] if r['check']=='return_via' and r['status']=='fail')")
 [ "${placed:-0}" -ge 5 ] && [ "${fails:-9}" -le 1 ] && ok "return-vias: $placed ground vias placed beside the attempt-2 board's fast vias (In2 made ground first) in one pass, return_via fails 5 -> $fails (SIG-2)" || bad "return-vias: placed '$placed', fails '$fails': $(grep PCBROUTE "$S/rv.txt" | cut -c1-200)"
+fi  #@ end 29
+
+if want 30; then  #@ watch: skills/kicad-design/scripts/pcbroute.py skills/kicad-design/scripts/pcbkrt.py skills/kicad-design/scripts/pcbq.py tools/bench/route_bench.py examples/rung2-zener-a*/board/**
+echo "== 30 signal vias and KRT's MPS conflict graph (spike #4)"
+T4="$V/spike4"; mkdir -p "$T4"
+# signal_vias: vias on nets with no filled inner-layer zone. The archived attempt-2 board: 64 vias, 37 of them on the
+# plane nets (GND In1/In2, VIN and 5V In2), 27 layer changes on 13 signal nets
+$PCB route measure "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" --json > "$T4/m.json"
+[ "$(jq_ "$T4/m.json" "(d['vias'], d['signal_vias'], d['plane_nets'], sum(d['signal_vias_by_net'].values()), len(d['signal_vias_by_net']))")" = "(64, 27, ['5V', 'GND', 'VIN'], 27, 13)" ] \
+  && ok "measure: attempt-2 board 64 vias, 27 signal vias on 13 nets, plane nets 5V GND VIN" || bad "measure signal_vias: $(jq_ "$T4/m.json" "(d['vias'], d.get('signal_vias'), d.get('plane_nets'))")"
+fi  #@ end 30
+
+#@ plumbing
+# per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
+# Under --changed, each by its # watch: header.
+mkdir -p "$ROOT/tools/verify.d"
+for f in "$ROOT"/tools/verify.d/*.sh; do [ -f "$f" ] && want "${f##*/}" && . "$f"; done
+unit_end
+# --changed: every unit the plan selected must have run (a broken want() or loop ran nothing and passed)
+if [ -n "$CHANGED" ]; then
+  for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
+  echo "verify_all --changed: ran$RAN"
 fi
+
 echo; echo "verify_all: $pass passed, $fail failed  ($V)"
 [ "$fail" = 0 ]
 #@ plumbing end
