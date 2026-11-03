@@ -573,6 +573,46 @@ echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1
   done
 fi  #@ end 16
 
+if want 30; then  #@ watch: skills/kicad-design/scripts/pcbrefstat.py skills/kicad-design/scripts/pcbcheck.py tools/corpus/** tools/spikes/spike2/** tools/bench/data/** examples/rung2-zener-a2-opus/board/**
+echo "== 30 refstat rows (spike 2): canonical pins and bands, the committed corpus index and rows, the rows on the attempt-2 board, planted fails"
+RS="$V/refstat"; mkdir -p "$RS"
+python3 -I -c "
+import sys; sys.path.insert(0, '$ROOT/skills/kicad-design/scripts'); import pcbrefstat as r
+assert [r.canon_pin('AMS1117-3.3', n, m) for n, m in (('1', 'GND'), ('2', 'VO'), ('3', 'VI'), ('4', ''))] == ['GND', 'VOUT', 'VIN', 'VOUT']
+assert [r.canon_pin('LSM6DS3', n, m) for n, m in (('1', 'SDO/SA0'), ('5', 'VDDIO'), ('8', 'VDD'), ('12', 'CS'), ('13', 'SCL/SPC/AUX_SCL'))] == ['SA0', 'VDDIO', 'VDD', 'CS', 'SCL']
+assert [r.canon_pin('ESP32-S3-WROOM-1', n, m) for n, m in (('2', '3V3'), ('3', 'EN'), ('27', 'IO0'), ('3', 'CHIP_PU'))] == ['3V3', 'EN', 'IO0', 'EN']
+assert [r.value_band('C', v) for v in ('100nF', '0.1u', '10uF/16V', '22u', '4.7uF', '100')] == ['100n', '100n', '10u', '22u', '10u', '100u+']
+assert r.band_matches('C', 'bulk', '22uF') and not r.band_matches('C', 'bulk', '100nF') and r.value_band('R', '10k') == '10k'
+assert r.part_regex('AMS1117-3.3').search('AMS1117-3.3') and not r.part_regex('LSM6DS3').search('LSM6DS33')
+" 2> "$RS/unit.txt" && ok "pcbrefstat: canonical pins (AMS1117 VI/VO, LSM6DS3 SDO/SA0, ESP32 CHIP_PU), value bands, part regexes" || bad "pcbrefstat: $(tail -1 "$RS/unit.txt")"
+python3 -I -c "
+import json, collections
+rows = [json.loads(l) for l in open('$ROOT/tools/bench/data/corpus-index.jsonl')]
+assert all(not set(r) & {'schematic', 'pcb_files', 'text'} for r in rows), 'contents in the index'
+need = {'key', 'part', 'repo', 'sch_version', 'has_pcb_ext', 'board', 'licence'}
+assert all(need <= set(r) for r in rows), 'fields'
+repos = collections.Counter()
+for p in {(r['part'], r['repo']) for r in rows}: repos[p[0]] += 1
+assert all(repos[p] >= 30 for p in ('AMS1117-3.3', 'ESP32-WROOM-32', 'ESP32-S3-WROOM-1')), repos
+rs = json.load(open('$ROOT/tools/bench/data/refstat-rows.json'))['rows']
+assert rs and all(x['support'] >= 0.7 and x['n'] >= 30 and x['kind'] == 'refstat' for x in rs), 'rows'
+print(len(rows), dict(repos), len(rs))" > "$RS/index.txt" 2>&1 && ok "corpus index: $(cut -d' ' -f1 "$RS/index.txt") hits, no file contents, 30+ repos for AMS1117 and both ESP32 modules; every refstat row at support >= 0.7 over 30+ designs" || bad "corpus index / rows: $(tail -1 "$RS/index.txt")"
+python3 -I -c "
+import json
+c = json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json'))
+c['refstat'] = json.load(open('$ROOT/tools/bench/data/refstat-rows.json'))['rows']
+json.dump(c, open('$RS/c.json', 'w'))
+c['refstat'] = [{'kind': 'refstat', 'part': 'AMS1117-3.3', 'pin': 'VOUT', 'support': 0.8, 'n': 100, 'pattern': {'feature': 'C:bulk:GND', 'class': 'C', 'band': 'bulk', 'to': 'GND', 'max_mm': 0.5}},
+                {'kind': 'refstat', 'part': 'AMS1117-3.3', 'pin': 'VOUT', 'support': 0.8, 'n': 100, 'pattern': {'feature': 'L:-:GND', 'class': 'L', 'band': '-', 'to': 'GND'}}]
+json.dump(c, open('$RS/p.json', 'w'))"
+$PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$RS/c.json" --only refstat --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$RS/a.json" > /dev/null 2>&1
+$PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$RS/p.json" --only refstat --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$RS/b.json" > /dev/null 2>&1
+st=$(jq_ "$RS/a.json" "' '.join(sorted(r['status'] + ':' + r['id'] for r in d['rows'] if r['check'] == 'refstat'))")
+case "$st" in *fail*|"") bad "refstat rows on the attempt-2 board: '$st'" ;; *"pass:refstat:U3.VIN:C:bulk:GND"*"pass:refstat:U3.VOUT:C:bulk:GND"*) ok "refstat rows on the attempt-2 board: AMS1117 U3 VIN and VOUT bulk caps to GND pass, no fails" ;; *) bad "refstat rows on the attempt-2 board: '$st'" ;; esac
+pl=$(jq_ "$RS/b.json" "' | '.join(r['status'] + ' ' + r['msg'][:200] for r in d['rows'] if r['check'] == 'refstat')")
+case "$pl" in "fail U3 (AMS1117-3.3): C bulk from VOUT"*"mm pad to pad (corpus p90 0.5)"*"fail U3 (AMS1117-3.3): no L - from VOUT"*) ok "planted refstat rows fail: a 0.5 mm limit on the VOUT bulk cap, and an inductor no design here has" ;; *) bad "planted refstat rows: $pl" ;; esac
+fi  #@ end 30
+
 #@ plumbing
 # per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
 # Under --changed, each by its # watch: header.
