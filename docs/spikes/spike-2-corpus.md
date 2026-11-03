@@ -1,7 +1,7 @@
 # Spike 2: a public KiCad corpus for reference circuits, placement priors and rev-diff errata
 
-Issue: [#2](https://github.com/alexchunlin/alex-pcb-skills/issues/2). Branch `spike/2-corpus`, from `main` at 46f9be9 with
-`main` at aed4bd8 merged in. Run 2026-11-03. Everything downloaded stayed under `/tmp/spike2-corpus/`
+Issue: [#2](https://github.com/alexchunlin/alex-pcb-skills/issues/2). Branch `spike/2-corpus`, from `main` at 46f9be9, with
+`main` merged in at aed4bd8 and again at 495a3ca (spikes 3 and 4). Run 2026-11-03. Everything downloaded stayed under `/tmp/spike2-corpus/`
 (peak 1.5 GB; the parquet shards were streamed by column and never written to disk), and every script that read it ran
 from the repo with `python3 -I`, KiCad's Python through `pcb py`, or `kicad-cli` with the file as an argument.
 
@@ -251,7 +251,7 @@ rejects are mostly rev-letter bumps, DRC clean-ups before a first fab, re-routin
   10 marked for Alex), `tools/bench/data/refstat-rows.json` (9 rows, counts only).
 - `skills/kicad-design/scripts/pcbrefstat.py` and the `refstat` kind in `pcbcheck.py`, opt-in (no example config
   declares rows, so the replay bench and every existing verify section are unchanged); `reference/checks-config.md`.
-- `tools/verify_all.sh` section 30.
+- `tools/verify_all.sh` section 32 (30 and 31 came with spikes 3 and 4).
 - `tools/spikes/spike2/` (bench, placement test, charts, result JSON) and this report with `docs/img/spikes/2-*.png`.
 - Not merged as a default: refstat rows in any `checks.json`; the placement prior as a seeding mode in `pcb` (it belongs
   to #1's search, measured against KRT's placer first).
