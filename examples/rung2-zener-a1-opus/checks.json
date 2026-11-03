@@ -590,5 +590,11 @@
       "source": "DC",
       "victim": false
     }
+  },
+  "irdrop": {
+    "sources": {
+      "VIN": "Q1.1,Q1.2,Q1.3"
+    },
+    "_why": "spike #3 C1: every net with feeds rows solved on the copper; sources named here where the rails block does not name a part on the net"
   }
 }

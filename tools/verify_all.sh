@@ -26,7 +26,7 @@ printf '{"commit": "%s", "dirty": %s, "when": "%s"}\n' "$(git -C "$ROOT" rev-par
 #@ group @check = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcbq.py skills/kicad-design/scripts/pcbcli.py
 #@ group @lib = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcblib/**
 # none: paths no test reads (a watch wins: section 20 reads FINDINGS.md and every skills/**/*.md)
-#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README
+#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README tools/spikes/**
 SELECTED=ALL; EXPECT=""; CHANGED=""; RAN=""; CUR=""; CUR_N=0; CUR_OK=""
 case "${1:-}" in
   --*) P=$(python3 -I "$ROOT/tools/verify_select.py" "$@") || { rc=$?; printf '%s\n' "$P"; exit $rc; }
@@ -565,25 +565,29 @@ print([x.GetParentFootprint().GetReference() + '.' + x.GetNumber() for x in r])"
 grep -q "\['J4.1', 'U1.2'\]" "$J/pbd.txt" && ok "stitch pass reads KiCad's through-hole wording: PTH pad 1 of J4 -> J4.1 (STARVE-1)" || bad "pad_by_desc: $(tail -1 "$J/pbd.txt")"
 fi  #@ end 28
 
-if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
-echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"
-  KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
-  for py in python3 "$KPY"; do
-    "$py" -I -m py_compile "$ROOT"/skills/kicad-design/scripts/*.py "$ROOT"/skills/kicad-design/scripts/pcblib/*.py "$ROOT"/examples/*/*.py 2> "$V/compile.txt" && ok "compiles under $("$py" -c 'import sys; print(sys.version.split()[0])')" || bad "compile: $(cat "$V/compile.txt")"
-  done
-fi  #@ end 16
-
-#@ plumbing
-# per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
-# Under --changed, each by its # watch: header.
-mkdir -p "$ROOT/tools/verify.d"
-for f in "$ROOT"/tools/verify.d/*.sh; do [ -f "$f" ] && want "${f##*/}" && . "$f"; done
-unit_end
-# --changed: every unit the plan selected must have run (a broken want() or loop ran nothing and passed)
-if [ -n "$CHANGED" ]; then
-  for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
-  echo "verify_all --changed: ran$RAN"
-fi
+if want 30; then  #@ watch: skills/kicad-design/scripts/pcbir.py skills/kicad-design/scripts/pcbir_solve.py skills/kicad-design/scripts/pcbcheck.py examples/rung2-zener-a2-opus/** tools/bench/plink/checks.json
+echo "== 30 the irdrop row: feeds currents solved on the copper, necks and via fields rated by IPC-2221 (spike #3, C1)"
+I="$V/irrow"; mkdir -p "$I"; cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* "$I"/
+if command -v uv > /dev/null; then
+  # the judge on a strip necked to 0.3 mm for 3 mm at 2 A: IPC-2221 outer 1 oz 20 degC rates 1.355 A, so x1.48 and a fail
+  (cd "$I" && uv run --no-project --quiet --with numpy --with scipy python3 "$ROOT/skills/kicad-design/scripts/pcbir_solve.py" --selftest) > "$I/self.json" 2>&1
+  [ "$(jq_ "$I/self.json" "(d['selftest'], d['neck']['width_mm'], d['neck']['I_A'], d['neck']['ratio'], d['neck']['status'])")" = "('PASS', 0.3, 2.0, 1.48, 'fail')" ] && ok "irdrop judge: a 0.3 mm x 3 mm neck at 2 A is cut at 0.3 mm, carries 2.0 A against IPC-2221 1.355 A (x1.48), fails" || bad "irdrop judge selftest: $(tail -c 300 "$I/self.json")"
+  # attempt 2 with its archived config: the reviewer's R2A2-O-1 (In2 spokes into J3.1) and R2A2-O-2 (C17 through single
+  # vias) fail from the solve, plus L1.2's two 5V vias; VIN at 4 A, the motor nets and VIN_RAW pass
+  $PCB check "$I/motor1.kicad_pcb" "$ROOT/examples/rung2-zener-a2-opus/checks.json" --only irdrop --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$I/a2.json" > "$I/a2.txt" 2>&1
+  [ "$(jq_ "$I/a2.json" "sorted(r['id'].split('@')[0] + ('/C17' if 'C17' in r['msg'] else '') for r in d['rows'] if r['status'] == 'fail')")" = "['irdrop:5V:neck:In2.Cu', 'irdrop:5V:neck:In2.Cu', 'irdrop:5V:via', 'irdrop:5V:via', 'irdrop:VIN:via/C17', 'irdrop:VIN:via/C17']" ] \
+    && [ "$(jq_ "$I/a2.json" "sorted(r['id'] for r in d['rows'] if r['status'] == 'pass')")" = "['irdrop:MOTOR_A', 'irdrop:MOTOR_B', 'irdrop:VIN_RAW']" ] \
+    && ok "irdrop row, attempt 2: J3.1's In2 spokes (x$(jq_ "$I/a2.json" "max(r['value'] for r in d['rows'] if 'neck' in r['id'])")), C17's single vias (x2.05) and L1.2's two 5V vias fail; MOTOR_A/B and VIN_RAW pass" \
+    || bad "irdrop row a2: $(grep -E 'FAIL|pcbcheck' "$I/a2.txt" | cut -c1-120 | head -8)"
+  # precision on a board that was built and works: the published MotorGo Plink, pour-fed, where `feeds` fails every pad
+  PL="$REF/motorgo-plink-hardware/motorgo_plink"
+  if [ -f "$PL/motorgo_plink.kicad_pcb" ]; then
+    mkdir -p "$I/plink"; cp "$PL"/motorgo_plink.kicad_p* "$PL"/*.kicad_sch "$I/plink"/ 2>/dev/null
+    $PCB check "$I/plink/motorgo_plink.kicad_pcb" "$ROOT/tools/bench/plink/checks.json" --only feeds,irdrop --out "$I/plink.json" > /dev/null 2>&1
+    [ "$(jq_ "$I/plink.json" "(sum(r['status'] == 'fail' for r in d['rows'] if r['check'] == 'feeds'), sum(r['status'] == 'fail' for r in d['rows'] if r['check'] == 'irdrop'), sum(r['status'] == 'pass' for r in d['rows'] if r['check'] == 'irdrop'))")" = "(15, 0, 10)" ] && ok "irdrop row, Plink as built: 10 of 10 nets pass where feeds fails 15 of 15 pads by construction (pours)" || bad "irdrop Plink: $(jq_ "$I/plink.json" "[(r['id'], r['status']) for r in d['rows'] if r['status'] != 'pass'][:6]")"
+  else nochecks "Plink clone not at $PL: the irdrop precision check not run (tools/bench/README.md)"; fi
+else nochecks "uv not installed: the irdrop row not run"; fi
+fi  #@ end 30
 
 if want 29; then  #@ watch: skills/kicad-design/scripts/pcbsig.py skills/kicad-design/scripts/pcbroute.py tools/bench/rung2_signals.py tools/bench/plan_bench.py tools/bench/results/plan.jsonl examples/rung2-zener-a*/checks.json
 echo "== 29 signal classes and the plan search pieces: pcb signals, plan_variants, pcbsig.plan_rank (SIG-1, SIG-4)"
@@ -625,7 +629,29 @@ import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json'))
 $PCB check "$S/rv.kicad_pcb" "$S/rvc.json" --only return_via --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$S/rvj.json" > /dev/null 2>&1
 placed=$(grep -o "[0-9]* ground vias placed" "$S/rv.txt" | cut -d' ' -f1); fails=$(jq_ "$S/rvj.json" "sum(1 for r in d['rows'] if r['check']=='return_via' and r['status']=='fail')")
 [ "${placed:-0}" -ge 5 ] && [ "${fails:-9}" -le 1 ] && ok "return-vias: $placed ground vias placed beside the attempt-2 board's fast vias (In2 made ground first) in one pass, return_via fails 5 -> $fails (SIG-2)" || bad "return-vias: placed '$placed', fails '$fails': $(grep PCBROUTE "$S/rv.txt" | cut -c1-200)"
+fi  #@ end 29
+
+if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
+echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"
+  KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
+  for py in python3 "$KPY"; do
+    "$py" -I -m py_compile "$ROOT"/skills/kicad-design/scripts/*.py "$ROOT"/skills/kicad-design/scripts/pcblib/*.py "$ROOT"/examples/*/*.py 2> "$V/compile.txt" && ok "compiles under $("$py" -c 'import sys; print(sys.version.split()[0])')" || bad "compile: $(cat "$V/compile.txt")"
+  done
+fi  #@ end 16
+
+#@ plumbing
+# per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
+# Under --changed, each by its # watch: header.
+mkdir -p "$ROOT/tools/verify.d"
+for f in "$ROOT"/tools/verify.d/*.sh; do [ -f "$f" ] && want "${f##*/}" && . "$f"; done
+unit_end
+# --changed: every unit the plan selected must have run (a broken want() or loop ran nothing and passed)
+if [ -n "$CHANGED" ]; then
+  for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
+  echo "verify_all --changed: ran$RAN"
 fi
+
+
 echo; echo "verify_all: $pass passed, $fail failed  ($V)"
 [ "$fail" = 0 ]
 #@ plumbing end

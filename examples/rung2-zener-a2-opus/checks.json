@@ -712,5 +712,13 @@
    "source": "DC",
    "victim": false
   }
+ },
+ "irdrop": {
+  "sources": {
+   "5V": "L1.2",
+   "MOTOR_A": "J1.1",
+   "MOTOR_B": "J1.2"
+  },
+  "_why": "spike #3 C1: every net with feeds rows solved on the copper; sources named here where the rails block does not name a part on the net"
  }
 }
