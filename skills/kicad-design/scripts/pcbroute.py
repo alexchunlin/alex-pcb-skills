@@ -595,6 +595,43 @@ def keepout_blocks(polys, tag):
     return out
 
 
+def guide_blocks(lines, tag):
+    """gr_line chains on User.1 (KRT's --guide-corridor layer; gr_poly would close the path), uuids from the tag."""
+    import uuid
+    ns = uuid.UUID("7c1d0e2a-3b4f-4a5e-8d6c-1f2e3a4b5c6d")
+    out = []
+    for i, line in enumerate(lines):
+        for j, ((x1, y1), (x2, y2)) in enumerate(zip(line, line[1:])):
+            out.append(f'\t(gr_line\n\t\t(start {x1} {y1})\n\t\t(end {x2} {y2})\n\t\t(stroke (width 0.1) (type solid))\n'
+                       f'\t\t(layer "User.1")\n\t\t(uuid "{uuid.uuid5(ns, tag + "#" + str(i) + "." + str(j))}")\n\t)\n')
+    return out
+
+
+def put_guides(path, lines, tag):
+    if not lines:
+        return
+    t = open(path).read().rstrip()
+    assert t.endswith(")")
+    open(path, "w").write(t[:-1] + "".join(guide_blocks(lines, tag)) + ")\n")
+
+
+def drop_guides(path, lines, tag):
+    if not lines:
+        return
+    import re
+    ids = set(re.findall(r'\(uuid "([^"]+)"\)', "".join(guide_blocks(lines, tag))))
+    text = open(path).read()
+    pieces, last = [], 0
+    for a, b in top_spans(text):
+        blk = text[a:b]
+        if blk.startswith("(gr_line") and any(i in blk for i in ids):
+            pieces.append(text[last:a].rstrip("\t")); last = b
+            if text[last:last + 1] == "\n":
+                last += 1
+    pieces.append(text[last:])
+    open(path, "w").write("".join(pieces))
+
+
 def put_keepouts(path, polys, tag):
     if not polys:
         return
@@ -635,7 +672,7 @@ def c_waves(args):
     """pcb route waves BOARD [--plan plan.json] [--out F] [--work DIR] [--pack jlcpcb]
     plan.json: {"feeds": [{"pad": "U2.11", "amps": 2.5}, {"pad": "U1.4,5,6", "amps": 2.8}], "thermal_vias": ["U1"], "timeout_s": 300,
                 "waves": [{"name": "power", "nets": ["VIN", "5V"], "layers": "outer"|"all"|["F.Cu", ...],
-                           "keepouts": [[[x, y], ...], ...], "args": ["--ordering", "bus"]}, ...]}
+                           "keepouts": [[[x, y], ...], ...], "guides": [[[x, y], ...], ...], "args": ["--ordering", "bus"]}, ...]}
     Wave 0 (feeds, thermal vias) is pcblib code; each later wave is one KRT call on its nets, its copper locked after;
     then `auto` finishes the board (second pass, stitch, dual DRC, verdict). Writes waves.json and route.json."""
     import shutil, time, fnmatch
@@ -685,10 +722,14 @@ def c_waves(args):
         inp = stage(f"w{i}-{name}-in", cur)
         polys = w.get("keepouts", [])
         put_keepouts(inp, polys, f"{name}{i}")
+        guides = w.get("guides", [])   # spike #4 H3: polylines KRT steers this wave's nets through (--guide-corridor)
+        put_guides(inp, guides, f"{name}{i}")
         lay = w.get("layers", "outer")
         extra = ["--nets", *w["nets"]]
         if polys:
             extra += ["--keepout", "--keepout-layer", "User.2"]
+        if guides:
+            extra += ["--guide-corridor", "--guide-corridor-layer", "User.1"]
         if isinstance(lay, list):
             b = pcbnew.LoadBoard(inp); cu = [b.GetLayerName(l) for l in b.GetEnabledLayers().CuStack()]
             extra += ["--layers", *cu, "--layer-costs", *["1.0" if l in lay else "-1" for l in cu]]
@@ -700,6 +741,7 @@ def c_waves(args):
             rec["waves"].append({"name": name, "rc": rc, "wall_s": wall, "error": "timeout" if rc == "timeout" else "no board written"})
             continue
         drop_keepouts(routed, polys, f"{name}{i}")
+        drop_guides(routed, guides, f"{name}{i}")
         canonical(routed)
         Board.load(routed).fill()
         keep = len(OUT)

@@ -623,6 +623,23 @@ T4="$V/spike4"; mkdir -p "$T4"
 $PCB route measure "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" --json > "$T4/m.json"
 [ "$(jq_ "$T4/m.json" "(d['vias'], d['signal_vias'], d['plane_nets'], sum(d['signal_vias_by_net'].values()), len(d['signal_vias_by_net']))")" = "(64, 27, ['5V', 'GND', 'VIN'], 27, 13)" ] \
   && ok "measure: attempt-2 board 64 vias, 27 signal vias on 13 nets, plane nets 5V GND VIN" || bad "measure signal_vias: $(jq_ "$T4/m.json" "(d['vias'], d.get('signal_vias'), d.get('plane_nets'))")"
+# pcb q conflicts: KRT's own MPS graph from the placement (tracks stripped on a temp copy, footprints sorted, pours kept).
+# The expected counts are the "MPS: N nets with K crossing conflicts" lines KRT printed when the route bench routed the
+# same boards (tools/bench/results/route.jsonl, tag spike4-h2, config outer): opus 31/41, sonnet 30/39, fable 33/56,
+# opus2 28/53
+if [ -x "${KRT_PY:-$REF/KiCadRoutingTools/.venv/bin/python}" ]; then
+  got=""
+  for b in rung2-zener-a1-opus rung2-zener-a1-sonnet rung2-zener-a1-fable rung2-zener-a2-opus; do
+    $PCB q "$ROOT"/examples/$b/board/*.kicad_pcb conflicts --json > "$T4/c-$b.json" 2>"$T4/c-$b.err"
+    got="$got $(jq_ "$T4/c-$b.json" "'%d/%d' % (d['nets'], d['conflicts'])")"
+  done
+  [ "$got" = " 31/41 30/39 33/56 28/53" ] && ok "pcb q conflicts matches KRT's routed-run MPS count on the four rung-2 boards:$got" || bad "pcb q conflicts:$got (want 31/41 30/39 33/56 28/53)"
+  [ "$(jq_ "$T4/c-rung2-zener-a2-opus.json" "(d['signal_conflicts'], d['rounds'], d['bipartite'], d['order'][:3], round(d['hpwl_mm'], 1))")" = "(40, 7, False, ['BOOT', 'COMP_RC', 'CPH'], 575.1)" ] \
+    && ok "conflicts on the attempt-2 board: 40 between signal nets, 7 MPS rounds, not bipartite, KRT's order starts BOOT COMP_RC CPH, HPWL 575.1 mm" \
+    || bad "conflicts detail: $(jq_ "$T4/c-rung2-zener-a2-opus.json" "(d['signal_conflicts'], d['rounds'], d['bipartite'], d['order'][:3], d['hpwl_mm'])")"
+else
+  nochecks "pcb q conflicts: KiCadRoutingTools not installed under $REF"
+fi
 fi  #@ end 30
 
 #@ plumbing
