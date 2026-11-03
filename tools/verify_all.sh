@@ -26,7 +26,7 @@ printf '{"commit": "%s", "dirty": %s, "when": "%s"}\n' "$(git -C "$ROOT" rev-par
 #@ group @check = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcbq.py skills/kicad-design/scripts/pcbcli.py
 #@ group @lib = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcblib/**
 # none: paths no test reads (a watch wins: section 20 reads FINDINGS.md and every skills/**/*.md)
-#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README tools/spikes/**
+#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README tools/spikes/** tools/bench/plink_signals.py tools/readme/**
 SELECTED=ALL; EXPECT=""; CHANGED=""; RAN=""; CUR=""; CUR_N=0; CUR_OK=""
 case "${1:-}" in
   --*) P=$(python3 -I "$ROOT/tools/verify_select.py" "$@") || { rc=$?; printf '%s\n' "$P"; exit $rc; }
@@ -442,15 +442,16 @@ fi  #@ end 25
 
 if want 26; then  #@ watch: @check @cli examples/rung2-zener-a*/**
 echo "== 26 rung-2 boards: the reviewers' majors as rows (feeds, declared decoupling, currents; drc shorts on the unfinished board) (R2-T5)"
+# the irdrop rows these configs now carry (spike #3) are asserted in section 30; the counts here are the other rows
 for a in opus sonnet fable; do
   B=$(ls "$ROOT"/examples/rung2-zener-a1-$a/board/*.kicad_pcb)
   $PCB check "$B" "$ROOT/examples/rung2-zener-a1-$a/checks.json" --out "$V/r2${a:0:1}check.json" > "$V/r2$a.txt"
 done
-[ "$(jq_ "$V/r2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['decoupling:U2.11:C10', 'decoupling:U2.11:C11', 'decoupling:U2.11:C17', 'feeds:U2.11']" ] && ok "r2 opus: feeds U2.11 0.00 A (pour neck), C11 11.76 / C17 15.47 mm (the reviewer's two electrical majors)" || bad "r2 opus: $(jq_ "$V/r2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+[ "$(jq_ "$V/r2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail' and r['check'] != 'irdrop')")" = "['decoupling:U2.11:C10', 'decoupling:U2.11:C11', 'decoupling:U2.11:C17', 'feeds:U2.11']" ] && ok "r2 opus: feeds U2.11 0.00 A (pour neck), C11 11.76 / C17 15.47 mm (the reviewer's two electrical majors)" || bad "r2 opus: $(jq_ "$V/r2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
 [ "$(jq_ "$V/r2scheck.json" "[round(r['value'], 2) for r in d['rows'] if r['id']=='feeds:U2.11'][0]")" = 1.22 ] && ok "r2 sonnet: feeds U2.11 1.22 A from one 0.3 mm via (reviewer: one via, 0.34 mm finger)" || bad "r2 sonnet feeds $(grep feeds "$V/r2sonnet.txt")"
 [ "$(jq_ "$V/r2scheck.json" "sum(1 for r in d['rows'] if r['check']=='decoupling' and r['status']=='fail')")" = 4 ] && ok "r2 sonnet: 4 declared VM/charge-pump caps beyond 2 mm (5.05 to 7.6 mm)" || bad "r2 sonnet decoupling"
 [ "$(jq_ "$V/r2fcheck.json" "[round(r['value'], 2) for r in d['rows'] if r['id']=='feeds:U1.11'][0]")" = 1.36 ] && ok "r2 fable: feeds U1.11 1.36 A (reviewer: 1.355 A through an 0402 pad)" || bad "r2 fable feeds"
-[ "$(jq_ "$V/r2fcheck.json" "d['summary']['fails']")" = 9 ] && ok "r2 fable: 9 fails (4 decoupling, 4 currents on 0.28-0.3 mm tracks, feeds)" || bad "r2 fable fails $(jq_ "$V/r2fcheck.json" "d['summary']")"
+[ "$(jq_ "$V/r2fcheck.json" "sum(1 for r in d['rows'] if r['status']=='fail' and r['check'] != 'irdrop')")" = 9 ] && ok "r2 fable: 9 fails (4 decoupling, 4 currents on 0.28-0.3 mm tracks, feeds)" || bad "r2 fable fails $(jq_ "$V/r2fcheck.json" "d['summary']")"
 grep -q "currents:VIN_RAW: .*no tracks: carried by pours only" "$V/r2opus.txt" && ok "r2 opus: pour-only nets warn, not pass" || bad "r2 opus currents warn"
 $PCB drc "$ROOT/examples/rung2-zener-a1-fable/board/motor_channel.kicad_pcb" --pack jlcpcb --out "$V/r2fdrc" > "$V/r2fdrc.txt"
 # 67 here against the designer's 62: the archived board sits without its vendored footprint library (59 lib_footprint_issues), which
@@ -458,7 +459,7 @@ $PCB drc "$ROOT/examples/rung2-zener-a1-fable/board/motor_channel.kicad_pcb" --p
 # shorting_items is 20 or 21 run to run: the shorts sit on fill boundaries and the fill is multithreaded (P6-T5, seen twice in full runs)
 [ "$(jq_ "$V/r2fdrc/drc.json" "(d['plain']['by_type']['error'].get('shorting_items') in (20, 21), d['plain']['by_type']['error'].get('courtyards_overlap'), d['plain']['unconnected'])")" = "(True, 14, 6)" ] && ok "r2 fable drc: 20 or 21 shorts (P6-T5), 14 courtyard overlaps, 6 unconnected (the reviewer's blockers)" || bad "r2 fable drc $(jq_ "$V/r2fdrc/drc.json" "(d['plain']['errors'], d['plain']['by_type'])")"
 $PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$ROOT/examples/rung2-zener-a2-opus/checks.json" --out "$V/r2a2ocheck.json" > "$V/r2a2opus.txt"
-[ "$(jq_ "$V/r2a2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['feeds:C17.1', 'feeds:J3.1']" ] && ok "r2 attempt-2 opus: feeds J3.1 and C17.1 at 0.00 A (the reviewer's two electrical majors, R2A2-O-1/2); the designer's own 147 rows pass" || bad "r2a2 opus: $(jq_ "$V/r2a2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+[ "$(jq_ "$V/r2a2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail' and r['check'] != 'irdrop')")" = "['feeds:C17.1', 'feeds:J3.1']" ] && ok "r2 attempt-2 opus: feeds J3.1 and C17.1 at 0.00 A (the reviewer's two electrical majors, R2A2-O-1/2); the designer's own 147 rows pass" || bad "r2a2 opus: $(jq_ "$V/r2a2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
 fi  #@ end 26
 
 if want 27; then  #@ watch: @q skills/kicad-design/scripts/pcbroute.py tools/bench/route_bench.py tools/bench/plan_bench.py tools/bench/plan_kpy.py examples/rung1-zener-a1/board/**
@@ -525,7 +526,7 @@ if command -v uv > /dev/null; then
   # R2A2-O-1: the 5 V header pin fed only by 0.30 mm In2 thermal spokes; the hottest copper outside any pad is those spokes
   $PCB irdrop "$J/motor1.kicad_pcb" --net 5V --source L1.2 --sink J3.1=3.0 --out "$J/ir5" --json > "$J/ir5.txt" 2>&1
   tail -1 "$J/ir5.txt" > "$J/ir5.json"
-  [ "$(jq_ "$J/ir5.json" "(d['worst'][0]['layer'], abs(d['worst'][0]['x'] - 143.24) < 2 and abs(d['worst'][0]['y'] - 117.34) < 2, d['worst'][0]['J_A_mm2'] > 150, round(d['sinks'][0]['drop_mV']))")" = "('In2.Cu', True, True, 9)" ] && ok "irdrop: attempt-2 5V, L1 to J3.1 at 3 A: 9 mV, hottest copper the In2 spokes into J3.1 at $(jq_ "$J/ir5.json" "d['worst'][0]['J_A_mm2']") A/mm2 (the reviewer's R2A2-O-1, found without a declared row)" || bad "irdrop 5V: $(tail -c 300 "$J/ir5.txt")"
+  [ "$(jq_ "$J/ir5.json" "(d['worst'][0]['layer'], abs(d['worst'][0]['x'] - 143.24) < 2 and abs(d['worst'][0]['y'] - 117.34) < 2, d['worst'][0]['J_A_mm2'] > 150, round(d['sinks'][0]['drop_mV']))")" = "('In2.Cu', True, True, 7)" ] && ok "irdrop: attempt-2 5V, L1 to J3.1 at 3 A: 7 mV (9 before vias were tied to their ring, spike #3), hottest copper the In2 spokes into J3.1 at $(jq_ "$J/ir5.json" "d['worst'][0]['J_A_mm2']") A/mm2 (the reviewer's R2A2-O-1, found without a declared row)" || bad "irdrop 5V: $(tail -c 300 "$J/ir5.txt")"
 else nochecks "uv not installed: pcb irdrop's solver not run"; fi
 python3 -I -c "
 import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json')); c['refplane']={'ground':'GND'}; json.dump(c,open('$J/c.json','w'))"
@@ -565,7 +566,7 @@ print([x.GetParentFootprint().GetReference() + '.' + x.GetNumber() for x in r])"
 grep -q "\['J4.1', 'U1.2'\]" "$J/pbd.txt" && ok "stitch pass reads KiCad's through-hole wording: PTH pad 1 of J4 -> J4.1 (STARVE-1)" || bad "pad_by_desc: $(tail -1 "$J/pbd.txt")"
 fi  #@ end 28
 
-if want 30; then  #@ watch: skills/kicad-design/scripts/pcbir.py skills/kicad-design/scripts/pcbir_solve.py skills/kicad-design/scripts/pcbcheck.py examples/rung2-zener-a2-opus/** tools/bench/plink/checks.json
+if want 30; then  #@ watch: skills/kicad-design/scripts/pcbir.py skills/kicad-design/scripts/pcbir_solve.py skills/kicad-design/scripts/pcbcheck.py examples/rung2-zener-a2-opus/** tools/bench/plink/checks.json tools/bench/jlc_parts.py tools/bench/data/**
 echo "== 30 the irdrop row: feeds currents solved on the copper, necks and via fields rated by IPC-2221 (spike #3, C1)"
 I="$V/irrow"; mkdir -p "$I"; cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* "$I"/
 if command -v uv > /dev/null; then
@@ -587,6 +588,11 @@ if command -v uv > /dev/null; then
     [ "$(jq_ "$I/plink.json" "(sum(r['status'] == 'fail' for r in d['rows'] if r['check'] == 'feeds'), sum(r['status'] == 'fail' for r in d['rows'] if r['check'] == 'irdrop'), sum(r['status'] == 'pass' for r in d['rows'] if r['check'] == 'irdrop'))")" = "(15, 0, 10)" ] && ok "irdrop row, Plink as built: 10 of 10 nets pass where feeds fails 15 of 15 pads by construction (pours)" || bad "irdrop Plink: $(jq_ "$I/plink.json" "[(r['id'], r['status']) for r in d['rows'] if r['status'] != 'pass'][:6]")"
   else nochecks "Plink clone not at $PL: the irdrop precision check not run (tools/bench/README.md)"; fi
 else nochecks "uv not installed: the irdrop row not run"; fi
+# basic_parts against the dated JLC cache (tools/bench/jlc_parts.py; no network here): attempt 2's 17 extended types
+python3 -I -c "
+import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json')); c['basic_parts']={'boards': 5}; json.dump(c, open('$I/bp.json','w'))"
+$PCB check "$I/motor1.kicad_pcb" "$I/bp.json" --only basic_parts --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$I/bpout.json" > /dev/null 2>&1
+[ "$(jq_ "$I/bpout.json" "([r['value'] for r in d['rows'] if r['id'] == 'basic_parts:total'], sum(r['status'] == 'warn' for r in d['rows']), sum(r['status'] == 'fail' for r in d['rows']), 'C1532' in [r for r in d['rows'] if r['id'] == 'basic_parts:C337699'][0]['msg'])")" = "([17], 17, 0, True)" ] && ok "basic_parts: attempt 2 has 17 extended types (\$52.19 in feeder fees), none short of stock for 5 boards, C13's basic drop-in C1532 named" || bad "basic_parts: $(jq_ "$I/bpout.json" "[r['msg'][:100] for r in d['rows'] if r['id'] == 'basic_parts:total']")"
 fi  #@ end 30
 
 if want 29; then  #@ watch: skills/kicad-design/scripts/pcbsig.py skills/kicad-design/scripts/pcbroute.py tools/bench/rung2_signals.py tools/bench/plan_bench.py tools/bench/results/plan.jsonl examples/rung2-zener-a*/checks.json
