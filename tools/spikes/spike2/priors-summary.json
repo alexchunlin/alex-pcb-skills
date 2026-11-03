@@ -1,0 +1,184 @@
+{
+ "AMS1117-3.3": {
+  "instances_with_board": 241,
+  "classes": {
+   "bulk cap": {
+    "n": 365,
+    "dist_median_mm": 4.46,
+    "dist_p25_mm": 2.78,
+    "dist_p75_mm": 6.2,
+    "dist_p90_mm": 12.11,
+    "rot_share_0": 0.5,
+    "rot_share_90": 0.5,
+    "pins": [
+     [
+      "VOUT",
+      186
+     ],
+     [
+      "VIN",
+      179
+     ]
+    ]
+   },
+   "bypass cap": {
+    "n": 286,
+    "dist_median_mm": 7.29,
+    "dist_p25_mm": 4.33,
+    "dist_p75_mm": 17.87,
+    "dist_p90_mm": 29.5,
+    "rot_share_0": 0.46,
+    "rot_share_90": 0.52,
+    "pins": [
+     [
+      "VOUT",
+      186
+     ],
+     [
+      "VIN",
+      99
+     ],
+     [
+      "GND",
+      1
+     ]
+    ]
+   },
+   "inductor": {
+    "n": 53,
+    "dist_median_mm": 14.91,
+    "dist_p25_mm": 11.81,
+    "dist_p75_mm": 22.2,
+    "dist_p90_mm": 32.71,
+    "rot_share_0": 0.64,
+    "rot_share_90": 0.34,
+    "pins": [
+     [
+      "VOUT",
+      33
+     ],
+     [
+      "VIN",
+      20
+     ]
+    ]
+   },
+   "resistor": {
+    "n": 243,
+    "dist_median_mm": 12.04,
+    "dist_p25_mm": 6.83,
+    "dist_p75_mm": 21.58,
+    "dist_p90_mm": 34.09,
+    "rot_share_0": 0.52,
+    "rot_share_90": 0.47,
+    "pins": [
+     [
+      "VOUT",
+      179
+     ],
+     [
+      "VIN",
+      60
+     ],
+     [
+      "GND",
+      4
+     ]
+    ]
+   }
+  }
+ },
+ "LSM6DS3": {
+  "instances_with_board": 37,
+  "classes": {
+   "bulk cap": {
+    "n": 24,
+    "dist_median_mm": 9.14,
+    "dist_p25_mm": 5.72,
+    "dist_p75_mm": 20.05,
+    "dist_p90_mm": 25.08,
+    "rot_share_0": 0.38,
+    "rot_share_90": 0.58,
+    "pins": [
+     [
+      "VDDx",
+      22
+     ],
+     [
+      "SA0",
+      1
+     ],
+     [
+      "SDX",
+      1
+     ]
+    ]
+   },
+   "bypass cap": {
+    "n": 35,
+    "dist_median_mm": 1.7,
+    "dist_p25_mm": 1.22,
+    "dist_p75_mm": 3.3,
+    "dist_p90_mm": 5.23,
+    "rot_share_0": 0.71,
+    "rot_share_90": 0.29,
+    "pins": [
+     [
+      "VDDx",
+      31
+     ],
+     [
+      "SA0",
+      2
+     ],
+     [
+      "SDX",
+      2
+     ]
+    ]
+   },
+   "inductor": {
+    "n": 8,
+    "dist_median_mm": 23.5,
+    "dist_p25_mm": 17.96,
+    "dist_p75_mm": 29.01,
+    "dist_p90_mm": 29.01,
+    "rot_share_0": 0.75,
+    "rot_share_90": 0.12,
+    "pins": [
+     [
+      "VDDx",
+      8
+     ]
+    ]
+   },
+   "resistor": {
+    "n": 42,
+    "dist_median_mm": 4.43,
+    "dist_p25_mm": 2.67,
+    "dist_p75_mm": 10.49,
+    "dist_p90_mm": 22.3,
+    "rot_share_0": 0.4,
+    "rot_share_90": 0.6,
+    "pins": [
+     [
+      "VDDx",
+      26
+     ],
+     [
+      "SA0",
+      5
+     ],
+     [
+      "SDX",
+      4
+     ],
+     [
+      "SCL",
+      2
+     ]
+    ]
+   }
+  }
+ }
+}

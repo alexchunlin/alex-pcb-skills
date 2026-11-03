@@ -1,0 +1,273 @@
+{
+ "dataset": "bshada/open-schematics",
+ "shards": 939,
+ "shards_read": 939,
+ "rows": 87931,
+ "row_kinds": {
+  "kicad_sch": 40033,
+  "sch_legacy": 22212,
+  "other": 25686
+ },
+ "index_pass_s": 1667,
+ "board_pass_s": {
+  "run1_killed_at_30min": 1800,
+  "run2_aborted": 387,
+  "run3_lsm6ds3_drv_tps": 1433,
+  "run4_esp32": 3693
+ },
+ "peak_disk_gb": 1.5,
+ "parts": {
+  "AMS1117-3.3": {
+   "projects": 1289,
+   "repos": 912,
+   "placed_symbols": 1339,
+   "kicad_sch_rows": 1027,
+   "legacy_sch_rows": 262,
+   "with_pcb_ext": 1232,
+   "board_checked": 300,
+   "board_matched": 264,
+   "board_matched_repos": 241,
+   "netlist": {
+    "export_failed": 10,
+    "no_connected_pins": 7,
+    "ok": 1007,
+    "part_not_in_netlist": 265
+   },
+   "instances_dedup": 778,
+   "variants": {
+    "AMS1117-3.3": 1263,
+    "AMS1117-3V3": 20,
+    "AMS1117-33": 3,
+    "AMS1117 3.3": 2,
+    "AMS1117_3V3": 1
+   },
+   "versions": {
+    "2023": 611,
+    "4": 225,
+    "2025": 210,
+    "2021": 200,
+    "2": 29,
+    "5": 8,
+    "2022": 3,
+    "2020": 2
+   },
+   "licences": {
+    "NONE": 487,
+    "MIT": 140,
+    "GPL-3.0": 93,
+    "NOASSERTION": 46,
+    "NOT_FOUND": 39,
+    "Apache-2.0": 22,
+    "CERN-OHL-S-2.0": 17,
+    "CC0-1.0": 12,
+    "CC-BY-SA-4.0": 9,
+    "BSD-3-Clause": 7,
+    "CERN-OHL-P-2.0": 6,
+    "GPL-2.0": 5,
+    "LGPL-2.1": 5,
+    "BSD-2-Clause": 4,
+    "AGPL-3.0": 4,
+    "Unlicense": 3,
+    "EUPL-1.2": 3,
+    "MPL-2.0": 3,
+    "CC-BY-4.0": 3,
+    "LGPL-3.0": 2,
+    "CERN-OHL-W-2.0": 2
+   }
+  },
+  "LSM6DS3": {
+   "projects": 100,
+   "repos": 72,
+   "placed_symbols": 101,
+   "kicad_sch_rows": 73,
+   "legacy_sch_rows": 27,
+   "with_pcb_ext": 98,
+   "board_checked": 98,
+   "board_matched": 83,
+   "board_matched_repos": 60,
+   "netlist": {
+    "ok": 73,
+    "part_not_in_netlist": 27
+   },
+   "instances_dedup": 56,
+   "variants": {
+    "LSM6DS3": 81,
+    "LSM6DS3TR-C": 15,
+    "LSM6DS3TR": 4
+   },
+   "versions": {
+    "2023": 49,
+    "4": 16,
+    "2021": 12,
+    "2025": 9,
+    "2": 9,
+    "2024": 2,
+    "5": 2,
+    "2020": 1
+   },
+   "licences": {
+    "NONE": 34,
+    "MIT": 9,
+    "GPL-3.0": 9,
+    "NOASSERTION": 5,
+    "BSD-3-Clause": 5,
+    "CERN-OHL-S-2.0": 3,
+    "CC0-1.0": 3,
+    "CERN-OHL-P-2.0": 1,
+    "LGPL-3.0": 1,
+    "Apache-2.0": 1,
+    "NOT_FOUND": 1
+   }
+  },
+  "ESP32-WROOM-32": {
+   "projects": 816,
+   "repos": 586,
+   "placed_symbols": 829,
+   "kicad_sch_rows": 621,
+   "legacy_sch_rows": 195,
+   "with_pcb_ext": 773,
+   "board_checked": 300,
+   "board_matched": 245,
+   "board_matched_repos": 164,
+   "netlist": {
+    "export_failed": 1,
+    "no_connected_pins": 26,
+    "ok": 589,
+    "part_not_in_netlist": 200
+   },
+   "instances_dedup": 454,
+   "variants": {
+    "ESP32-WROOM-32": 816
+   },
+   "versions": {
+    "2023": 336,
+    "4": 182,
+    "2021": 157,
+    "2025": 123,
+    "5": 10,
+    "2024": 3,
+    "2": 3,
+    "2022": 2
+   },
+   "licences": {
+    "NONE": 319,
+    "MIT": 97,
+    "GPL-3.0": 58,
+    "NOASSERTION": 28,
+    "NOT_FOUND": 21,
+    "Apache-2.0": 13,
+    "CC-BY-SA-4.0": 8,
+    "CERN-OHL-S-2.0": 6,
+    "CERN-OHL-P-2.0": 6,
+    "AGPL-3.0": 5,
+    "CC0-1.0": 4,
+    "LGPL-2.1": 3,
+    "CC-BY-4.0": 3,
+    "CERN-OHL-W-2.0": 3,
+    "BSD-2-Clause": 3,
+    "GPL-2.0": 2,
+    "Unlicense": 2,
+    "BSD-3-Clause": 2,
+    "MPL-2.0": 2,
+    "EPL-2.0": 1
+   }
+  },
+  "ESP32-S3-WROOM-1": {
+   "projects": 393,
+   "repos": 279,
+   "placed_symbols": 393,
+   "kicad_sch_rows": 390,
+   "legacy_sch_rows": 3,
+   "with_pcb_ext": 376,
+   "board_checked": 300,
+   "board_matched": 268,
+   "board_matched_repos": 165,
+   "netlist": {
+    "no_connected_pins": 10,
+    "ok": 379,
+    "part_not_in_netlist": 4
+   },
+   "instances_dedup": 275,
+   "variants": {
+    "ESP32-S3-WROOM-1": 393
+   },
+   "versions": {
+    "2023": 234,
+    "2025": 131,
+    "2021": 21,
+    "4": 3,
+    "2024": 2,
+    "2022": 2
+   },
+   "licences": {
+    "NONE": 164,
+    "MIT": 37,
+    "GPL-3.0": 16,
+    "CERN-OHL-S-2.0": 14,
+    "NOASSERTION": 14,
+    "NOT_FOUND": 12,
+    "Apache-2.0": 5,
+    "CERN-OHL-P-2.0": 4,
+    "CC-BY-SA-4.0": 4,
+    "CERN-OHL-W-2.0": 3,
+    "LGPL-2.1": 2,
+    "CC0-1.0": 2,
+    "AGPL-3.0": 1,
+    "BSD-3-Clause": 1
+   }
+  },
+  "DRV8874": {
+   "projects": 34,
+   "repos": 19,
+   "placed_symbols": 47,
+   "kicad_sch_rows": 25,
+   "legacy_sch_rows": 9,
+   "with_pcb_ext": 34,
+   "board_checked": 34,
+   "board_matched": 23,
+   "board_matched_repos": 14,
+   "netlist": {},
+   "instances_dedup": 0,
+   "variants": {
+    "DRV8874": 34
+   },
+   "versions": {
+    "2023": 13,
+    "2025": 10,
+    "4": 9,
+    "2021": 2
+   },
+   "licences": {
+    "NONE": 8,
+    "MIT": 5,
+    "Apache-2.0": 3,
+    "GPL-3.0": 2,
+    "NOASSERTION": 1
+   }
+  },
+  "TPS54620": {
+   "projects": 4,
+   "repos": 4,
+   "placed_symbols": 4,
+   "kicad_sch_rows": 4,
+   "legacy_sch_rows": 0,
+   "with_pcb_ext": 4,
+   "board_checked": 4,
+   "board_matched": 3,
+   "board_matched_repos": 3,
+   "netlist": {},
+   "instances_dedup": 0,
+   "variants": {
+    "TPS54620": 4
+   },
+   "versions": {
+    "2025": 2,
+    "2023": 2
+   },
+   "licences": {
+    "GPL-3.0": 2,
+    "NONE": 2
+   }
+  }
+ }
+}

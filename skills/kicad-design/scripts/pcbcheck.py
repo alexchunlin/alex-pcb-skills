@@ -55,6 +55,10 @@ Checks (v0):
                aggressor's tracks, pads or zone fill on the same layer summed per net, times victim_weight for `signals`
                victims; nets local to the aggressor (every pad on a footprint that also carries it) and rails left out.
                Opt-in: {"aggressors": [], "within_mm": 1.0, "step_mm": 0.25, "victim_weight": 3, "max_mm": null} (SIG-3)
+  refstat      corpus reference-circuit rows (spike 2, tools/corpus/refstat.py over bshada/open-schematics): {part, pin,
+               pattern: {class, band, to, max_mm}, support, n}. Every instance of the part (value or symbol name) needs a
+               part of `class` in value `band` on the canonical `pin`'s net whose other pin lands on `to` (GND, IC:<pin>,
+               PWR), within max_mm pad to pad on the board when given; the message quotes the corpus support
   calcs        formula rows: {id, expr, vars, min, max}; `R("R5")`, `C("C3")`, `L("L1")` read values from the
                netlist, earlier ids are variables; the brief's buck ripple, LDO dissipation and sense scaling
   fields       every BOM part (not DNP, not excluded from BOM) carries the required fields, default MPN, Manufacturer,
@@ -65,7 +69,7 @@ Checks (v0):
                fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
 margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, refplane, return_via, exposure, feed_room, calcs, feeds,
-irdrop, basic_parts, signals, accepted_warns, _notes.
+irdrop, basic_parts, refstat, signals, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
 import json, math, os, re, subprocess, sys, zlib
@@ -75,10 +79,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import pcbnew  # noqa: E402
 import pcbq  # noqa: E402
+import pcbrefstat  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "basic_parts", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "basic_parts", "refstat", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -945,6 +950,81 @@ def check_exposure(CFG, NL, B):
                     f"{len(per)} nets exposed, {total:.1f} mm weighted in total")
 
 
+def check_refstat(CFG, NL, B):
+    rows = CFG.get("refstat", [])
+    if not rows:
+        NOT_CHECKED.append("refstat: no refstat rows (corpus reference circuits, tools/bench/data/refstat-rows.json) declared")
+        return
+    comps, libparts, nets, padnet = NL
+    fps = pcbq.fp_map(B)
+    n_inst = 0
+    for r in rows:
+        part, cpin, pat = r["part"], r["pin"], r.get("pattern", {})
+        if "class" not in pat:
+            NOT_CHECKED.append(f"refstat: {part} {cpin} {pat.get('feature')}: two-hop patterns are counted, not checked"); continue
+        rx = pcbrefstat.part_regex(part)
+        cls, band, to = pat["class"], pat["band"], pat["to"]
+        lim = pat.get("max_mm")
+        corpus = f"corpus: {r.get('support', 0) * 100:.0f} % of {r.get('n', '?')} designs" + (f", p90 {lim} mm on {r.get('n_board')} boards" if lim else "")
+        for ref, c in sorted(comps.items()):
+            if not (rx.search(c["value"]) or rx.search(c["lib"][1] or "")):
+                continue
+            pins = libparts.get(c["lib"], {})
+            canon = {num: pcbrefstat.canon_pin(part, num, nm) for num, (nm, _t) in pins.items()}
+            for (rr, num), _net in padnet.items():
+                if rr == ref and num not in canon:
+                    canon[num] = pcbrefstat.canon_pin(part, num, "")
+            nums = sorted(n for n, cp in canon.items() if cp == cpin and (ref, n) in padnet)
+            rid = f"refstat:{ref}.{cpin}:{pat['feature']}"
+            if not nums:
+                row("refstat", "warn", rid, f"{ref} ({c['value']}): no {cpin} pin connected in the netlist; {corpus}", objects=[ref], finding="SPIKE2")
+                continue
+            n_inst += 1
+            net = padnet[(ref, nums[0])]
+            ic_nets = {}
+            for (rr, num), nn in padnet.items():
+                if rr == ref:
+                    ic_nets.setdefault(nn, canon.get(num))
+            found = []
+            for cref, cc_ in comps.items():
+                if cref == ref or pcbrefstat.comp_class(cref, cc_["lib"][1]) != cls or not pcbrefstat.band_matches(cls, band, cc_["value"]):
+                    continue
+                cp = [(p, n) for (x, p), n in padnet.items() if x == cref]
+                if len(cp) != 2 or net not in [n for _, n in cp]:
+                    continue
+                other = [n for _, n in cp if n != net]
+                if not other:
+                    continue
+                o = other[0]
+                side = "GND" if gnd_like(o) else ("IC:" + ic_nets[o]) if o in ic_nets else "PWR" if pcbrefstat.power_like(o) else "SIG"
+                if side == to:
+                    found.append((cref, cc_["value"], [p for p, n in cp if n == net][0]))
+            want = f"{cls} {band} from {cpin} ({net}) to {to}"
+            if not found:
+                row("refstat", "fail", rid, f"{ref} ({c['value']}): no {want}; {corpus}", objects=[ref, net], finding="SPIKE2",
+                    support=r.get("support"))
+                continue
+            dist = []
+            if ref in fps:
+                for cref, val, pnum in found:
+                    if cref in fps:
+                        try:
+                            dist.append((pcbq.cc(pcbq.pad_of(fps, f"{ref}.{nums[0]}"), pcbq.pad_of(fps, f"{cref}.{pnum}")), cref, val))
+                        except SystemExit:
+                            pass
+            dist.sort()
+            if lim is not None and dist:
+                d, cref, val = dist[0]
+                row("refstat", "pass" if d <= float(lim) else "fail", rid,
+                    f"{ref} ({c['value']}): {want}: nearest {cref} ({val}) at {d:.2f} mm pad to pad (corpus p90 {lim}); {corpus}",
+                    value=round(d, 3), limit=lim, objects=[ref, cref], finding="SPIKE2", support=r.get("support"))
+            else:
+                row("refstat", "pass", rid, f"{ref} ({c['value']}): {want}: {', '.join(f[0] + ' ' + f[1] for f in found)}"
+                    + (f"; nearest {dist[0][1]} at {dist[0][0]:.2f} mm" if dist else "") + f"; {corpus}",
+                    value=round(dist[0][0], 3) if dist else None, objects=[ref] + [f[0] for f in found], finding="SPIKE2", support=r.get("support"))
+    COVERAGE.append(f"refstat: {len(rows)} corpus rows over {n_inst} part pins found in the netlist")
+
+
 def check_irdrop(CFG, NL, B):
     """Solve every net that has `feeds` rows on its copper (`pcb irdrop`, pcbir.py) and fail what the current crosses
     above its IPC-2221 rating: necks, via and plated-hole barrels, sinks with no path (spike #3, C1)."""
@@ -1226,7 +1306,7 @@ def main():
               ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("refplane", lambda: check_refplane(CFG, NL, B)),
               ("return_via", lambda: check_return_via(CFG, NL, B)), ("exposure", lambda: check_exposure(CFG, NL, B)),
               ("feed_room", lambda: check_feed_room(CFG, NL, B, board)),
-              ("calcs", lambda: check_calcs(CFG, NL, B)),
+              ("calcs", lambda: check_calcs(CFG, NL, B)), ("refstat", lambda: check_refstat(CFG, NL, B)),
               ("feeds", lambda: check_feeds(CFG, NL, B)), ("irdrop", lambda: check_irdrop(CFG, NL, B)),
               ("basic_parts", lambda: check_basic_parts(CFG, NL, B, cfg_dir))]
     for name, fn in checks:
