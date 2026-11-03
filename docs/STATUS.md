@@ -79,3 +79,25 @@
 - Next: `pcb route waves --search` (the 6 plans in parallel, pick by pass limits then priority); teach the `feeds` row
   to read pour feeds (irdrop); then a routing-stage designer run from the attempt-2 placement (old wrapper
   first, to check the stage run reproduces attempt 2), then 3 against 3.
+- Session 5 (2026-11-03, FINDINGS "Routing session 5"): SIG-1 `pcb signals` and the `signals` block (driver, rise time
+  with source, slowing parts, victim flag; code computes knee and bucket); the three rung-2 boards classified from
+  `tools/bench/rung2_signals.py`: 7 nets in bucket 3 (SW, BOOT, PWM, DIR, nSLEEP, ENC_x_IN), 7 in bucket 2 (MOTOR_A/B
+  at 150 ns, nFAULT, ENC_x, IPROPI), the rest bucket 1, 7-9 victims. Table shown to Alex before any judge uses it.
+- Per-bucket judges done (SIG-2, SIG-3): `refplane` limits follow the bucket (3/4 hard at 0 mm, 2 warns at 5 mm, 1 and
+  rails a cost), `return_via` (GND via within 2 mm of every bucket-3 via; fails on every PLAN-1 plan and the archived
+  attempt-2 board, so the fix is a post-route via placement, not a plan choice), `exposure` (same-layer mm within 1 mm of
+  SW copper, victims x3; replaces the switch-node box: opus2 rules 16.4 -> 0.8 mm). Prior art measured: KRT
+  `--add-gnd-vias` placed 0 of 42 and wrote the .kicad_pro; kct signal-integrity 0 findings, current-sense nearest-net only.
+  verify 28 covers all three. Bench `judges()` records the new columns; `plan_bench.py rescore` re-judges old runs.
+- Step 3 done (SIG-4): the 31 PLAN-1 runs rescored and ranked (hard limits, then weighted cost; `plan_bench.py rank`):
+  opus2's winner moves from the zone plan to rules; opus and sonnet tie with the agents' best. The opus hard-limit
+  case was J3's pin-field void (refplane now skips a net's own connector pins). `pcb route waves --search` (six plans
+  in parallel, judged, ranked) reproduces PLAN-1 exactly in 170-235 s a board at zero tokens. `pcb route return-vias`
+  closes the return-via limit (6 vias in 0.8 s, DRC clean); the search runs it, and with it every plan on every board
+  passes the limit. verify 29 covers signals, variants, rank, return vias.
+- Plink benchmark prepared, not run (PLINK-0, Alex: not until the tools maximise quality per cost): the designer's
+  board judged as the baseline, `tools/bench/plink/checks.json` (106 nets classified), `pcb route classes`, the bench's
+  `plink` board (placement and pours kept). Readiness list in `docs/HANDOFF-2026-11-03-session6.md`: calibrate KRT wall
+  time, feeds vs kept pours, drop currents/feeds as hard limits on a pour-fed board, the USB pair, the reference's own
+  4 airwires and 71 DRC errors.
+

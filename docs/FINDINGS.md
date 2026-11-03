@@ -942,3 +942,119 @@ point, high-current rails as pours or thick tracks, every signal over unbroken g
   was reverted. Reading: the agents' gains are per-board search over a few KRT settings, and a 6-plan search reproduces
   most of it at zero tokens and one answer per run. n = 1 agent per board; the replicates were not run because the
   decision does not hinge on agent spread unless an agent beats the search consistently, which it did on one board.
+
+## Routing session 5: signal classes, per-bucket judges, plan re-rank (2026-11-03)
+
+Alex's decision at the end of session 4: rank signals by class, not "signal" as one thing. Four aggressor buckets by the
+knee frequency of the DRIVER's edge, f_knee ~= 0.5 / t_rise (not the clock or PWM rate): 1 under 1 MHz (best effort over
+ground), 2 at 1-50 MHz (over ground, short gap crossings penalised, spacing from aggressors), 3 at 50-500 MHz (hard: 0 mm
+off ground, no split or edge crossings, a GND via beside every layer change, out of hot zones), 4 above 500 MHz (hard
+plus impedance, pairs, length match). Second axis: victims (analog, high impedance) want distance from aggressors more
+than ground.
+
+- **SIG-1 Classification of the rung-2 nets (`pcb signals`, the `signals` block in checks.json).** The designer records
+  per net what the tools cannot measure: the driver pin, the rise time of its edge with the source of the number (a
+  datasheet line or an explicit assumption), the parts on the board that slow it, and a victim flag; `pcbsig.py` computes
+  the knee and the bucket, lists every net the netlist has that the block does not (treated as bucket 1), and exits 1 on
+  a net the netlist lacks. The three rung-2 boards share one topology, so `tools/bench/rung2_signals.py` holds the facts
+  once per role and writes each board's block with its names and references. Result on all three (table shown to Alex):
+  bucket 3: 7 nets (SW, BOOT, PWM, DIR, nSLEEP, ENC_A_IN, ENC_B_IN), bucket 2: 7 (MOTOR_A/B, nFAULT, the fault LED
+  anode, IPROPI, ENC_A/B), bucket 1: 11-14 (the buck's COMP/FB/RT/SS, the charge pump, ISENSE, gate, LEDs), bucket 4:
+  none; victims 7-9 (IPROPI, ISENSE, COMP, COMP_RC, FB, RT, SS, and on a1-opus EN and VREF). The surprises Alex expected:
+  the MCU's PWM, DIR and nSLEEP land in bucket 3 (a 3.3 V GPIO edge assumed 3 ns, nothing on the board slows it; a 100 R +
+  100 pF at the header would make them bucket 2), while the motor outputs are bucket 2 (DRV8874 tRISE 150 ns, datasheet),
+  so the motor rails are the magnetic aggressor for the sense nets rather than a fast one. The encoder series resistors
+  only slow the header side (ENC_A 45 ns, bucket 2); the encoder side (ENC_A_IN, 10 ns assumed push-pull) stays bucket 3.
+  Datasheet numbers: DRV8874 tRISE/tFALL 150 ns, fVCP 400 kHz; everything else is a stated assumption in the block
+  (SW 3 ns: the TPS54620 datasheet gives no edge rate; nFAULT fall 20 ns; encoder 10 ns). Prior art measured: KRT's
+  `find-high-speed-nets` skill (an agent prompt: name patterns, then a datasheet web search, then series-passive
+  propagation) on the a2-opus nets: 16 of 25 signal nets unmatched (SW, BOOT, DIR, nSLEEP, MOTOR_A/B, nFAULT, the buck's
+  analog nodes), 6 wrong (its "EN" substring puts ISENSE and VSENSE in its 10 ns tier, "LED" the power LED), 3 agree; it
+  has no victim axis and its tiers are clock-rate names, not edges. kct has no net classification. Smallest change:
+  data in checks.json (where every other intent row lives), buckets computed, nothing in the judges yet.
+- **SIG-2 `return_via` row: a bucket-3 via with no ground via beside it, on every PLAN-1 plan.** With In1 and In2 both
+  ground, a signal via moves its return from one plane to the other, and the return has to cross through a ground via
+  or through-hole ground pad near it. The row measures, per via of a non-rail net, the distance to the nearest one:
+  buckets 3 and 4 fail beyond 2.0 / 1.0 mm, bucket 2 warns beyond 5.0, bucket 1 is reported. Prior art measured first:
+  KRT `route_planes.py --add-gnd-vias` is the same test (nearest GND via or PTH pad within `--gnd-via-distance`, default
+  2.0 mm) followed by placement, applied to every non-ground via without a class (the VIN and 5V vias included); on the
+  opus2 rules board it checked 47 vias, found 5 already covered, placed 0 ("no clear space within 2.0 mm" for the other
+  42, a 0.8 mm centre-to-centre minimum) and wrote two values into the .kicad_pro, which this repo's guardrails forbid.
+  Its `find-high-speed-nets` skill recommends 3 mm for 100 MHz-1 GHz and 5 mm for 10-100 MHz; this row's 2 mm for bucket
+  3 is the tighter of the two, on a board small enough that it costs nothing. kct has no return-via check. Measured on
+  all 36 PLAN-1 runs with a scratch script before the row existed: the fast nets carry 6-15 vias per board, none with a
+  GND via within 1 mm and at most 2 within 2 mm, worst 19 mm (opus, PWM); the archived attempt-2 board: 5 bucket-3 nets
+  fail (DIR, ENC_A_IN, ENC_B_IN, PWM, nSLEEP, 3.1-9.1 mm). So this limit fails every plan of the search today: the gap
+  is a placement step after routing (a GND via beside each fast-net via, which is what KRT meant to do), not a choice
+  among plans. The row is in the bench's judges; the re-rank (step 3) will show it as a hard limit no plan meets.
+- **SIG-3 `exposure` row replaces `foreign_mm`.** The PLAN-1 "foreign track in the switch-node box" counted any track of a
+  non-local net inside the box on any layer, so B.Cu under the SW node (two solid planes between) counted the same as
+  F.Cu beside it. `exposure` samples every track of a non-local signal net every 0.25 mm and counts the mm within 1.0 mm
+  of the aggressor's copper (tracks, pads, zone fill) on the same layer, times 3 for `signals` victims; the aggressor
+  defaults to the switch node (the inductor net that also reaches an IC pin), nets local to it (every pad on a
+  footprint that also carries the aggressor: BOOT, SW) and the rails are left out. On the opus2 rules board: foreign_mm
+  16.4 against exposure 0.8 (SS, 0.3 mm on F.Cu, a victim); on the archived attempt-2 board 0.4. Prior art: kct `analyze
+  current-sense` reports, per sense net, only the single nearest high-current net on the same layer with its parallel
+  run and gap, passes unless 10 mm parallel under 0.5 mm, and named 3V3 as the high-current net even with `--hicur-net
+  SW MOTOR_A MOTOR_B VIN` given; kct `analyze signal-integrity` found 0 crosstalk risks and 0 impedance discontinuities
+  on both boards. All three rows run in 0.85 s on a board; the bench's `judges()` now records `fast_off_mm`, `fast_gaps`,
+  `mid_off_mm`, `off_by_bucket`, `return_via_bad`, `return_via_worst_mm`, `exposure_mm` beside the old columns, and
+  `plan_bench.py rescore --board B --run DIR` re-judges a finished run without routing (for step 3).
+- **SIG-4 Re-rank of PLAN-1 under the class rule, and `pcb route waves --search`: the winner changes on one board of
+  three; the return-via limit needs a placement step, which now exists.** Hypothesis (stated before running):
+  class-aware ranking picks plans that keep bucket-3 nets fully referenced at a VIN cost within the limit, and changes
+  the winner on at least one board. Null: same winners, or no plan meets the bucket-3 hard limits on some board.
+  Method: the 31 PLAN-1 runs re-judged in place (`plan_bench.py rescore`, no routing), ranked by `pcbsig.plan_rank`:
+  hard limits clean, bucket-3/4 off ground 0 mm, currents fails and VIN loss no worse than the rules plan + 10 %; then
+  cost = bucket-2 mm x 1 + bucket-1 and rail mm x 0.2 + exposure x 1 + VIN mW x 0.1 + currents fails x 5 + vias x 0.05
+  (10 mW of VIN loss weighs as 1 mm of a bucket-2 net off ground). PLAN-1's priority order computed on the same rows.
+
+  | board | PLAN-1 winner | SIG-4 winner (cost) | pass hard limits | with return_via hard | sensitivity (each weight x0.5, x2) |
+  |---|---|---|---|---|---|
+  | opus | agent (split power waves, 259 mW) | agent v3 = search vin-first = both (167 mW), 43.7, a four-way tie | 9 of 11 | 0 | stable |
+  | opus2 | rules+zones+esc (foreign 0) | **rules** 24.4 (zones+esc 27.8) | 3 of 10 | 0 | stable |
+  | sonnet | agent (MOTOR_A first, 80 mW) | same 20.8; search vin-first 21.1 | 8 of 10 | 0 | flips to vin-first at VIN x2 or vias x0.5 |
+
+  Readings. (1) opus2 is the hypothesis's case: the box judge had rewarded the zone plans for 0 mm of foreign track in
+  the switch-node box; the same-layer judge sees 0.8 mm beside SW for rules against 2.7 for zones+esc, and the zone
+  plans' keepouts push nSLEEP (bucket 3) 12.3 mm along the x = 149.5 board edge where the plane pulls back, which the
+  hard limit rejects; rules wins at 10 mW less VIN loss. (2) opus first came out as the null in disguise: 10 of 11
+  plans failed on 1.6-1.9 mm of nSLEEP on B.Cu at (122, 134), and the survivor was the agent's 259 mW plan. The gap
+  was J3's pin field: a 2.54 mm through-hole header with the plane clearance leaves no copper between its pins on
+  either plane, so a track entering its own connector always crosses a void. `refplane` now skips points within
+  `connector_mm` (1.5) of the through-hole pads of footprints the net lands on (its own vias and pads were already
+  skipped); re-judged, 9 of 11 pass and the 167 mW plans tie. The 0 mm limit is brittle to sub-millimetre voids; the
+  next kind to look for is a neighbouring net's via antipad, and the answer should again be the void's cause, not an
+  allowance. (3) sonnet is a tie: the agent's plan and the search's vin-first differ by 0.1 and swap under a 2x weight
+  change. (4) The null's second half held everywhere before placement: `return_via` failed on every plan on every
+  board (4-15 bucket-3 vias with no ground via within 2 mm), so it was not a plan filter. `pcb route return-vias`
+  (pcblib `return_vias`: rings 0.8-2.0 mm, 30 degrees apart, checked at the board clearance against other nets' pads,
+  vias, tracks and pour fill on every layer and the board edge) closes it: on the opus2 winner 6 vias in 0.8 s, DRC
+  clean, 8 bad vias to 1 (an ENC_B_IN via boxed in by J2's pins); the search now runs it before the verdict.
+  Verdict: hypothesis supported on 1 of 3 boards (opus2), ties on opus and sonnet, and the return-via half of the null
+  was a placement gap, as predicted.
+
+  **`pcb route waves --search`** (`plan_variants`: rules, zones, rail-first, motor-first, both, zones-esc from the
+  board's own classes and the hot loop; six `waves` runs in parallel; the SIG-4 judges; `pcbsig.plan_rank`; the winner
+  written with search.json). On the three prepped rung-2 boards with 3 jobs it reproduces PLAN-1's numbers exactly
+  (deterministic, zero tokens): opus2 rules 101.58 mW, sonnet rail-first 78.45 mW, opus rail-first = both 166.72 mW,
+  in 172-235 s a board. With return vias: every plan on every board clean, bucket-3 vias without a return 0 (opus,
+  sonnet) and 0-1 (opus2), winners unchanged, costs +0.2-0.6 from the extra vias, 168-236 s a board.
+- **PLINK-0 The MotorGo Plink judged as its designer left it (the baseline for the routing benchmark Alex wants).**
+  65 x 56 mm, 4 layers (In1 and In2 ground: Alex's stackup), 117 footprints, 106 nets with 2+ pins, 1271 tracks at
+  0.12-0.25 mm, 342 vias, power as F.Cu pours; one Default net class (0.12 / 0.12). Classified in
+  `tools/bench/plink_signals.py` -> `tools/bench/plink/checks.json`: 41 bucket-3 nets (ESP32-S3 GPIO at an assumed 3 ns:
+  8 motor EN/PH, 4 encoder selects, 6 I2C lines, UART, 11 spare header GPIOs; the USB pair at the 4 ns full-speed edge;
+  SW and BOOT), 16 bucket-2 (8 motor outputs at 150 ns, 4 nFAULT, 4 IPROPI), 44 bucket-1, 10 victims; currents are
+  assumptions (1.5 A a channel, 6 A at the jack). The judges on the designer's copper, 0.9 s: refplane 8.7 mm off
+  ground in total, 3.4 mm on 6 bucket-3 nets (sub-millimetre gaps, the longest 1.0 mm on enc_scl); return_via 8 of 46
+  nets fail (USB D+/D-, I2C, encoder selects, UART: 2.3-5.6 mm to the nearest ground via); exposure 0 (nothing within 1
+  mm of SW or the motor pours on the same layer); +BATT irdrop from J11 to four VM pins and PVIN at 1.5 A each: 148 mW,
+  8-31 mV, worst 193 A/mm2 on F.Cu at (124.6, 97.0); thermal vias under the four DRV8874 pads 1, 4, 2, 2 (the config
+  asks 9). `currents` and `feeds` fail on every row because they size tracks and the board is pour-fed: not a judge
+  for this board. The published board is not clean: 4 airwires (U8.3 and C24.1 on +5V, R24.1, R8.2) and 71 DRC
+  errors with the JLC pack (40 copper-to-edge, 5 shorting_items, 1 zones_intersect), so the +5V irdrop returns NaN
+  (the LDO input is open). Bench plumbing: `BOARDS["plink"]` keeps placement and pours, strips tracks and vias, writes
+  classes from the config (`pcb route classes`: +BATT W2.35, +5V W0.9, motor outputs W0.35, victims Sense) and takes
+  feeds (15) and thermal vias (5 pads) from it; `default_plan` now puts every class wider than Default in the power
+  wave (the 0.35 mm motor outputs included). Not run: the benchmark waits for the readiness list in the handoff.

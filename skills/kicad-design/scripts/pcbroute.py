@@ -19,7 +19,20 @@
                                                     (pcb q ratsnest), setup minimums, the nets of the footprint whose value
                                                     matches --ref-value (the 0.65 mm pitch part, R2-T2) and with --drc the
                                                     dual DRC of `pcb drc` (plain, packed, errors_total)
-  waves BOARD [--plan plan.json] [--out F] [--work DIR] [--pack jlcpcb]
+  waves BOARD --search [--plan base.json] [--config checks.json] [--netlist x.xml] [--vin NET --source PADS [--sink PAD=A]]
+                                       [--jobs 3] [--fast-max 0] [--out F] [--work DIR]
+                                                    the six plans of the search (rules, zones, rail-first, motor-first,
+                                                    both, zones-esc) routed in parallel and judged (refplane by bucket,
+                                                    return_via, exposure, currents, irdrop); the plan that meets the hard
+                                                    limits at the lowest weighted cost is written (SIG-4); search.json
+  waves BOARD [--plan plan.json] [--out F] [--work DIR] [--pack jlcpcb] [--return-vias --config checks.json [--netlist x.xml]]
+  classes BOARD --config checks.json [--round 0.05] [--min MM] [--dry]
+                                                    net classes from the config's currents (IPC-2221 widths, W<mm>) and
+                                                    victims (Sense) into the .kicad_pro, for a board that has none
+  return-vias BOARD --config checks.json [--netlist x.xml] [--max-mm 2] [--buckets 3,4] [--dry]
+                                                    a ground via beside every bucket-3/4 via without one within max_mm
+                                                    (SIG-2); `waves --return-vias` runs it after the finish, before the
+                                                    verdict; the search runs it unless --no-return-vias
                                                     route in waves (WAVES-1): wave 0 is code (pcblib pad_feed_search on the
                                                     plan's feeds, thermal_vias), then one KRT call per wave with its own
                                                     nets, layers and keepout polygons (User.2), each wave's copper locked
@@ -39,6 +52,7 @@ from pcblib.board import Board, unfill_and_save  # noqa: E402
 import pcbq  # noqa: E402
 
 OUT = []
+PCB = os.path.join(HERE, "pcb")
 
 
 def say(*a):
@@ -535,13 +549,16 @@ def c_auto(args):
 
 # ---------------------------------------------------------------------------------------------------- waves (WAVES-1)
 def default_plan(board):
-    """Waves from the net classes: classes at least 0.5 mm wide (the power and motor rails), then classes named *sense*,
+    """Waves from the net classes: classes wider than Default (the power and motor rails), then classes named *sense*,
     then everything else."""
     pro = os.path.splitext(board)[0] + ".kicad_pro"
     ns = json.load(open(pro)).get("net_settings", {}) if os.path.exists(pro) else {}
     w = {c["name"]: float(c.get("track_width") or 0) for c in ns.get("classes", [])}
     pats = ns.get("netclass_patterns", [])
-    power = [x["pattern"] for x in pats if w.get(x.get("netclass"), 0) >= 0.5]
+    dflt = w.get("Default", 0.2)
+    # power: every class wider than Default that is not a sense class (rung 2: Motor 0.8, VIN 1.4; a 1.5 A motor net at
+    # 0.35 mm from `classes` counts too); sense: classes named *sense*
+    power = [x["pattern"] for x in pats if w.get(x.get("netclass"), 0) > dflt + 1e-9 and "sense" not in (x.get("netclass") or "").lower()]
     sense = [x["pattern"] for x in pats if "sense" in (x.get("netclass") or "").lower() and x["pattern"] not in power]
     waves = []
     if power:
@@ -608,6 +625,8 @@ def c_waves(args):
     Wave 0 (feeds, thermal vias) is pcblib code; each later wave is one KRT call on its nets, its copper locked after;
     then `auto` finishes the board (second pass, stitch, dual DRC, verdict). Writes waves.json and route.json."""
     import shutil, time, fnmatch
+    if "--search" in args:
+        return c_search(args)
     plan_path = opt(args, "--plan"); out = opt(args, "--out"); work = opt(args, "--work"); pack = opt(args, "--pack", "jlcpcb")
     board = os.path.abspath(args[0]); base = os.path.basename(board); stem = os.path.splitext(base)[0]
     work = work or os.path.join("/tmp/pcb-route-waves", f"{stem}-{os.getpid()}")
@@ -690,6 +709,12 @@ def c_waves(args):
     rec["finish"] = {k: fin.get(k) for k in ("clean", "final", "inner_mm", "wall_s")}
     lock_nets(dest, ["*"], lock=False)   # locked only while routing; the handed-in board is ordinary copper
     Board.load(dest).fill()
+    cfg_path = opt(args, "--config")
+    if "--return-vias" in args and cfg_path:   # SIG-2: ground vias beside the fast nets' layer changes, before the verdict
+        keep = len(OUT)
+        rv = c_return_vias([dest, "--config", cfg_path] + (["--netlist", opt(args, "--netlist")] if opt(args, "--netlist") else []))
+        del OUT[keep:]
+        rec["return_vias"] = {k: rv[k] for k in ("placed", "covered", "skipped")}
     keep = len(OUT)
     end = c_measure([dest, "--drc", "--pack", pack])
     del OUT[keep:]
@@ -706,7 +731,299 @@ def c_waves(args):
     return rec
 
 
-CMDS = {"waves": c_waves, "strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
+# ---------------------------------------------------------------------------------------------------- plan search (SIG-4)
+def power_nets(b):
+    """Nets in a net class at least 0.5 mm wide (the board's own power and motor rails) plus GND."""
+    import fnmatch
+    pro = os.path.splitext(b.GetFileName())[0] + ".kicad_pro"
+    ns = json.load(open(pro)).get("net_settings", {}) if os.path.exists(pro) else {}
+    w = {c["name"]: float(c.get("track_width") or 0) for c in ns.get("classes", [])}
+    pats = [x["pattern"] for x in ns.get("netclass_patterns", []) if w.get(x.get("netclass"), 0) >= 0.5]
+    nets = {n.GetNetname() for n in b.GetNetInfo().NetsByNetcode().values()}
+    return {n for n in nets if any(fnmatch.fnmatchcase(n, p) for p in pats)} | {"GND"}
+
+
+def hot_loop(b):
+    """The switch node: the inductor pad net that also reaches an IC pin (L1.1 = SW on the rung-2 boards); its pads'
+    bounding box grown 0.8 mm. Returns (net, [x0, y0, x1, y1], owning IC) or (None, None, None)."""
+    for f in b.GetFootprints():
+        if not f.GetReference().startswith("L"):
+            continue
+        for p in f.Pads():
+            n = p.GetNetname()
+            pads = [q for g in b.GetFootprints() for q in g.Pads() if q.GetNetname() == n]
+            ics = {q.GetParentFootprint().GetReference() for q in pads if q.GetParentFootprint().GetReference().startswith("U")}
+            if ics and n and n != "GND":   # the first inductor pad that reaches an IC: SW (a board may class SW as power)
+                xs, ys = [], []
+                for q in pads:
+                    x, y = ToMM(q.GetPosition().x), ToMM(q.GetPosition().y); r = ToMM(q.GetBoundingRadius())
+                    xs += [x - r, x + r]; ys += [y - r, y + r]
+                return n, [round(min(xs) - 0.8, 2), round(min(ys) - 0.8, 2), round(max(xs) + 0.8, 2), round(max(ys) + 0.8, 2)], sorted(ics)[0]
+    return None, None, None
+
+
+def subsystem(b, ic, power):
+    """The IC plus every two-pad part with a pad on one of the IC's non-power nets; the subsystem's local nets are the
+    nets whose every pad is on those parts."""
+    fps = {f.GetReference(): f for f in b.GetFootprints()}
+    ic_nets = {p.GetNetname() for p in fps[ic].Pads() if p.GetNetname() and p.GetNetname() not in power}
+    members = {ic}
+    for r, f in fps.items():
+        pads = [p for p in f.Pads() if p.GetNetname()]
+        if r != ic and len(pads) <= 3 and r[0] in "CRLD" and any(p.GetNetname() in ic_nets for p in pads):
+            members.add(r)
+    by_net = {}
+    for r, f in fps.items():
+        for p in f.Pads():
+            if p.GetNetname():
+                by_net.setdefault(p.GetNetname(), set()).add(r)
+    local = sorted(n for n, rs in by_net.items() if rs <= members and n != "GND")
+    return members, local
+
+
+def plan_variants(board, base_plan):
+    """The six plans of the search (PLAN-1), from the board's own classes and the base plan's feeds and thermal vias:
+    rules (power, sense, rest); zones (the switch node's own subsystem in a wave of its own, later waves kept out of its
+    box); rail-first (the widest rail alone with --escalation board, which necks only the terminal); motor-first (the
+    first non-rail wide net alone); both; zones with escalation on the whole power wave."""
+    b = pcbnew.LoadBoard(board)
+    rules = default_plan(board)
+    waves = rules["waves"]
+    power = next((w for w in waves if w["name"] == "power"), None)
+    head = {k: v for k, v in base_plan.items() if k != "waves"}
+    out = {"rules": {**head, "waves": waves}}
+    sw, box, ic = hot_loop(b)
+    local = []
+    if sw:
+        _, local = subsystem(b, ic, power_nets(b))
+    def zoned(ws, esc=False):
+        if not sw:
+            return None
+        poly = [[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]]]
+        res = []
+        for w in ws:
+            if w["name"] in ("power", "rail", "motor"):
+                res.append({**w, "args": (w.get("args") or []) + (["--escalation", "board"] if esc and w["name"] == "power" else [])})
+        res.append({"name": f"{ic.lower()}-local", "nets": local})
+        for w in ws:
+            if w["name"] not in ("power", "rail", "motor"):
+                res.append({**w, "keepouts": [poly]})
+        return res
+    if power and len(power["nets"]) > 1:
+        rails = [n for n in power["nets"] if n in (base_plan.get("rails") or ["VIN"])] or [power["nets"][0]]
+        rail = rails[0]
+        motors = [n for n in power["nets"] if n != rail and not any(n.startswith(r) for r in rails) and "MOTOR" in n.upper()] or \
+                 [n for n in power["nets"] if n != rail][:1]
+        motor = motors[0] if motors else None
+        rest = lambda drop: [n for n in power["nets"] if n not in drop]
+        rail_first = [{"name": "rail", "nets": [rail], "args": ["--escalation", "board"]}, {**power, "nets": rest([rail])}] + [w for w in waves if w["name"] != "power"]
+        out["rail-first"] = {**head, "waves": zoned(rail_first) or rail_first}
+        if motor:
+            motor_first = [{"name": "motor", "nets": [motor]}, {**power, "nets": rest([motor])}] + [w for w in waves if w["name"] != "power"]
+            out["motor-first"] = {**head, "waves": zoned(motor_first) or motor_first}
+            both = [{"name": "motor", "nets": [motor]}, {"name": "rail", "nets": [rail], "args": ["--escalation", "board"]},
+                    {**power, "nets": rest([rail, motor])}] + [w for w in waves if w["name"] != "power"]
+            out["both"] = {**head, "waves": zoned(both) or both}
+    if sw:
+        out["zones"] = {**head, "waves": zoned(waves)}
+        out["zones-esc"] = {**head, "waves": zoned(waves, esc=True)}
+    return out
+
+
+def judge_plan(routed, cfg_path, netlist, vin, source, sinks, waves_rec, pack):
+    """The SIG-4 judges on one routed board: pcbcheck refplane/return_via/exposure/currents, irdrop on the rail, the
+    route measure. Returns the row the ranking reads (the bench's `judges` writes the same keys)."""
+    d = os.path.dirname(routed)
+    cfg = json.load(open(cfg_path)) if cfg_path else {}
+    cfg.setdefault("refplane", {"ground": "GND"}); cfg.setdefault("return_via", {"ground": "GND"}); cfg.setdefault("exposure", {})
+    jc = os.path.join(d, "judge_checks.json"); json.dump(cfg, open(jc, "w"))
+    cmd = [PCB, "check", routed, jc, "--only", "currents,refplane,return_via,exposure", "--out", os.path.join(d, "judge.json")]
+    if netlist:
+        cmd += ["--netlist", netlist]
+    subprocess.run(cmd, capture_output=True, text=True)
+    j = json.load(open(os.path.join(d, "judge.json")))
+    rp = [r for r in j["rows"] if r["check"] == "refplane"]
+    rv = [r for r in j["rows"] if r["check"] == "return_via"]
+    ex = [r for r in j["rows"] if r["check"] == "exposure"]
+    off = {}
+    for r in rp:
+        k = str(r.get("bucket", 1)); off[k] = round(off.get(k, 0.0) + (r["value"] or 0), 1)
+    ir = {}
+    if vin and source:
+        cmd = [PCB, "irdrop", routed, "--net", vin, "--source", source, "--out", os.path.join(d, "irdrop"), "--json"]
+        for sk in sinks:
+            cmd += ["--sink", sk]
+        if cfg_path and not sinks:
+            cmd += ["--config", cfg_path]
+        p = subprocess.run(cmd, capture_output=True, text=True)
+        for line in reversed(p.stdout.strip().splitlines()):
+            if line.startswith("{"):
+                ir = json.loads(line); break
+    keep = len(OUT)
+    m = c_measure([routed])
+    del OUT[keep:]
+    return {"clean": waves_rec.get("clean"), "new_errors": waves_rec.get("new_errors"), "airwires": m["ratsnest"]["airwires"],
+            "vin_mW": ir.get("power_mW"), "vin_drop_mV": [s["drop_mV"] for s in ir.get("sinks", [])], "vin_J": ir.get("max_J_A_mm2"),
+            "refplane_mm": round(sum(r["value"] or 0 for r in rp), 1), "off_by_bucket": off,
+            "fast_off_mm": round(sum(r["value"] or 0 for r in rp if r.get("bucket") in (3, 4)), 1),
+            "fast_gaps": sum(r.get("gaps", 0) for r in rp if r.get("bucket") in (3, 4)),
+            "mid_off_mm": round(sum(r["value"] or 0 for r in rp if r.get("bucket") == 2), 1),
+            "return_via_fails": [r["id"].split(":", 1)[1] for r in rv if r["status"] == "fail"],
+            "return_via_bad": sum(r.get("bad", 0) for r in rv if r.get("bucket") in (3, 4)),
+            "return_via_worst_mm": max([r["value"] for r in rv if r.get("bucket") in (3, 4)] or [0]),
+            "exposure_mm": round(sum(r["value"] or 0 for r in ex), 1), "exposure_by_net": {r["id"].split(":", 1)[1]: r["value"] for r in ex},
+            "currents_fails": [r["id"].split(":", 1)[1] for r in j["rows"] if r["check"] == "currents" and r["status"] == "fail"],
+            "vias": m["vias"], "length_mm": m["length_mm"], "wall_s": waves_rec.get("wall_s")}
+
+
+def c_search(args):
+    """pcb route waves BOARD --search [--plan base.json] [--config checks.json] [--netlist x.xml] [--vin NET --source PADS
+                                      [--sink PAD=A ...]] [--jobs N] [--fast-max MM] [--out F] [--work DIR] [--pack jlcpcb]
+    The six plans of `plan_variants` routed in parallel (each its own `waves` run in --work/<plan>/), judged with the
+    SIG-4 rows (refplane by bucket, return_via, exposure, currents, irdrop on --vin from --source), ranked by
+    pcbsig.plan_rank (hard limits against the rules plan, then the weighted cost); the winner is copied to --out
+    (default: the board). search.json beside the output lists every plan's row and the ranking. Exit 1 if no plan
+    passes the hard limits (the best by cost is still written, flagged)."""
+    import shutil, time, concurrent.futures as cf
+    import pcbsig
+    t0 = time.time()
+    board = os.path.abspath(args[0]); base = os.path.basename(board); stem = os.path.splitext(base)[0]
+    plan_path = opt(args, "--plan"); cfg_path = opt(args, "--config"); netlist = opt(args, "--netlist"); out = opt(args, "--out")
+    work = opt(args, "--work") or os.path.join("/tmp/pcb-route-search", f"{stem}-{os.getpid()}"); pack = opt(args, "--pack", "jlcpcb")
+    vin = opt(args, "--vin"); source = opt(args, "--source"); jobs = int(opt(args, "--jobs", "3")); fast_max = float(opt(args, "--fast-max", "0"))
+    sinks = [args[i + 1] for i, a in enumerate(args) if a == "--sink"]
+    base_plan = json.load(open(plan_path)) if plan_path else {}
+    if cfg_path and "feeds" not in base_plan:   # wave 0 from the config: every feeds row whose pad is not a capacitor
+        cfg = json.load(open(cfg_path))
+        base_plan["feeds"] = [{"pad": f["pad"], "amps": float(f["amps"])} for f in cfg.get("feeds", []) if not f["pad"].startswith("C")]
+        base_plan.setdefault("thermal_vias", list((cfg.get("thermal_vias") or {}).keys()))
+    variants = plan_variants(board, base_plan)
+    os.makedirs(work, exist_ok=True)
+    say("PCBROUTE search", len(variants), "plans:", ", ".join(variants), "jobs", jobs, "work", work)
+    if netlist:
+        netlist = os.path.abspath(netlist)
+    elif os.path.exists(os.path.splitext(board)[0] + ".xml"):
+        netlist = os.path.splitext(board)[0] + ".xml"
+
+    def run(name):
+        d = os.path.join(work, name); os.makedirs(d, exist_ok=True)
+        for f in os.listdir(os.path.dirname(board)):
+            if f.startswith(stem + ".") and f.split(".")[-1] in ("kicad_pcb", "kicad_pro", "kicad_prl"):
+                shutil.copy(os.path.join(os.path.dirname(board), f), os.path.join(d, f))
+        pp = os.path.join(d, "plan.json"); json.dump(variants[name], open(pp, "w"), indent=1)
+        pcb = os.path.join(d, base)
+        extra = (["--return-vias", "--config", cfg_path] if cfg_path and "--no-return-vias" not in args else []) + (["--netlist", netlist] if netlist else [])
+        p = subprocess.run([PCB, "route", "waves", pcb, "--plan", pp, "--work", os.path.join(d, "work"), "--pack", pack, *extra],
+                           capture_output=True, text=True, env={**os.environ, "PYTHONHASHSEED": "0"})
+        open(os.path.join(d, "waves.txt"), "w").write(p.stdout + p.stderr)
+        wj = os.path.join(d, "waves.json")
+        if not os.path.exists(wj):
+            return name, {"error": (p.stdout + p.stderr)[-600:]}
+        rec = json.load(open(wj))
+        return name, {"arm": name, "run": d, **judge_plan(pcb, cfg_path, netlist, vin, source, sinks, rec, pack)}
+
+    rows = {}
+    with cf.ThreadPoolExecutor(max_workers=jobs) as ex:
+        for name, row in ex.map(run, list(variants)):
+            rows[name] = row
+            say("PCBROUTE search plan", name, "ERROR " + row["error"][-200:] if "error" in row else
+                f"clean {row['clean']} fast off {row['fast_off_mm']} mid {row['mid_off_mm']} return-via bad {row['return_via_bad']} "
+                f"exposure {row['exposure_mm']} rail {row['vin_mW']} mW currents {len(row['currents_fails'])} vias {row['vias']} ({row['wall_s']} s)")
+    good = [r for r in rows.values() if "error" not in r]
+    rules = rows.get("rules") if "error" not in rows.get("rules", {"error": 1}) else None
+    ranked, failed = pcbsig.plan_rank(good, rules, fast_max=fast_max)
+    if ranked:
+        win = ranked[0]; passed = True
+    else:
+        win = min(good, key=lambda r: pcbsig.plan_cost(r)) if good else None; passed = False
+    dest = out or board
+    if win:
+        shutil.copy(os.path.join(win["run"], base), dest)
+        for f in ("route.json", "waves.json"):
+            if os.path.exists(os.path.join(win["run"], f)):
+                shutil.copy(os.path.join(win["run"], f), os.path.join(os.path.dirname(os.path.abspath(dest)), f))
+    rec = {"board": board, "work": work, "plans": rows, "weights": pcbsig.WEIGHTS, "fast_max": fast_max,
+           "ranked": [(r["arm"], round(pcbsig.plan_cost(r), 1)) for r in ranked],
+           "failed_hard": [(r["arm"], why) for r, why in failed], "winner": win["arm"] if win else None, "passed": passed,
+           "wall_s": round(time.time() - t0, 1), "out": dest}
+    json.dump(rec, open(os.path.join(os.path.dirname(os.path.abspath(dest)), "search.json"), "w"), indent=1)
+    say("PCBROUTE search verdict", f"winner {rec['winner']}" + ("" if passed else " (NO plan met the hard limits; best by cost written)"),
+        "ranked", rec["ranked"], "failed", rec["failed_hard"], "->", dest, f"({rec['wall_s']} s)")
+    if not passed:
+        rec["exit"] = 1
+    return rec
+
+
+def fast_nets(board, cfg_path, netlist=None, buckets_wanted=(3, 4)):
+    """Nets in the wanted buckets from the config's `signals` block (SIG-1)."""
+    import pcbsig
+    cfg = json.load(open(cfg_path)) if cfg_path else {}
+    nets = pcbsig.netlist_nets(netlist) if netlist else None
+    return sorted(n for n, bk in pcbsig.buckets(cfg, nets).items() if bk in buckets_wanted)
+
+
+def c_return_vias(args):
+    """pcb route return-vias BOARD --config checks.json [--netlist x.xml] [--max-mm 2.0] [--buckets 3,4] [--dry]
+    A ground via beside every via of a bucket-3/4 net that has none within max_mm (pcblib return_vias, SIG-2); the
+    board is saved unfilled and refilled. Prints what was placed and what could not be."""
+    board = os.path.abspath(args[0]); cfg_path = opt(args, "--config"); netlist = opt(args, "--netlist")
+    max_mm = float(opt(args, "--max-mm", "2.0")); want = tuple(int(x) for x in opt(args, "--buckets", "3,4").split(","))
+    if not cfg_path:
+        sys.exit("pcbroute return-vias: --config checks.json with a signals block is required (which nets are fast)")
+    nets = fast_nets(board, cfg_path, netlist, want)
+    bd = Board.load(board)
+    res = bd.return_vias(nets, max_mm=max_mm, dry="--dry" in args)
+    if res["placed"] and "--dry" not in args:
+        bd.save(); bd.fill()
+    rec = {"board": board, "nets": nets, "placed": len(res["placed"]), "covered": res["covered"], "skipped": res["skipped"],
+           "vias": res["placed"]}
+    say("PCBROUTE return-vias", f"{len(res['placed'])} ground vias placed beside {', '.join(sorted({p[0] for p in res['placed']})) or 'nothing'};",
+        res["covered"], "fast vias already covered;", len(res["skipped"]), "skipped", res["skipped"][:3])
+    return rec
+
+
+def c_classes(args):
+    """pcb route classes BOARD --config checks.json [--round 0.05] [--min MM] [--dry]
+    Net classes from the config, for a board that has none (a foreign board on the bench): one class per IPC-2221
+    external width for the `currents` amps (copper_oz outer, rise_c), named W<width>; `signals` victims in class Sense
+    at the default width so the default wave plan routes them alone. Written into the .kicad_pro net_settings
+    (classes and netclass_patterns), the Default class kept. KRT reads the widths; `default_plan` reads the names."""
+    import pcbcheck
+    board = os.path.abspath(args[0]); cfg_path = opt(args, "--config"); rnd = float(opt(args, "--round", "0.05")); dry = "--dry" in args
+    if not cfg_path:
+        sys.exit("pcbroute classes: --config checks.json required")
+    cfg = json.load(open(cfg_path))
+    pro = os.path.splitext(board)[0] + ".kicad_pro"
+    pj = json.load(open(pro))
+    ns = pj.setdefault("net_settings", {})
+    classes = {c["name"]: c for c in ns.get("classes", [])}
+    default = classes.get("Default") or {"name": "Default", "track_width": 0.2, "clearance": 0.2, "via_diameter": 0.6, "via_drill": 0.3}
+    oz = float((cfg.get("copper_oz") or {}).get("outer", 1.0)); rise = float(cfg.get("rise_c", 20))
+    minw = float(opt(args, "--min", str(default.get("track_width", 0.2))))
+    pats = [x for x in ns.get("netclass_patterns", []) if x.get("netclass") == "Default"]
+    out = {}
+    for net, amps in (cfg.get("currents") or {}).items():
+        w = pcbcheck.ipc2221_width_mm(float(amps), rise, oz)
+        w = max(minw, round((w + rnd - 1e-9) // rnd * rnd, 2))
+        name = f"W{w:g}"
+        classes.setdefault(name, {**default, "name": name, "track_width": w})
+        pats.append({"netclass": name, "pattern": net}); out[net] = (name, w, amps)
+    import pcbsig
+    for net in sorted(pcbsig.victims(cfg)):
+        if net in out:
+            continue
+        classes.setdefault("Sense", {**default, "name": "Sense"})
+        pats.append({"netclass": "Sense", "pattern": net}); out[net] = ("Sense", default.get("track_width"), None)
+    ns["classes"] = [classes[k] for k in sorted(classes, key=lambda k: (k != "Default", k))]
+    ns["netclass_patterns"] = pats
+    if not dry:
+        json.dump(pj, open(pro, "w"), indent=2)
+    say("PCBROUTE classes", len(ns["classes"]) - 1, "classes for", len(out), "nets:",
+        ", ".join(f"{n} -> {c} ({w} mm{', ' + str(a) + ' A' if a else ''})" for n, (c, w, a) in out.items()), "->", pro if not dry else "(dry)")
+    return {"board": board, "pro": pro, "classes": [c["name"] for c in ns["classes"]], "nets": out}
+
+
+CMDS = {"waves": c_waves, "return-vias": c_return_vias, "classes": c_classes, "strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
         "canon": c_canon}
 
 

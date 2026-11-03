@@ -28,63 +28,22 @@ def prep(path):
     return {"deleted_zones": len(gone)}
 
 
-def power_nets(b):
-    """Nets in a net class at least 0.5 mm wide (the board's own power and motor rails) plus GND."""
-    import os
-    pro = os.path.splitext(b.GetFileName())[0] + ".kicad_pro"
-    ns = json.load(open(pro)).get("net_settings", {})
-    w = {c["name"]: float(c.get("track_width") or 0) for c in ns.get("classes", [])}
-    import fnmatch
-    pats = [x["pattern"] for x in ns.get("netclass_patterns", []) if w.get(x.get("netclass"), 0) >= 0.5]
-    nets = {n.GetNetname() for n in b.GetNetInfo().NetsByNetcode().values()}
-    return {n for n in nets if any(fnmatch.fnmatchcase(n, p) for p in pats)} | RAILS
+import pcbroute
+power_nets, subsystem, hot_loop = pcbroute.power_nets, pcbroute.subsystem, pcbroute.hot_loop   # moved into the tool (SIG-4)
 
 
-def subsystem(b, ic, power):
-    """The IC plus every two-pad part with a pad on one of the IC's non-power nets; the subsystem's local nets are the
-    nets whose every pad is on those parts."""
-    fps = {f.GetReference(): f for f in b.GetFootprints()}
-    ic_nets = {p.GetNetname() for p in fps[ic].Pads() if p.GetNetname() and p.GetNetname() not in power}
-    members = {ic}
-    for r, f in fps.items():
-        pads = [p for p in f.Pads() if p.GetNetname()]
-        if r != ic and len(pads) <= 3 and r[0] in "CRLD" and any(p.GetNetname() in ic_nets for p in pads):
-            members.add(r)
-    by_net = {}
-    for r, f in fps.items():
-        for p in f.Pads():
-            if p.GetNetname():
-                by_net.setdefault(p.GetNetname(), set()).add(r)
-    local = sorted(n for n, rs in by_net.items() if rs <= members and n not in RAILS)
-    return members, local
-
-
-def hot_loop(b):
-    """The switch node: the inductor pad net that also reaches an IC pin (L1.1 = SW on the rung-2 boards); its pads'
-    bounding box grown 0.8 mm. Returns (net, [x0, y0, x1, y1], owning IC)."""
-    for f in b.GetFootprints():
-        if not f.GetReference().startswith("L"):
-            continue
-        for p in f.Pads():
-            n = p.GetNetname()
-            pads = [q for g in b.GetFootprints() for q in g.Pads() if q.GetNetname() == n]
-            ics = {q.GetParentFootprint().GetReference() for q in pads if q.GetParentFootprint().GetReference().startswith("U")}
-            if ics and n not in RAILS:
-                xs, ys = [], []
-                for q in pads:
-                    x, y = xy(q.GetPosition()); r = ToMM(q.GetBoundingRadius())
-                    xs += [x - r, x + r]; ys += [y - r, y + r]
-                return n, [round(min(xs) - 0.8, 2), round(min(ys) - 0.8, 2), round(max(xs) + 0.8, 2), round(max(ys) + 0.8, 2)], sorted(ics)[0]
-    return None, None, None
-
-
-def rules(path, zones):
+def rules(path, zones, cfg=None):
+    """The rule plan; feeds and thermal vias from the config when one is given (a foreign board), else the rung-2 lists."""
     b = pcbnew.LoadBoard(path)
-    import pcbroute
     plan = pcbroute.default_plan(path)
     pads = {f"{f.GetReference()}.{p.GetNumber()}" for f in b.GetFootprints() for p in f.Pads()}
-    plan["feeds"] = [{"pad": p, "amps": a} for p, a in FEEDS if p.split(",")[0] in pads or p.split(".")[0] + "." + p.split(".")[1].split(",")[0] in pads]
-    plan["thermal_vias"] = THERMAL
+    if cfg:
+        c = json.load(open(cfg))
+        plan["feeds"] = [{"pad": f["pad"], "amps": float(f["amps"])} for f in c.get("feeds", []) if not f["pad"].startswith("C")]
+        plan["thermal_vias"] = list((c.get("thermal_vias") or {}).keys())
+    else:
+        plan["feeds"] = [{"pad": p, "amps": a} for p, a in FEEDS if p.split(",")[0] in pads or p.split(".")[0] + "." + p.split(".")[1].split(",")[0] in pads]
+        plan["thermal_vias"] = THERMAL
     if zones:
         power = power_nets(b)
         sw, box, ic = hot_loop(b)
@@ -145,7 +104,8 @@ if __name__ == "__main__":
     if cmd == "prep":
         print(json.dumps(prep(path)))
     elif cmd == "rules":
-        print(json.dumps(rules(path, "--zones" in sys.argv)))
+        cfg = sys.argv[sys.argv.index("--config") + 1] if "--config" in sys.argv else None
+        print(json.dumps(rules(path, "--zones" in sys.argv, cfg)))
     elif cmd == "intrusion":
         print(json.dumps(intrusion(path)))
     elif cmd == "summary":

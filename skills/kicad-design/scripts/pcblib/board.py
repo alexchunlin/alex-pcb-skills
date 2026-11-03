@@ -291,6 +291,78 @@ class Board:
         self._dirty = True
         return v
 
+    def return_vias(self, nets, max_mm=2.0, gnd="GND", size=None, rings=(0.8, 1.0, 1.2, 1.5, 1.8, 2.0), step_deg=30, dry=False):
+        """SIG-2: a ground via beside every via of `nets` that has none within max_mm. A via on a fast net moves its return
+        current from one ground plane to the other, and the planes only meet at ground vias and through-hole ground
+        pads. Candidates on rings around the signal via (nearest first, step_deg apart) are checked at the board
+        clearance against other nets' pads, vias, tracks and filled zones on every copper layer and against the board
+        edge; the first clear one is placed. Returns {"placed": [...], "covered": n, "skipped": [(net, x, y, why)]}."""
+        d, drill = size or getattr(self, "via_default", (0.6, 0.3))
+        clr = getattr(self, "clearance", 0.2)
+        margin = FromMM(d / 2 + clr)
+        b = self.b
+        returns = [xy(t.GetPosition()) for t in b.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetname() == gnd]
+        for f in b.GetFootprints():
+            for q in f.Pads():
+                if q.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and q.GetNetname() == gnd:
+                    returns.append(xy(q.GetPosition()))
+        edge = b.GetBoardEdgesBoundingBox()
+        ex0, ey0, ex1, ey1 = ToMM(edge.GetLeft()), ToMM(edge.GetTop()), ToMM(edge.GetRight()), ToMM(edge.GetBottom())
+        edge_clr = getattr(self, "edge_clearance", 0.3)
+        layers = list(b.GetEnabledLayers().CuStack())
+        zones = [(z, L) for z in b.Zones() if not z.GetIsRuleArea() and z.GetNetname() != gnd for L in z.GetLayerSet().CuStack() if z.HasFilledPolysForLayer(L)]
+        pads = [q for f in b.GetFootprints() for q in f.Pads()]
+        tracks = [t for t in b.GetTracks()]
+
+        def clear(x, y):
+            if not (ex0 + edge_clr + d / 2 <= x <= ex1 - edge_clr - d / 2 and ey0 + edge_clr + d / 2 <= y <= ey1 - edge_clr - d / 2):
+                return "board edge"
+            pt = mm(x, y)
+            for q in pads:
+                if q.GetNetname() != gnd and q.HitTest(pt, margin):
+                    return f"{q.GetParentFootprint().GetReference()}.{q.GetNumber()} ({q.GetNetname()})"
+                if q.GetNetname() == gnd and q.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and q.HitTest(pt, FromMM(d / 2)):
+                    return "a ground pad hole"
+            for t in tracks:
+                if t.GetClass() == "PCB_VIA":
+                    v = xy(t.GetPosition())
+                    if math.hypot(v[0] - x, v[1] - y) < d / 2 + ToMM(t.GetWidth(pcbnew.F_Cu)) / 2 + (clr if t.GetNetname() != gnd else 0.0):
+                        return f"a {t.GetNetname()} via"
+                elif t.GetNetname() != gnd and t.HitTest(pt, margin):
+                    return f"a {t.GetNetname()} track"
+            for z, L in zones:
+                if z.GetFilledPolysList(L).Collide(pt, margin):
+                    return f"the {z.GetNetname()} pour on {b.GetLayerName(L)}"
+            return None
+
+        out = {"placed": [], "covered": 0, "skipped": []}
+        for t in [t for t in tracks if t.GetClass() == "PCB_VIA" and t.GetNetname() in nets]:
+            x, y = xy(t.GetPosition())
+            if any(math.hypot(gx - x, gy - y) <= max_mm for gx, gy in returns):
+                out["covered"] += 1
+                continue
+            placed = None; last = ""
+            for r in rings:
+                if r > max_mm + 1e-9:
+                    break
+                for a in range(0, 360, step_deg):
+                    cx = round(x + r * math.cos(math.radians(a)), 3); cy = round(y + r * math.sin(math.radians(a)), 3)
+                    why = clear(cx, cy)
+                    if why is None:
+                        placed = (cx, cy); break
+                    last = why
+                if placed:
+                    break
+            if placed:
+                if not dry:
+                    v = self.via(placed[0], placed[1], gnd, size=(d, drill))
+                    tracks.append(v)
+                returns.append(placed)
+                out["placed"].append((t.GetNetname(), x, y, placed[0], placed[1], round(math.hypot(placed[0] - x, placed[1] - y), 2)))
+            else:
+                out["skipped"].append((t.GetNetname(), x, y, f"no clear spot within {max_mm} mm, last hit {last}"))
+        return out
+
     def _pad_frame(self, p):
         """Pad centre, its half-extents along x and y after rotation, in mm."""
         c = xy(p.GetPosition()); sx, sy = ToMM(p.GetSize().x), ToMM(p.GetSize().y)

@@ -54,6 +54,10 @@ test points `TP*`), the same rule cadcheck applies. Net names are the project's 
 | thermal_vias | one per pad | fewer vias on the pad's net within `within_mm` than `min` | P1-T21 |
 | feeds | one per pad | via ampacity (IPC-2221 internal on the barrel, 25 um plating) within `within_mm` plus touching-track ampacity below `amps`; a pour-only feed fails because pour necks are not sized | R2-T5 |
 | calcs | one per row | the value falls outside `min`/`max`; an expression that fails to evaluate | P1-T21 |
+| refplane | one per net with tracks | bucket 3/4 net has more than `max_gap_mm` (0) off solid ground on the adjacent layer; bucket 2 warns above `mid_max_mm` (5); 1 and rails carry the mm as a cost; points within `antipad_mm` (0.5) of the net's own vias and `connector_mm` (1.5) of the through-hole pads of footprints it lands on are skipped; rows have `bucket`, `gaps` | REFPLANE-1, SIG-1, SIG-4 |
+| return_via | one per net with vias | a via on a bucket 3/4 net has no ground via or through-hole ground pad within `max_mm_3` 2.0 / `max_mm_4` 1.0 mm; bucket 2 warns above `max_mm_2` 5.0 | SIG-2 |
+| exposure | one per exposed net | track within `within_mm` (1.0) of the aggressor's copper on the same layer (default aggressor: the switch node), mm times `victim_weight` (3) for victims; fails (victim) or warns above `max_mm` if set, else a cost | SIG-3 |
+| signals | (data, no rows) per net: `driver`, `t_rise_ns` (null = DC), `source`, `slowed_by`, `victim`; `pcb signals checks.json --netlist x.xml` prints knee and bucket (1 <1 MHz, 2 1-50, 3 50-500, 4 >=500, P rail) and the nets left unclassified; the routing judges read the bucket | SIG-1 |
 
 `pcb check x.kicad_pcb checks.json --only connectors,rails` runs a subset; `--netlist x.xml` and `--bringup F`
 override the defaults (`<stem>.xml`, exported from `<stem>.kicad_sch` when missing). The report is `pcbcheck.json`:

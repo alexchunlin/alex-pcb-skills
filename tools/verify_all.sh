@@ -533,7 +533,18 @@ $PCB check "$J/motor1.kicad_pcb" "$J/c.json" --only refplane --netlist "$ROOT/ex
 python3 -I -c "
 import json, re; d=json.load(open('$J/rp.json')); c=[x for x in d['coverage'] if x.startswith('refplane')][0]
 f=float(re.search(r'F.Cu ([0-9.]+)', c).group(1)); b=float(re.search(r'B.Cu ([0-9.]+)', c).group(1))
-assert f < 1.0 and b > 150 and d['summary']['fails'] >= 10, c; print(f, b, d['summary']['fails'])" > "$J/rp.txt" 2>&1 && ok "refplane: attempt-2 board F.Cu $(cut -d' ' -f1 "$J/rp.txt") mm off ground (In1 is solid GND), B.Cu $(cut -d' ' -f2 "$J/rp.txt") mm (In2 is the VIN/5V plane), $(cut -d' ' -f3 "$J/rp.txt") nets fail" || bad "refplane: $(tail -1 "$J/rp.txt")"
+b3=float(re.search(r'by bucket.*?\b3: ([\d.]+)', c).group(1)); assert f < 1.0 and b > 150 and b3 > 50 and d['summary']['fails'] >= 4 and all(r['bucket'] in (3, 4) for r in d['rows'] if r['status'] == 'fail'), c; print(f, b, d['summary']['fails'])" > "$J/rp.txt" 2>&1 && ok "refplane: attempt-2 board F.Cu $(cut -d' ' -f1 "$J/rp.txt") mm off ground (In1 is solid GND), B.Cu $(cut -d' ' -f2 "$J/rp.txt") mm (In2 is the VIN/5V plane), $(cut -d' ' -f3 "$J/rp.txt") bucket-3 nets fail, buckets 1 and 2 carry their mm as a cost (SIG-1)" || bad "refplane: $(tail -1 "$J/rp.txt")"
+# SIG-2 / SIG-3: return vias beside the fast nets' layer changes, same-layer exposure to the switch node
+$PCB py -c "
+import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json')); c['return_via']={'ground':'GND'}; c['exposure']={}; json.dump(c,open('$J/c2.json','w'))"
+$PCB check "$J/motor1.kicad_pcb" "$J/c2.json" --only return_via,exposure --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$J/sig.json" > /dev/null 2>&1
+python3 -I -c "
+import json; d=json.load(open('$J/sig.json')); rv=[r for r in d['rows'] if r['check']=='return_via']; ex=[r for r in d['rows'] if r['check']=='exposure']
+fails=sorted(r['objects'][0] for r in rv if r['status']=='fail'); assert len(fails) >= 4 and all(r['bucket'] == 3 for r in rv if r['status']=='fail'), fails
+assert all(r['bucket'] != 'P' for r in rv), 'rails in return_via'
+cov=[x for x in d['coverage'] if x.startswith('exposure')][0]; assert 'aggressors SW' in cov and 'BOOT' in cov, cov
+assert sum(r['value'] for r in ex) < 5, [(r['id'], r['value']) for r in ex]
+print(len(fails), ','.join(fails), round(sum(r['value'] for r in ex), 1))" > "$J/sig.txt" 2>&1 && ok "return_via: $(cut -d' ' -f1 "$J/sig.txt") bucket-3 nets of the attempt-2 board change layer with no GND via within 2 mm ($(cut -d' ' -f2 "$J/sig.txt")); exposure: SW found from L1, BOOT local, $(cut -d' ' -f3 "$J/sig.txt") mm weighted beside SW copper on F.Cu (SIG-2, SIG-3)" || bad "return_via/exposure: $(tail -1 "$J/sig.txt")"
 # pcblib feeds (FEED-1): VM gets 3 vias for 2.5 A (1.22 A each), OUT2 next to it is refused with the parts in the way, the
 # PVIN group gets one pour; the PVIN vias stay VIN through save + reload although one sits in the stale GND fill (ROUTE-T4)
 (cd "$J" && cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* . && $PCB py "$ROOT/tools/verify.d/pad_feed_check.py") > "$J/feed.txt" 2>&1
@@ -572,6 +583,48 @@ unit_end
 if [ -n "$CHANGED" ]; then
   for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
   echo "verify_all --changed: ran$RAN"
+fi
+
+if want 29; then  #@ watch: skills/kicad-design/scripts/pcbsig.py skills/kicad-design/scripts/pcbroute.py tools/bench/rung2_signals.py tools/bench/plan_bench.py tools/bench/results/plan.jsonl examples/rung2-zener-a*/checks.json
+echo "== 29 signal classes and the plan search pieces: pcb signals, plan_variants, pcbsig.plan_rank (SIG-1, SIG-4)"
+S="$V/sig"; mkdir -p "$S"
+for b in rung2-zener-a2-opus:motor1 rung2-zener-a1-opus:motor_channel rung2-zener-a1-sonnet:rung2_motor; do
+  d=${b%%:*}; stem=${b##*:}
+  $PCB signals "$ROOT/examples/$d/checks.json" --netlist "$ROOT/examples/$d/board/$stem.xml" > "$S/$d.txt" 2>&1; rc=$?
+  line=$(grep "^signals:" "$S/$d.txt")
+  case "$line" in *"bucket 4: 0, 3: 7, 2: 7,"*) b3=1 ;; *) b3="" ;; esac
+  [ "$rc" = 0 ] && [ -n "$b3" ] && ! grep -q "unclassified\|NOT IN NETLIST" "$S/$d.txt" && ok "pcb signals $d: 7 nets in bucket 3, 7 in bucket 2, every net classified, none missing" || bad "pcb signals $d: rc $rc, $line"
+done
+# the knee: 3 ns -> 167 MHz bucket 3, 150 ns -> 3.3 MHz bucket 2, 2 us -> bucket 1, DC -> 1, 1 ns -> bucket 4
+python3 -I -c "
+import sys; sys.path.insert(0, '$ROOT/skills/kicad-design/scripts'); import pcbsig as s
+assert [s.bucket_of(s.knee_mhz(t)) for t in (3, 150, 2000, None, 1, 10)] == [3, 2, 1, 1, 4, 3], [s.bucket_of(s.knee_mhz(t)) for t in (3, 150, 2000, None, 1, 10)]
+assert abs(s.knee_mhz(3) - 166.67) < 0.01" && ok "knee and buckets: 3 ns -> 3, 150 ns -> 2, 2 us -> 1, DC -> 1, 1 ns -> 4, 10 ns -> 3 (the 50 MHz edge is bucket 3)" || bad "knee/bucket arithmetic"
+# plan_variants on the archived attempt-2 board: six plans, the switch node found from L1, the local wave and keepouts
+cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* "$S"/
+$PCB py -c "
+import json, pcbroute
+v = pcbroute.plan_variants('$S/motor1.kicad_pcb', {'feeds': [{'pad': 'U2.11', 'amps': 2.5}], 'thermal_vias': ['U2']})
+names = {k: [w['name'] for w in p['waves']] for k, p in v.items()}
+assert sorted(v) == ['both', 'motor-first', 'rail-first', 'rules', 'zones', 'zones-esc'], sorted(v)
+assert names['rules'] == ['power', 'sense', 'rest'] and names['zones'] == ['power', 'u1-local', 'sense', 'rest'], names
+assert names['both'][:3] == ['motor', 'rail', 'power'] and v['both']['waves'][0]['nets'] == ['MOTOR_A'] and v['both']['waves'][1]['nets'] == ['VIN'], names['both']
+assert v['zones-esc']['waves'][0]['args'] == ['--escalation', 'board'] and v['zones']['waves'][2]['keepouts'], 'esc/keepouts'
+assert 'BOOT' in v['zones']['waves'][1]['nets'] and 'SW' not in v['zones']['waves'][1]['nets'], v['zones']['waves'][1]
+assert all(p['feeds'] == [{'pad': 'U2.11', 'amps': 2.5}] for p in v.values())
+print('OK', pcbroute.hot_loop(__import__('pcbnew').LoadBoard('$S/motor1.kicad_pcb'))[0])" > "$S/var.txt" 2>&1 && ok "plan_variants: six plans from the attempt-2 board, switch node $(cut -d' ' -f2 "$S/var.txt") from L1, u1-local wave with BOOT, keepouts on sense and rest, rail VIN with escalation, motor MOTOR_A" || bad "plan_variants: $(tail -1 "$S/var.txt")"
+# the ranking on the rescored PLAN-1 rows: opus2's winner moves from rules+zones+esc to rules; no plan passes with return_via hard
+python3 -I "$ROOT/tools/bench/plan_bench.py" rank > "$S/rank.txt" 2>&1
+grep -Eq "^\| opus2 \| rules\+zones\+esc [^|]*\| rules [^|]*\| 24.4 \| 3 of 10 \| 0 \|" "$S/rank.txt" && grep -Eq "^\| sonnet \| agent [^|]*\| agent [^|]*\| 2[01]\.[0-9] \| 8 of 10 \| 0 \|" "$S/rank.txt" && grep -Eq "^\| opus \| agent [^|]*\| agent [^|]*\| 43.7 \| 9 of 11 \| 0 \|" "$S/rank.txt" && ok "plan rank (SIG-4) on the rescored PLAN-1 rows: opus2 winner rules (was rules+zones+esc), sonnet and opus agent plans (ties with the search's vin-first), 0 plans pass with return_via hard on every board" || bad "plan rank: $(grep '^| ' "$S/rank.txt" | head -5)"
+# SIG-2 placement: ground vias beside the fast nets' vias on the archived attempt-2 board; the row's fails drop
+cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* "$S"/ 2>/dev/null; cp "$S/motor1.kicad_pcb" "$S/rv.kicad_pcb"; cp "$S/motor1.kicad_pro" "$S/rv.kicad_pro"
+$PCB py "$ROOT/tools/bench/plan_kpy.py" prep "$S/rv.kicad_pcb" > /dev/null 2>&1   # Alex's stackup: In2 ground, the designer's power plane gone (a ground via never pierces a foreign pour)
+$PCB route return-vias "$S/rv.kicad_pcb" --config "$ROOT/examples/rung2-zener-a2-opus/checks.json" --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" > "$S/rv.txt" 2>&1
+$PCB py -c "
+import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json')); c['return_via']={'ground':'GND'}; json.dump(c,open('$S/rvc.json','w'))"
+$PCB check "$S/rv.kicad_pcb" "$S/rvc.json" --only return_via --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$S/rvj.json" > /dev/null 2>&1
+placed=$(grep -o "[0-9]* ground vias placed" "$S/rv.txt" | cut -d' ' -f1); fails=$(jq_ "$S/rvj.json" "sum(1 for r in d['rows'] if r['check']=='return_via' and r['status']=='fail')")
+[ "${placed:-0}" -ge 5 ] && [ "${fails:-9}" -le 1 ] && ok "return-vias: $placed ground vias placed beside the attempt-2 board's fast vias (In2 made ground first) in one pass, return_via fails 5 -> $fails (SIG-2)" || bad "return-vias: placed '$placed', fails '$fails': $(grep PCBROUTE "$S/rv.txt" | cut -c1-200)"
 fi
 echo; echo "verify_all: $pass passed, $fail failed  ($V)"
 [ "$fail" = 0 ]
