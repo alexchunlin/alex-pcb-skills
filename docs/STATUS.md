@@ -1,4 +1,4 @@
-# Status (updated 2026-11-02, routing config, judges and feed helpers)
+# Status (updated 2026-11-03, dev merged to main, spikes 2 to 4 merged, spike 1 running)
 
 - Plan: `docs/GAMEPLAN.md`; next steps and moonshots after phase 6: `docs/ROADMAP-2026-11-01.md`. Evidence: `docs/FINDINGS.md`. Survey with URLs: `docs/SURVEY-2026-10-31.md`. Handoff
   from the kickoff session: `docs/HANDOFF-2026-10-31.md` (its "Next" list is the work order).
@@ -101,3 +101,13 @@
   time, feeds vs kept pours, drop currents/feeds as hard limits on a pour-fed board, the USB pair, the reference's own
   4 airwires and 71 DRC errors.
 
+- 2026-11-03: `dev` (routing sessions 4 and 5) merged into `main`; README rewritten with renders, a routing demo and
+  the results chart (`tools/readme/make_images.sh`). Four `Spike:` issues (#1 to #4) written with hypothesis, null,
+  procedure and cost, each reviewed by a literature agent and corrected, then run by Opus 5.5 agents in worktrees and
+  merged where the number justified it (FINDINGS "Spikes 1 to 4"). Kept: the `irdrop` row (precision on pour-fed boards,
+  one new true positive), `basic_parts`, the pogo jig and OpenHTF bring-up skeleton and `docs/spikes/ORDER.md` (the order
+  is Alex's), the C8 mutation bench (16 of 21 caught; misses are missing config rows), `signal_vias` and `pcb q
+  conflicts`, 84 labelled placements, the open-schematics index and placement priors (33/50 vs 17/50 clean), the opt-in
+  `refstat` kind. Dropped: guide corridors, rev-diff mining, corpus-learned limits. Roadmap item 6 stays open as order
+  variants in `pcb route waves --search`. Spike #1 (GBT surrogate over HPWL, search arms) running; its verdict lands
+  in FINDINGS when it reports.
