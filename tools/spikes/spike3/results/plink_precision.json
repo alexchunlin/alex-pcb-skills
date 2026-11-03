@@ -1,0 +1,19 @@
+{
+ "board": "MotorGo Plink as published (motorgo-plink-hardware 0250d75), config tools/bench/plink/checks.json",
+ "feeds_fails": 15,
+ "feeds_rows": 15,
+ "irdrop_fails": 0,
+ "irdrop_passes": 10,
+ "irdrop_rows": [
+  "+BATT from J11.1, 6 solves: U3.11 1.5 A 6.34 mV; U4.11 1.5 A 5.79 mV; U5.11 1.5 A 9.36 mV; U9.11 1.5 A 15.45 mV; U6.4,5,6 1.5 A 5.63 mV; worst neck x0.9, worst via field x0.0, 0 places over; pad exits over IPC, not failed: J11.1 x1.11; 4.6 s",
+  "/motor_controls2/motor_out2 from J6.2, 1 solves: U3.8 1.5 A 1.06 mV; worst neck x0.28, worst via field x0.0, 0 places over; 0.6 s",
+  "/motor_controls2/motor_out1 from J6.1, 1 solves: U3.10 1.5 A 2.81 mV; worst neck x0.72, worst via field x0.0, 0 places over; 0.6 s",
+  "/motor_controls1/motor_out2 from J8.2, 1 solves: U4.8 1.5 A 1.06 mV; worst neck x0.28, worst via field x0.0, 0 places over; 0.9 s",
+  "/motor_controls1/motor_out1 from J8.1, 1 solves: U4.10 1.5 A 2.81 mV; worst neck x0.72, worst via field x0.0, 0 places over; 0.5 s",
+  "/motor_controls3/motor_out2 from J10.2, 1 solves: U5.8 1.5 A 1.06 mV; worst neck x0.28, worst via field x0.0, 0 places over; 0.4 s",
+  "/motor_controls3/motor_out1 from J10.1, 1 solves: U5.10 1.5 A 2.82 mV; worst neck x0.72, worst via field x0.0, 0 places over; 0.4 s",
+  "/motor_controls4/motor_out2 from J22.2, 1 solves: U9.8 1.5 A 4.06 mV; worst neck x0.65, worst via field x0.0, 0 places over; 0.3 s",
+  "/motor_controls4/motor_out1 from J22.1, 1 solves: U9.10 1.5 A 5.45 mV; worst neck x0.67, worst via field x0.0, 0 places over; 1.0 s",
+  "Net-(C23-Pad1) from D4.1,D4.3, 1 solves: L1.2 3 A 1.08 mV; worst neck x0.37, worst via field x0.0, 0 places over; 0.5 s"
+ ]
+}

@@ -995,6 +995,9 @@ def check_irdrop(CFG, NL, B):
         if net in cur and len(dc) > 1:
             tot = sum(a for _, a in dc)
             solves.append((f"{net} {cur[net]:g} A", [(q, round(b * cur[net] / tot, 3)) for p, a in dc for q, b in expand(p, a)]))
+        if not solves:   # the only feeds pad is the source: nothing draws current, so nothing was solved (not a pass)
+            NOT_CHECKED.append(f"irdrop: {net} has no feeds pad besides its source {src}, so no current was solved on it")
+            continue
         found, drops, tsum, worst = [], [], 0.0, {"neck": 0.0, "via": 0.0}
         pad_exit = {}
         for tag, sk in solves:
