@@ -24,6 +24,16 @@ Checks (v0):
   feeds        {pad, amps, within_mm}: the ampacity of what feeds a high-current pad, vias within the radius (IPC-2221
                internal on the barrel) plus tracks touching it; a pour-only feed fails with its neck unsized (rung 2: the
                DRV8874 VM pin fed by one 0.3 mm via or a 0.34 mm pour finger on two of three boards, R2-T5)
+  irdrop       every net with `feeds` rows solved on its real copper (`pcb irdrop`): sinks are the feeds pads (a
+               capacitor's ripple amps solved on its own and rated as rms heating), the source from irdrop.sources
+               {NET: "REF.PAD,..."} or the part the rails block names first. Fails a neck (a cut across the copper at the
+               hottest cells) or a via/plated-hole barrel carrying more than IPC-2221 allows for its cross-section at
+               rise_c, and a sink with no path; a neck as wide as its pad and under 1 mm is the pad's exit, reported.
+               Opt-in: {"sources": {}, "grid_mm": 0.1} (spike #3, C1; R2-O-2, R2A2-O-1 from physics)
+  basic_parts  every BOM line's LCSC code as JLC basic or extended from a dated cache (tools/bench/jlc_parts.py fetch),
+               extended types warn with the feeder fee and any basic alternative the cache lists, stock under
+               boards x quantity fails, a total row sums the fees. Opt-in: {"cache": path, "assembly": "economic",
+               "boards": 5, "max_extended": null} (spike #3, C2: 17 extended types, $52 of a $125-150 order)
   thermal_vias declared minimum stitching vias on a pad's net within `within_mm` of the pad (thermal pad to pour)
   feed_room    placement-stage: every SMD `feeds` pad gets a trial pcblib plan_feeds on an in-memory copy (biggest
                current first, neighbours splayed apart, each feed reserved for the next), so a pad whose feed cannot fit
@@ -59,10 +69,10 @@ Checks (v0):
                fail instead of a silent relaxation (R1-A2-T5, R1-A2-T6)
 Config keys: rails, decoupling, decoupling_max_mm, gnd_via_max_mm, buses, connectors, pinmaps, jumpers, test_points, bringup,
 margin, policy, fields, currents, copper_oz, rise_c, thermal_vias, refplane, return_via, exposure, feed_room, calcs, feeds,
-refstat, signals, accepted_warns, _notes.
+irdrop, basic_parts, refstat, signals, accepted_warns, _notes.
 Report: pcbcheck.json {summary: {fails, warns, passes, accepted}, rows: [...], coverage, not_checked}; exit 1 on fails.
 """
-import json, os, re, subprocess, sys
+import json, math, os, re, subprocess, sys, zlib
 import xml.etree.ElementTree as ET
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -73,7 +83,7 @@ import pcbrefstat  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "refstat", "signals", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "basic_parts", "refstat", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -1015,6 +1025,156 @@ def check_refstat(CFG, NL, B):
     COVERAGE.append(f"refstat: {len(rows)} corpus rows over {n_inst} part pins found in the netlist")
 
 
+def check_irdrop(CFG, NL, B):
+    """Solve every net that has `feeds` rows on its copper (`pcb irdrop`, pcbir.py) and fail what the current crosses
+    above its IPC-2221 rating: necks, via and plated-hole barrels, sinks with no path (spike #3, C1)."""
+    ir = CFG.get("irdrop")
+    if ir is None:
+        NOT_CHECKED.append("irdrop: no irdrop block, so the feeds currents were not solved on the copper (necks, spokes, barrels)")
+        return
+    ir = ir if isinstance(ir, dict) else {}
+    import pcbir
+    fps = pcbq.fp_map(B)
+    sources = {k: v for k, v in ir.get("sources", {}).items() if not k.startswith("_")}
+    def expand(tok, amps):   # "U6.4,5,6" (a feeds row over a pin group) -> each pad its share
+        ref, _, nums = tok.partition(".")
+        ps = [f"{ref}.{x}" for x in nums.split(",")]
+        return [(q, amps / len(ps)) for q in ps]
+    by_net = {}
+    for f in CFG.get("feeds", []):
+        try:
+            pad = pcbq.pad_of(fps, expand(f["pad"], 1)[0][0])
+        except SystemExit:
+            continue
+        by_net.setdefault(pad.GetNetname(), []).append((f["pad"], float(f["amps"])))
+    for net in by_net:      # no declared source: the part the rails block names first, if it has pads on the net
+        m = re.match(r"\s*([A-Z]+[0-9]+)\b", str(CFG.get("rails", {}).get(net, {}).get("source", "")))
+        if net not in sources and m and m.group(1) in fps:
+            pads = [f"{m.group(1)}.{p.GetNumber()}" for p in fps[m.group(1)].Pads() if p.GetNetname() == net]
+            if pads:
+                sources[net] = ",".join(pads)
+    h = float(ir.get("grid_mm", 0.1))
+    rise = float(CFG.get("rise_c", 20.0))
+    bf = os.path.abspath(B.GetFileName())   # one scratch dir per board file: two boards share a stem (motor_channel)
+    base = ir.get("out") or os.path.join("/tmp/pcb-irdrop", f"check-{os.path.splitext(os.path.basename(bf))[0]}-{zlib.crc32(bf.encode()):08x}")
+    n = 0
+    cur = {k: float(v) for k, v in CFG.get("currents", {}).items() if not str(k).startswith("_")}
+    for net, feeds in by_net.items():
+        src = sources.get(net)
+        if not src:
+            NOT_CHECKED.append(f"irdrop: {net} has feeds rows but no source (irdrop.sources, or a rails source that names a part on the net)")
+            continue
+        sinks = [(p, a) for p, a in feeds if p not in src.split(",")]
+        # each feeds pad alone at its own amps (the feeds rows are per-pin worst cases at different conditions, so their
+        # sum is not a load: rung 2's VIN rows add to 5.3 A on a 4 A rail); a capacitor's amps are ripple, which heats
+        # copper as a DC current of the same rms does, so it is rated, its drop not reported. With a `currents` entry for
+        # the net and two or more DC pads, one more solve puts the net's declared current through all of them in
+        # proportion to their rows (the trunk at the rail current)
+        solves = [(p, expand(p, a)) for p, a in sinks]
+        dc = [(p, a) for p, a in sinks if not re.match(r"C[0-9]", p)]
+        if net in cur and len(dc) > 1:
+            tot = sum(a for _, a in dc)
+            solves.append((f"{net} {cur[net]:g} A", [(q, round(b * cur[net] / tot, 3)) for p, a in dc for q, b in expand(p, a)]))
+        if not solves:   # the only feeds pad is the source: nothing draws current, so nothing was solved (not a pass)
+            NOT_CHECKED.append(f"irdrop: {net} has no feeds pad besides its source {src}, so no current was solved on it")
+            continue
+        found, drops, tsum, worst = [], [], 0.0, {"neck": 0.0, "via": 0.0}
+        pad_exit = {}
+        for tag, sk in solves:
+            try:
+                rep = pcbir.run(B, net, src, sk, h, CFG, os.path.join(base, re.sub(r"[^A-Za-z0-9_.-]", "_", f"{net}-{tag}")))
+            except (RuntimeError, SystemExit) as e:
+                row("irdrop", "fail", f"irdrop:{net}:crash:{tag}", f"solve for {tag} failed: {e}", objects=[net]); continue
+            n += 1
+            tsum += float(rep.get("extract_s") or 0) + float(rep.get("solve_s") or 0)
+            jd = rep.get("judge", {})
+            worst["neck"] = max(worst["neck"], jd.get("worst_neck_ratio") or 0.0)
+            worst["via"] = max(worst["via"], jd.get("worst_barrel_ratio") or 0.0)
+            if not tag.startswith(f"{net} ") and not re.match(r"C[0-9]", tag):
+                dv = [x["drop_mV"] for x in rep["sinks"] if x["drop_mV"] is not None]
+                drops.append(f"{tag} {sum(b for _, b in sk):g} A {max(dv) if dv else None} mV")
+            for u in rep.get("unreached", []):
+                found.append(("open", u, 0, 0, 9.9, tag, f"{u} has no copper path from {src} on {net}", [u.split(".")[0]]))
+            for k in jd.get("necks", []):
+                if k["status"] == "pad":
+                    pad_exit[", ".join(k["near_pads"])] = max(k["ratio"], pad_exit.get(", ".join(k["near_pads"]), 0))
+                if k["status"] != "fail":
+                    continue
+                found.append(("neck", k["layer"], k["x"], k["y"], k["ratio"], tag,
+                              f"{k['width_mm']} mm wide x {k['length_mm']} mm neck on {k['layer']}{' by ' + ', '.join(k['near_pads']) if k['near_pads'] else ''}: "
+                              f"{k['I_A']} A across it against IPC-2221 {k['ipc_A']} A at {rise:g} degC (x{k['ratio']}), {k['J_A_mm2']} A/mm2",
+                              [p.split(".")[0] for p in k["near_pads"]]))
+            for v in jd.get("barrels", []):
+                if v["status"] != "fail":
+                    continue
+                found.append(("via" if v["what"] == "via" else f"pth:{v['what']}", "", v["x"], v["y"], v["ratio"], tag,
+                              (f"{v['n']} x {v['drill_mm']} mm via field" if v["what"] == "via" else f"{v['drill_mm']} mm plated hole {v['what']}")
+                              + f": {v['I_A']} A through the barrels against IPC-2221 internal {v['ipc_A']} A on 25 um plating (x{v['ratio']}; "
+                              f"busiest barrel {v['max_one_A']} A)", []))
+        # one row per place: the same neck or via field failing in several solves is reported once, at its worst
+        kept = []
+        for f in sorted(found, key=lambda f: -f[4]):
+            if any(f[0] == k[0] and f[1] == k[1] and math.hypot(f[2] - k[2], f[3] - k[3]) < 1.0 for k in kept):
+                continue
+            kept.append(f)
+        for kind, lay, x, y, ratio, tag, msg, objs in kept:
+            rid = f"irdrop:{net}:open:{lay}" if kind == "open" else f"irdrop:{net}:{kind}{':' + lay if lay else ''}@{x},{y}"
+            row("irdrop", "fail", rid, msg + ("" if kind == "open" else f" (solve: {tag})"), value=ratio, limit=1.0, objects=objs, finding="C1")
+        row("irdrop", "pass" if not kept else "info", f"irdrop:{net}",
+            f"{net} from {src}, {len(solves)} solves: {'; '.join(drops) or 'no DC sink'}; worst neck x{worst['neck']}, worst via field x{worst['via']}, "
+            f"{len(kept)} places over"
+            + ("; pad exits over IPC, not failed: " + ", ".join(f"{k} x{v}" for k, v in pad_exit.items()) if pad_exit else "")
+            + f"; {tsum:.1f} s", value=worst["neck"], limit=1.0, objects=[net], finding="C1")
+    COVERAGE.append(f"irdrop: {n} solves at {h} mm on {len(by_net)} nets with feeds rows; necks and barrels by IPC-2221 at {rise:g} degC")
+
+
+def check_basic_parts(CFG, NL, B, cfg_dir):
+    """Every BOM line's LCSC part as JLC basic or extended from a dated cache (tools/bench/jlc_parts.py), with the
+    extended-part feeder fee (spike #3, C2: 17 extended types x $3.07 was the largest line of the rung-2 quote)."""
+    bp = CFG.get("basic_parts")
+    if bp is None:
+        NOT_CHECKED.append("basic_parts: no basic_parts block, so JLC basic/extended and the feeder fee were not counted")
+        return
+    bp = bp if isinstance(bp, dict) else {}
+    if bp.get("cache"):   # relative to the config's directory
+        path = os.path.join(cfg_dir, bp["cache"])
+    else:                 # this repo's cache (the skill is linked from it)
+        path = os.environ.get("PCB_JLC_CACHE") or os.path.join(os.path.realpath(HERE), "..", "..", "..", "tools", "bench", "data", "jlc_parts.json")
+    if not os.path.exists(path):
+        row("basic_parts", "fail", "basic_parts:cache", f"no JLC parts cache at {path} (python3 -I tools/bench/jlc_parts.py fetch BOARD)"); return
+    cache = json.load(open(path))
+    fee = float(bp.get("fee_usd", cache.get("fee_usd", {}).get(bp.get("assembly", "economic"), 3.07)))
+    lines = {}
+    for f in sorted(B.GetFootprints(), key=lambda f: f.GetReference()):
+        if f.IsDNP() or (f.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_BOM):
+            continue
+        code = pcbq.field(f, "LCSC").strip()
+        if code:
+            lines.setdefault(code, []).append(f.GetReference())
+    ext, fees = [], 0.0
+    for code, refs in sorted(lines.items(), key=lambda kv: kv[1][0]):
+        p = cache.get("parts", {}).get(code)
+        alt = cache.get("alternatives", {}).get(code, {}).get("basic", [])
+        if p is None or p.get("library") == "not found":
+            row("basic_parts", "warn", f"basic_parts:{code}", f"{code} ({', '.join(refs)}): not in the cache fetched {cache.get('fetched')}"
+                " (run tools/bench/jlc_parts.py fetch)", objects=refs); continue
+        stock = p.get("stock") or 0
+        msg = f"{code} {p.get('mpn')} ({', '.join(refs)}): {p.get('library')}{' (preferred, no feeder fee)' if p.get('preferred') else ''}, stock {stock}"
+        if stock < len(refs) * int(bp.get("boards", 5)):
+            row("basic_parts", "fail", f"basic_parts:{code}", msg + f" < {len(refs)} x {bp.get('boards', 5)} boards", objects=refs, finding="C2"); continue
+        if p.get("library") == "extended" and not p.get("preferred"):
+            ext.append(code); fees += fee
+            row("basic_parts", "warn", f"basic_parts:{code}", msg + f": ${fee:.2f} feeder fee"
+                + (f"; basic: " + ", ".join(f"{a['lcsc']} {a['value']} {a['package']}" for a in alt[:3]) if alt else ""), objects=refs, finding="C2")
+        else:
+            row("basic_parts", "pass", f"basic_parts:{code}", msg, objects=refs)
+    lim = bp.get("max_extended")
+    st = "fail" if lim is not None and len(ext) > int(lim) else "pass"
+    row("basic_parts", st, "basic_parts:total", f"{len(lines)} LCSC lines, {len(ext)} extended types: ${fees:.2f} in feeder fees at ${fee:.2f} a type"
+        f" (cache fetched {cache.get('fetched')})" + (f"; limit {lim}" if lim is not None else ""), value=len(ext), limit=lim, finding="C2")
+    COVERAGE.append(f"basic_parts: {len(lines)} LCSC lines against the JLC cache fetched {cache.get('fetched')}")
+
+
 def check_calcs(CFG, NL, B):
     rows = CFG.get("calcs", [])
     if not rows:
@@ -1147,7 +1307,8 @@ def main():
               ("return_via", lambda: check_return_via(CFG, NL, B)), ("exposure", lambda: check_exposure(CFG, NL, B)),
               ("feed_room", lambda: check_feed_room(CFG, NL, B, board)),
               ("calcs", lambda: check_calcs(CFG, NL, B)), ("refstat", lambda: check_refstat(CFG, NL, B)),
-              ("feeds", lambda: check_feeds(CFG, NL, B))]
+              ("feeds", lambda: check_feeds(CFG, NL, B)), ("irdrop", lambda: check_irdrop(CFG, NL, B)),
+              ("basic_parts", lambda: check_basic_parts(CFG, NL, B, cfg_dir))]
     for name, fn in checks:
         if only and name not in only:
             continue

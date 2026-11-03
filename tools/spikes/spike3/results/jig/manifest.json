@@ -1,0 +1,87 @@
+{
+ "units": "mm",
+ "params": {
+  "MARGIN": 4.0,
+  "THICK": 6.0,
+  "PIN_HOLE": 1.1,
+  "M25_CLEAR": 2.9,
+  "pins": 6
+ },
+ "joints": {},
+ "parts": {
+  "PRT_pogo_plate": {
+   "stl": "pogo_plate",
+   "print_rot": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "orient": "flat on the bed, collar seats up",
+   "supports": "no",
+   "infill": 40,
+   "pins": [
+    "J3.1",
+    "J3.2",
+    "J3.3",
+    "J3.4",
+    "TP1.1",
+    "TP2.1"
+   ],
+   "board": "examples/rung1-zener-a2-sonnet/board/qwiic_imu.kicad_pcb",
+   "kind": "PRT",
+   "joint": "static",
+   "bbox_world_home": [
+    [
+     -16.75,
+     -16.75,
+     0.0
+    ],
+    [
+     16.75,
+     16.75,
+     6.0
+    ]
+   ],
+   "print": {
+    "material": "PLA",
+    "walls": 2,
+    "infill": 40,
+    "layer_h": 0.2,
+    "line_w": 0.42,
+    "shells": 3,
+    "defaulted": [
+     "material",
+     "walls",
+     "layer_h",
+     "line_w",
+     "shells"
+    ]
+   }
+  }
+ },
+ "features": [],
+ "fastener_summary": {
+  "screws": 0,
+  "distinct": 0,
+  "by_spec_length": {}
+ },
+ "joins": [],
+ "join_summary": {
+  "screws": 0,
+  "snaps": 0,
+  "print_in_place": 0,
+  "joins": 0
+ }
+}

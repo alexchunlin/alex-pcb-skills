@@ -867,5 +867,19 @@
    "source": "DC",
    "victim": false
   }
+ },
+ "irdrop": {
+  "sources": {
+   "Net-(C23-Pad1)": "D4.1,D4.3",
+   "/motor_controls1/motor_out1": "J8.1",
+   "/motor_controls1/motor_out2": "J8.2",
+   "/motor_controls2/motor_out1": "J6.1",
+   "/motor_controls2/motor_out2": "J6.2",
+   "/motor_controls3/motor_out1": "J10.1",
+   "/motor_controls3/motor_out2": "J10.2",
+   "/motor_controls4/motor_out1": "J22.1",
+   "/motor_controls4/motor_out2": "J22.2"
+  },
+  "_why": "spike #3 C1: every net with feeds rows solved on the copper; sources named here where the rails block does not name a part on the net"
  }
 }

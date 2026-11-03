@@ -1,0 +1,304 @@
+[
+ {
+  "step": 1,
+  "title": "Visual",
+  "rows": [],
+  "manual": true
+ },
+ {
+  "step": 2,
+  "title": "Resistance, unpowered",
+  "rows": [
+   {
+    "step": 2,
+    "title": "Resistance, unpowered",
+    "what": "TP1",
+    "text": "(DMM, black on TP7): TP1 > 10 kOhm afte",
+    "kind": "min",
+    "expected": null,
+    "lo": 10000.0,
+    "hi": null,
+    "unit": "ohm",
+    "name": "s02_1_tp1"
+   },
+   {
+    "step": 2,
+    "title": "Resistance, unpowered",
+    "what": "kOhm after C17 charges (a short reads",
+    "text": "0 kOhm after C17 charges (a short reads < 10 Ohm), TP",
+    "kind": "min",
+    "expected": null,
+    "lo": 10.0,
+    "hi": null,
+    "unit": "ohm",
+    "inverted": true,
+    "name": "s02_2_kohm_after_c17_charges_a_short_reads"
+   },
+   {
+    "step": 2,
+    "title": "Resistance, unpowered",
+    "what": "(a short reads < 10 Ohm), TP2",
+    "text": "7 charges (a short reads < 10 Ohm), TP2 > 1 kOhm (fee",
+    "kind": "min",
+    "expected": null,
+    "lo": 1000.0,
+    "hi": null,
+    "unit": "ohm",
+    "name": "s02_3_a_short_reads_10_ohm_tp2"
+   },
+   {
+    "step": 2,
+    "title": "Resistance, unpowered",
+    "what": "62.3 kOhm plus U3 and loads), TP3",
+    "text": "vider 62.3 kOhm plus U3 and loads), TP3 > 1 kOhm, J4",
+    "kind": "min",
+    "expected": null,
+    "lo": 1000.0,
+    "hi": null,
+    "unit": "ohm",
+    "name": "s02_4_62_3_kohm_plus_u3_and_loads_tp3"
+   },
+   {
+    "step": 2,
+    "title": "Resistance, unpowered",
+    "what": "open in one direction, diode drop (",
+    "text": "TP1 open in one direction, diode drop (0.5-0.7 V on d",
+    "kind": "range",
+    "expected": 0.6,
+    "lo": 0.5,
+    "hi": 0.7,
+    "unit": "V",
+    "name": "s02_5_open_in_one_direction_diode_drop"
+   },
+   {
+    "step": 2,
+    "title": "Resistance, unpowered",
+    "what": "TP7 to TP8",
+    "text": "in 2 to TP1 (Q1 body diode). TP7 to TP8 < 1 Ohm.",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 1.0,
+    "unit": "ohm",
+    "name": "s02_6_tp7_to_tp8"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 3,
+  "title": "Reverse polarity",
+  "rows": [
+   {
+    "step": 3,
+    "title": "Reverse polarity",
+    "what": "current",
+    "text": "50 mA, applied reversed to J4: current < 1 mA, TP1",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 0.001,
+    "unit": "A",
+    "name": "s03_1_current"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 4,
+  "title": "Power, no load",
+  "rows": [
+   {
+    "step": 4,
+    "title": "Power, no load",
+    "what": "Input current",
+    "text": "8874 internal pull-down). Input current 10-40 mA. TP1",
+    "kind": "range",
+    "expected": 0.025,
+    "lo": 0.01,
+    "hi": 0.04,
+    "unit": "A",
+    "name": "s04_1_input_current"
+   },
+   {
+    "step": 4,
+    "title": "Power, no load",
+    "what": "TP1 =",
+    "text": "ll-down). Input current 10-40 mA. TP1 = 12 V minus < 0.05 V (Q1",
+    "kind": "drop",
+    "expected": 12.0,
+    "lo": 11.95,
+    "hi": 12.0,
+    "unit": "V",
+    "name": "s04_2_tp1"
+   },
+   {
+    "step": 4,
+    "title": "Power, no load",
+    "what": "TP2 =",
+    "text": "< 0.05 V (Q1 enhanced, [p_fet]). TP2 = 4.98 V +/- 2 % [vou",
+    "kind": "tol",
+    "expected": 4.98,
+    "lo": 4.880400000000001,
+    "hi": 5.0796,
+    "unit": "V",
+    "name": "s04_3_tp2"
+   },
+   {
+    "step": 4,
+    "title": "Power, no load",
+    "what": "TP3 =",
+    "text": "t]). TP2 = 4.98 V +/- 2 % [vout]. TP3 = 3.30 V +/- 2 %. D1",
+    "kind": "tol",
+    "expected": 3.3,
+    "lo": 3.234,
+    "hi": 3.3659999999999997,
+    "unit": "V",
+    "name": "s04_4_tp3"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 5,
+  "title": "Buck waveform",
+  "rows": [
+   {
+    "step": 5,
+    "title": "Buck waveform",
+    "what": "square wave 0 to 12 V at",
+    "text": "pring to TP7): square wave 0 to 12 V at 698 kHz +/- 10 % [fsw",
+    "kind": "tol",
+    "expected": 698000.0,
+    "lo": 628200.0,
+    "hi": 767800.0,
+    "unit": "Hz",
+    "name": "s05_1_square_wave_0_to_12_v_at"
+   },
+   {
+    "step": 5,
+    "title": "Buck waveform",
+    "what": "ripple",
+    "text": "10 % [fsw_khz]. TP2 AC-coupled: ripple < 50 mV p-p",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 0.05,
+    "unit": "V",
+    "name": "s05_2_ripple"
+   },
+   {
+    "step": 5,
+    "title": "Buck waveform",
+    "what": "TP2 stays",
+    "text": "Repeat at 6 V and 17 V input: TP2 stays 4.9-5.1 V.",
+    "kind": "range",
+    "expected": 5.0,
+    "lo": 4.9,
+    "hi": 5.1,
+    "unit": "V",
+    "name": "s05_3_tp2_stays"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 6,
+  "title": "5 V load",
+  "rows": [
+   {
+    "step": 6,
+    "title": "5 V load",
+    "what": "TP2",
+    "text": "3 A) on J3 pin 1 to pin 2, 12 V in: TP2 >= 4.9 V, inp",
+    "kind": "min",
+    "expected": null,
+    "lo": 4.9,
+    "hi": null,
+    "unit": "V",
+    "name": "s06_1_tp2"
+   },
+   {
+    "step": 6,
+    "title": "5 V load",
+    "what": "U1 and L1",
+    "text": "V, input current about 1.4 A; U1 and L1 below 70 degC afte",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 70.0,
+    "unit": "degC",
+    "name": "s06_2_u1_and_l1"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 7,
+  "title": "3.3 V load",
+  "rows": [
+   {
+    "step": 7,
+    "title": "3.3 V load",
+    "what": "TP3",
+    "text": "6 Ohm (0.5 A) on J3 pin 3 to pin 2: TP3 >= 3.25 V; U3",
+    "kind": "min",
+    "expected": null,
+    "lo": 3.25,
+    "hi": null,
+    "unit": "V",
+    "name": "s07_1_tp3"
+   },
+   {
+    "step": 7,
+    "title": "3.3 V load",
+    "what": "U3 tab",
+    "text": "3 pin 3 to pin 2: TP3 >= 3.25 V; U3 tab < 100 degC [tj_",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 100.0,
+    "unit": "degC",
+    "name": "s07_2_u3_tab"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 8,
+  "title": "Driver enable",
+  "rows": [],
+  "manual": true
+ },
+ {
+  "step": 9,
+  "title": "Current sense",
+  "rows": [
+   {
+    "step": 9,
+    "title": "Current sense",
+    "what": "demanded the driver chops and ISENSE stays",
+    "text": "anded the driver chops and ISENSE stays <= 3.3 V [i_t",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 3.3,
+    "unit": "V",
+    "name": "s09_1_demanded_the_driver_chops_and_isense_sta"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 10,
+  "title": "Fault",
+  "rows": [],
+  "manual": true
+ },
+ {
+  "step": 11,
+  "title": "Encoder",
+  "rows": [],
+  "manual": true
+ }
+]
