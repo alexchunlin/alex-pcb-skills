@@ -1,7 +1,7 @@
 # Spike #6 copper rules and block gates on a scratch copy of the attempt-2 board: `via_in_pad` flags a planted via and honours
 # an exposed-pad exemption, `edge_margin` flags a planted track, `ground-islands` grounds the fill, `pcb block` enforces order.
 # Sourced by tools/verify_all.sh. About 40 s.
-# watch: skills/kicad-design/scripts/pcbblock.py skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcblib/board.py skills/kicad-design/scripts/pcbroute.py @
+# watch: skills/kicad-design/scripts/pcbblock.py skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcblib/board.py skills/kicad-design/scripts/pcbroute.py
 T6="$V/spike6"; mkdir -p "$T6"
 cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.xml "$T6/" 2>/dev/null
 cat > "$T6/plant.py" <<'P'
