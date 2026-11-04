@@ -1155,3 +1155,30 @@ graph and placer, the repo's own irdrop), the two learned pieces that were tried
 lost to a one-line baseline, and the three things that paid were measurements: a field solve that survives a pour-fed
 board, a mutation bench that says which config rows are missing, and a mined placement prior that doubles routability.
 Next: `docs/spikes/HANDOFF-spike-5-class-priors.md` (class-pooled priors, held out, from KiCad, Eagle and Altium).
+
+## Spike 5: placement priors pooled by component class (2026-11-04)
+
+Full report `docs/spikes/spike-5-class-priors.md`, issue #5, merged without any change to `pcb`. Issue opened from the
+handoff, reviewed, corrected, then run by an Opus agent (Fable out of credits).
+
+- **SPIKE-5 (A) KRT's decap cost was the bar, and it cleared the part prior.** Locked to the same satellites on the
+  rung-1 board, KRT at default weights reached 37/50 clean against the part prior's 33 and uniform's 17, so the class
+  prior had to beat KRT outright. It did not.
+- **SPIKE-5 (B) The prior transfers to an unseen part.** With LSM6DS3 held out 39/50, with all of LGA-14 held out 33/50
+  (uniform 17, p = 0.00002 and 0.0025), equal to or above the part prior; against KRT p = 0.82 and 0.51. What transfers it
+  is the pin frame: a sample is stored relative to the IC pin it serves, so it crosses packages. For a new sensor on a small
+  board KRT needs no corpus and routes as well; the prior's edge is `decoupling` rows, 2.51 against 3.22 (p = 0.019).
+- **SPIKE-5 (C) Motor board: quality yes, clean rate unproven.** DRV8874 held out, 27/50 with 14 rejected seeds; the
+  pre-registered rerun with tight roles drawn first, fresh seeds, 34/50 with 0 rejected, one seed under the 35/50 bar
+  (p = 0.068 against uniform's 24). So the verdict stands, at a clean rate near 0.68. Firm: 29 against 35 signal vias and
+  fewer failing rows than uniform (p = 0.00001), 34 against KRT's 11. Perturbing the designer's satellites stays ahead on
+  quality (28 signal vias, 1.19 `decoupling` fails against 2.68), and on the waves judges no arm beats the designer's start.
+- **SPIKE-5 (D) Package moves a satellite's distance three times as far as designer does** (median gap 2.95 against 0.95
+  mm, 120 and 54 pairs), so pool within a package and treat file format as irrelevant. Eagle imports faithfully (0 of
+  64,206 pads off by more than 0.02 mm) but a converted board does not reload (127 of 146); Altium has no headless pin
+  names. Third-party Eagle gives 183 IMU instances from 140 repos; vendors alone 23.
+- **SPIKE-5 (E) Built-board evidence is not in the repos.** Tag or release plus gerbers on 8, 1 and 4 repos; gerbers in 1
+  of 681 Adafruit Eagle repos. H3 dropped under its own null.
+- **SPIKE-5-T1 A sample floor is not a sampling floor.** 7 flying-cap rows passed the n >= 5 licence floor and cost 14
+  seeds; R10's 6 rows collapse to one legal pose in every seed, in either draw order. Draw the thinnest role first.
+

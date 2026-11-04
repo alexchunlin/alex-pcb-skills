@@ -19,7 +19,7 @@ PCB = K.PCB
 OUT = HERE / "judges.jsonl"
 W = Path("/tmp/spike5/plan")
 LOCK = threading.Lock()
-ARMS = ["uniform", "krt", "class", "krt_tpl", "perturb"]
+ARMS = ["uniform", "krt", "class", "krt_tpl", "perturb", "class_rerun"]
 
 
 def mod(name, path):
@@ -76,7 +76,8 @@ def best5():
     rows = [json.loads(l) for l in open(HERE / "route-results.jsonl")]
     out = []
     for arm in ARMS:
-        rs = [r for r in rows if r["tag"] == "h1" and r["board"] == "r2" and r["arm"] == arm and r.get("auto", {}).get("clean")]
+        tag, src = ("rerun", "class") if arm == "class_rerun" else ("h1", arm)   # the pre-registered r2 rerun, seeds 100 to 149
+        rs = [r for r in rows if r["tag"] == tag and r["board"] == "r2" and r["arm"] == src and r.get("auto", {}).get("clean")]
         rs.sort(key=lambda r: (r["auto"].get("signal_vias") or 999, r["auto"]["length_mm"]))
         out += [(arm, r["seed"], r["moved"]) for r in rs[:5]]
     return out

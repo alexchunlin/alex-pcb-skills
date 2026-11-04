@@ -309,6 +309,7 @@ Dropped under its own null, counts only (`h3-counts.json`), recounted from the r
 | H1, r1, `class_part` | **fails the KRT rule**; meets the other two | 39/50 (>= 28), beats `uniform` 17 (p = 0.00002), does not beat `krt` 37 (p = 0.82) |
 | H1, r1, `class_pkg` | **fails the KRT rule**; meets the other two | 33/50, beats `uniform` (p = 0.0025), does not beat `krt` (p = 0.51) |
 | H1, r2, `class` | **fails on clean**; meets the rows and KRT rules | 27/50 against `uniform` 24 (p = 0.69), 14 seeds rejected; rows lower (p = 0.00008); beats `krt` 11 (p = 0.0018) |
+| H1, r2, pre-registered rerun | **fails on clean by one seed** at the 35/50 bar; meets the rows and KRT rules | 34/50, 0 rejected, against `uniform` 24 (p = 0.068); rows lower (p = 0.00001); beats `krt` 11; level with `perturb` 31 (p = 0.68) |
 | H2 | **pool within a package, by designer; do not pool across packages** | package gap 2.95 mm, designer gap 0.95 mm; 183 non-KiCad IMU instances close the gap |
 | H3 | **dropped** | 8, 1, 4 repos |
 
@@ -331,7 +332,7 @@ The null in the issue reads "no better than uniform, or worse than KRT's `py_pla
 - `tools/bench/data/class-table.json`, `corpus-class-index.jsonl` (8,297 hits, no contents).
 - `tools/spikes/spike5/` (harness, `route-results.jsonl`, summaries, charts) and `docs/img/spikes/5-*.png`.
 - `tools/verify_all.sh` section 34, and this report.
-- **Not merged as a default:** no class prior in `pcb`, no change to any seeding path. If a new-sensor flow wants a starting pose, the class pool as `templates[]` is the shape to use, and that needs a pre-registered run with tight roles drawn first.
+- **Not merged as a default:** no class prior in `pcb`, no change to any seeding path. If a new-sensor flow wants a starting pose, draw from the class pool with tight roles first, which ended the rejected seeds (below). `krt_tpl` was not rerun in that order.
 
 ## Corrections
 
@@ -357,7 +358,47 @@ The null in the issue reads "no better than uniform, or worse than KRT's `py_pla
 
 - `ldo_fixed` and `buck_sync` measurement, and with it KRT `_converters` as a class source.
 - L298 and L293 boards from the KiCad corpus; MPU-6050 and others are capped at 120 hits.
-- A pre-registered r2 rerun with tight roles drawn first. The 35/50 is post-hoc.
 - The Altium arm, dropped by the issue.
 
 verify_all `--changed`: 31 passed, 0 failed (units 30, 32, 34, verify_select). Section 34 reads committed rows and summaries only, no routing. `python3 -I tools/bench/replay.py`: 24 labels, recall 14 of 17 catchable, 0 false fails.
+
+## Pre-registered r2 rerun
+
+Added after the report above; this section's Method was committed before the first route of the rerun.
+
+**Question.** Was 27/50 the prior, or the draw order? The post-hoc 35/50 cannot count: 14 of those seeds had been seen.
+
+**Method.** Same board, input, moved set (C10, C11, R10, C12, C13), pool (`/tmp/spike5/pools/r2-class.json`, DRV8874 held out), gate, `pcb route auto` and clean definition as `class` on r2. One change: the moved parts are drawn in ascending order of pool rows, `R10 (6), C13 (7), C10 (37), C12 (44), C11 (54)`. Fresh seeds 100 to 149, tag `rerun`, so no seed overlaps a route already seen. Rejected seeds still count as not clean. A dry draw (no routing) of these 50 seeds gave 0 rejected; R10 lands on one pose in all 50 (116.644, 102.487), so that part is not sampled in practice, in this order or in C13-first.
+
+**Comparators.** `uniform` 24/50, `perturb` 31/50, `krt` 11/50, seeds 0 to 49, unpaired, not rerouted.
+
+**Pass rule.** Clean at or above 35/50, which is Fisher p < 0.05 against `uniform` 24/50 (34 gives 0.068, 35 gives 0.041), and among clean routes fewer failing `feeds` plus `decoupling` rows than `uniform` by rank-sum p < 0.05, and not behind `krt`. Then the r2 verdict changes to "passes on the rerun, with tight roles drawn first". Under 35, the verdict stands and 27/50 was not a draw-order accident. `perturb` is reported beside it. This is a 19th Fisher test, so the Bonferroni line moves to 0.05 / 19 = 0.0026. The best 5 clean placements go through the waves judges as in the main run.
+
+### Result
+
+Run at e7e68db's rules, nothing changed after the commit. Tag `rerun` in `route-results.jsonl`. The first launch died on a malformed seed list before any route, so no seed was routed twice.
+
+| Arm | Seeds | Rejected | Clean /50 | Signal vias of clean, median (range) | Vias, median | Length mm, median | `decoupling` fails, mean of 19 | `feeds` fails, mean of 9 |
+|---|---|---:|---:|---|---:|---:|---:|---:|
+| `class`, tight first | 100-149 | 0 | **34** | 29 (27-40) | 44 | 601.2 | 2.68 | 5.47 |
+| `class`, main run | 0-49 | 14 | 27 | 29 (24-38) | 45 | 598.3 | 2.70 | 5.70 |
+| `uniform` | 0-49 | 0 | 24 | 35 (29-45) | 54 | 676.7 | 3.83 | 6.12 |
+| `perturb` | 0-49 | 0 | 31 | 28 (22-35) | 45 | 600.5 | 1.19 | 6.26 |
+| `krt` | 0-49 | 0 | 11 | 32 (26-37) | 46 | 578.1 | 1.27 | 5.64 |
+
+| Rerun against | Clean | Fisher p | Signal vias rank-sum p | Rows rank-sum p (median rows) |
+|---|---|---:|---:|---:|
+| `uniform` | 34 vs 24 | **0.068** | 0.00003 | 0.00001 (8 vs 10) |
+| `krt` | 34 vs 11 | under 0.0001 | 0.170 | 0.0061, `krt` ahead (8 vs 7) |
+| `perturb` | 34 vs 31 | 0.675 | 0.00023, `perturb` ahead | 0.0125, `perturb` ahead (8 vs 7) |
+| `class` main run | 34 vs 27 | 0.218 | 0.438 | 0.438 |
+
+**Verdict: under 35, so the r2 verdict stands.** The rule was 35/50 and the run gave 34/50, one seed short (p = 0.068 against the 0.05 line). The rows and KRT conditions pass. The bar is not moved after the fact.
+
+The Method's sentence "27/50 was not a draw-order accident" was too strong, and the numbers do not support it as written. Draw order did remove all 14 rejections and clean rose from 27 to 34, though that rise is itself within noise (p = 0.22). The honest reading: the class prior's clean rate on this board is about 0.68, and against `uniform` at 0.48 this design cannot call it. The firm results are on routed quality, 29 against 35 signal vias and fewer failing rows than `uniform`. `perturb` keeps the lead on quality: the designer's satellites stay better than any corpus draw on this board.
+
+Non-clean seeds: 15 of 16 leave one airwire, 1 leaves none and fails on DRC. The repeated `decoupling` fails are U2.11:C10, U2.12:C12, U2.13:C13 and U2.11 (21 to 24 of the 34 clean routes): the drawn poses miss the limits in the board's `checks.json`.
+
+Waves judges, best 5 of the rerun: 1 of 5 clean on waves, 48 signal vias, 656.7 mm, 112.8 mW, 0.2 mm bucket-3 off plane, 10 return-via bad, 0.8 mm exposure, 4 `currents`, 3 `feeds`, 3 `decoupling` fails. The designer's start is 1 of 1, 47, 642.2 mm, 92.9 mW, 0, 8, 0.8, 2, 3, 0. No arm beats the start, and the rerun does not change that.
+
+With this 19th test the Bonferroni line is 0.0026.

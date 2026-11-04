@@ -94,15 +94,15 @@ raise recall without adding a false fail. `tools/verify_all.sh` re-proves 177 ch
   attempt 3, with the target of 8 / 8 / 7 or better under 40 minutes.
 - **Rung 3**: re-derive the MotorGo Plink (four channels, ESP32, IMU, USB) from a brief written from its README, with one
   sub-agent per schematic sheet. **Rung 4**: Pace Racer's 48 V inverter sheet.
-- **Four spikes, run and merged** (`docs/spikes/`, issues #1 to #4), each with a hypothesis, a null, a cost, a
+- **Five spikes, run and merged** (`docs/spikes/`, issues #1 to #5), each with a hypothesis, a null, a cost, a
   literature review and an Opus agent that ran it in a worktree. What paid: a field solve of the declared currents on
   the real copper that passes a pour-fed board where the track-width row fails every pad and found a 3 A via pair nobody
   had labelled (#3); a mutation bench that plants six bug kinds and shows the boards' own checks catch 16 of 21, with
   every miss a missing config row (#3); a placement prior mined from 72 public boards that doubles the router's clean
   rate, 33 of 50 against 17 of 50 (#2); a generated pogo jig and bring-up script waiting on a board order (#3). What
   lost, by a number: a learned placement surrogate against plain wirelength (#1), agent-drawn routing corridors (#4),
-  reference-circuit statistics and commit mining (#2). Next: class-pooled priors so a new part gets one
-  (`docs/spikes/HANDOFF-spike-5-class-priors.md`).
+  reference-circuit statistics and commit mining (#2). Pooling that prior by component class gives a new part one:
+  39 of 50 with the part held out, against 17 uniform, though KRT's own decap cost ties it at 37 (#5).
 - **A robot design acceleration toolkit.** This repo, [`alex-3d-skills`](https://github.com/alexchunlin/alex-3d-skills)
   (printed assemblies checked in headless Blender) and Harnessy (wire harnesses with design rules and a BOM) are three
   views of one machine: the board's connectors are the harness's endpoints, the harness's lengths come from the

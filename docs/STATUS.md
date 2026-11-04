@@ -112,3 +112,9 @@
   variants in `pcb route waves --search`. Spike #1 (GBT surrogate over HPWL, search arms): all null, no surrogate in `pcb`; the 651 labelled placements,
   features and verify 33 are kept (FINDINGS SPIKE-1). Next spike written up for handoff:
   `docs/spikes/HANDOFF-spike-5-class-priors.md`.
+- 2026-11-04: Spike #5 run and merged, no change to `pcb` (FINDINGS "Spike 5"). The class prior transfers to an unseen part
+  (39/50 part held out, 33/50 package held out, uniform 17) but ties KRT's decap cost on rung 1 (37/50), and on rung 2 the
+  pre-registered rerun reached 34/50 against a 35/50 bar (uniform 24, p = 0.068), with better signal vias and rows than
+  uniform and worse than perturbing the designer's satellites. Kept: role-keyed `boardmeasure`, `eagle.py`, `pooling.py`,
+  the class table and 8,297-hit index, verify 34. Fable was out of credits, so Opus ran the review and the spike.
+
