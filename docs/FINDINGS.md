@@ -1129,3 +1129,29 @@ existing code by a number.
 - **SPIKE-T1 Three agents found the same break in `verify_all --changed` on main:** section 29 had no `#@ end` marker
   after the dev merge, so the selector refused to plan. Fixed on the first merge; sections 30 (irdrop, basic_parts), 31
   (signal vias, conflicts), 32 (refstat) added; `--changed` on merged main after each merge green.
+- **SPIKE-1 (B) A learned placement surrogate ranks no better than HPWL: dropped.** 651 router-labelled placements
+  (`tools/bench/results/placements.jsonl`: 600 rung-2 at sigma tuned per board for 24 to 32 % clean, 51 rung-1, 18 hand
+  features; label noise 0, one placement routed five times identical). Gradient-boosted trees trained on three boards and
+  tested on the fourth gain +0.004, +0.026 and -0.002 over HPWL at the clean boundary, every 90 % interval spanning 0;
+  AUC on clean 0.47 to 0.57 against the 0.85 bar; HPWL alone ranks signal vias at Spearman 0.70 to 0.80 and KRT's
+  conflict count adds nothing (-0.042 to 0.000). Replaying the opus2 pool in HPWL order reaches a clean placement at or
+  under 27 signal vias in 11 router calls; in model order 43 to 60; random about 37. The fable board routes clean 1 % of
+  the time at any sigma because its archived placement already leaves 6 airwires.
+- **SPIKE-1 (C) No search arm reached the target in an hour, and the router label does not match the judges.** On
+  opus2: KRT `place_simple` with `judge_seeds` 2 clean of 7 full routes, best 35 signal vias, 37 calls; the GBT filter
+  inside it 0 clean in 16; kct one 32-minute run, not clean; plain random perturbation of the designer's placement
+  reached 27 or fewer at call 31 (best 24). On the dev judges (refplane, return_via, exposure, irdrop, feeds, decoupling)
+  no arm's best beat the designer's own placement: the random winner on opus routes to 52 signal vias on Alex's stackup
+  against the start's 32 with 10.8 mm of exposure beside SW against 4.3. A surrogate trained on the bench's router label
+  would optimise the wrong thing; the judges are the label, and they cost a wave plan per sample. No surrogate goes
+  into `pcb`; the dataset, the features and verify 33 (the rank numbers from the committed rows in 9 s) are kept.
+- **SPIKE-1 (D) Generalisation: none.** No held-out rung-2 board gains; on rung 1 the GBT's Spearman is 0.33 against
+  HPWL's 0.30 and its boundary gain rests on one clean placement in 51.
+- **SPIKE-T2 Long runs go under `caffeinate`.** The Mac slept 70 minutes mid-search; the agent resumed with awake time
+  counted and one batch winner never fully routed.
+
+What the four spikes say together: the prior art already had most of it (KRT's planar-first order, its own conflict
+graph and placer, the repo's own irdrop), the two learned pieces that were tried (a surrogate, corpus-learned limits)
+lost to a one-line baseline, and the three things that paid were measurements: a field solve that survives a pour-fed
+board, a mutation bench that says which config rows are missing, and a mined placement prior that doubles routability.
+Next: `docs/spikes/HANDOFF-spike-5-class-priors.md` (class-pooled priors, held out, from KiCad, Eagle and Altium).

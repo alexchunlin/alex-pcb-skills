@@ -1,4 +1,4 @@
-# Status (updated 2026-11-03, dev merged to main, spikes 2 to 4 merged, spike 1 running)
+# Status (updated 2026-11-03, dev merged to main, all four spikes merged)
 
 - Plan: `docs/GAMEPLAN.md`; next steps and moonshots after phase 6: `docs/ROADMAP-2026-11-01.md`. Evidence: `docs/FINDINGS.md`. Survey with URLs: `docs/SURVEY-2026-10-31.md`. Handoff
   from the kickoff session: `docs/HANDOFF-2026-10-31.md` (its "Next" list is the work order).
@@ -109,5 +109,6 @@
   is Alex's), the C8 mutation bench (16 of 21 caught; misses are missing config rows), `signal_vias` and `pcb q
   conflicts`, 84 labelled placements, the open-schematics index and placement priors (33/50 vs 17/50 clean), the opt-in
   `refstat` kind. Dropped: guide corridors, rev-diff mining, corpus-learned limits. Roadmap item 6 stays open as order
-  variants in `pcb route waves --search`. Spike #1 (GBT surrogate over HPWL, search arms) running; its verdict lands
-  in FINDINGS when it reports.
+  variants in `pcb route waves --search`. Spike #1 (GBT surrogate over HPWL, search arms): all null, no surrogate in `pcb`; the 651 labelled placements,
+  features and verify 33 are kept (FINDINGS SPIKE-1). Next spike written up for handoff:
+  `docs/spikes/HANDOFF-spike-5-class-priors.md`.
