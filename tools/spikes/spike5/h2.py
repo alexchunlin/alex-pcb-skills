@@ -3,6 +3,7 @@
 
   python3 -I tools/spikes/spike5/h2.py merge --in A.jsonl B.jsonl ... --out /tmp/spike5/h2/roles.jsonl
   python3 -I tools/spikes/spike5/h2.py table --roles /tmp/spike5/h2/roles.jsonl --out tools/spikes/spike5/h2-summary.json
+  python3 -I tools/spikes/spike5/h2.py check     # the medians, IQRs, pooling pairs and the designer-package split, from the committed repo medians
 
 merge: one instance per (repo, part, ref), modules, through-hole parts and silk out, counts per drop reason. table: per repo a
 median of its rows, then the median and IQR of the repo medians; rows published only at n >= 5 instances-with-a-row and 3 repos
@@ -25,7 +26,9 @@ def family(pkg):
     if n == 14 and w <= 3.0 and h <= 2.5:
         return "LGA-14"
     if n == 16 and w <= 3.0 and h <= 3.0:
-        return "LGA-16"
+        return "16-pad 3x3"
+    if n == 16 and 3.5 <= w <= 4.5 and 2.0 <= h <= 3.0:
+        return "LGA-16 3x4.5"
     if n == 16 and 5.0 <= w <= 6.5 and 4.0 <= h <= 5.0:
         return "HTSSOP-16"
     if n == 24 and w <= 3.5:
@@ -81,12 +84,47 @@ def row_stats(items):
     by = defaultdict(list)
     for repo, d in items:
         by[repo].append(d)
-    med = [st.median(v) for v in by.values()]
-    return {"n": len(items), "repos": len(by), "median": round(st.median(med), 2), "q25": round(q(med, .25), 2), "q75": round(q(med, .75), 2), "p90": round(q(med, .9), 2)}
+    med = sorted(round(st.median(v), 3) for v in by.values())
+    return {"n": len(items), "repos": len(by), "repo_medians": med, **quant(med)}
+
+
+def quant(med):
+    return {"median": round(st.median(med), 2), "q25": round(q(med, .25), 2), "q75": round(q(med, .75), 2), "p90": round(q(med, .9), 2)}
 
 
 def pools(a, b):
     return a["q25"] <= b["median"] <= a["q75"] and b["q25"] <= a["median"] <= b["q75"]
+
+
+def compare(published):
+    """Pairs in one class and role that share a package (designer axis) or a source (package axis); which pool; the median gaps."""
+    keys = sorted(published)
+    pairs, org_gap, pkg_gap = [], [], []
+    for i, ka in enumerate(keys):
+        for kb in keys[i + 1:]:
+            if ka[0] != kb[0] or ka[3] != kb[3] or (ka[2] != kb[2] and ka[1] != kb[1]):
+                continue
+            A, B = published[ka], published[kb]
+            same_pkg = ka[2] == kb[2]
+            (org_gap if same_pkg else pkg_gap).append(abs(A["median"] - B["median"]))
+            pairs.append({"a": "|".join(ka), "b": "|".join(kb), "ma": A["median"], "mb": B["median"], "pool": pools(A, B), "axis": "designer" if same_pkg else "package"})
+    dv = {"designer_pairs": len(org_gap), "designer_pooling": sum(p["pool"] for p in pairs if p["axis"] == "designer"), "designer_median_gap_mm": round(st.median(org_gap), 2),
+          "package_pairs": len(pkg_gap), "package_pooling": sum(p["pool"] for p in pairs if p["axis"] == "package"), "package_median_gap_mm": round(st.median(pkg_gap), 2)}
+    return pairs, dv
+
+
+def check(a):
+    s = json.load(open(ROOT / "tools/spikes/spike5/h2-summary.json"))
+    pub = {}
+    for k, v in s["rows"].items():
+        assert v["n"] >= 5 and v["repos"] >= 3, k
+        got = quant(v["repo_medians"])
+        assert all(got[x] == v[x] for x in got), (k, got)
+        pub[tuple(k.split("|"))] = v
+    pairs, dv = compare(pub)
+    assert pairs == s["pairs"] and dv == s["designer_vs_package"], dv
+    print(f"{len(pub)} rows, {len(pairs)} pairs; designer gap {dv['designer_median_gap_mm']} mm, {dv['designer_pooling']} of {dv['designer_pairs']} pool; "
+          f"package gap {dv['package_median_gap_mm']} mm, {dv['package_pooling']} of {dv['package_pairs']} pool")
 
 
 def table(a):
@@ -113,43 +151,19 @@ def table(a):
         s = row_stats(v)
         if s["n"] >= 5 and s["repos"] >= 3:
             out["class_rows"][f"{k[0]}|{k[1]}"] = s
-    keys = list(published)
-    n_pool = n_pairs = 0
-    org_spread, pkg_spread = [], []
-    for i, ka in enumerate(keys):
-        for kb in keys[i + 1:]:
-            if ka[0] != kb[0] or ka[3] != kb[3]:
-                continue
-            A, B = published[ka], published[kb]
-            same_pkg, same_org = ka[2] == kb[2], ka[1] == kb[1]
-            if same_pkg and not same_org:
-                org_spread.append(abs(A["median"] - B["median"]))
-            if same_org and not same_pkg:
-                pkg_spread.append(abs(A["median"] - B["median"]))
-            if same_pkg or same_org:
-                n_pairs += 1
-                p = pools(A, B)
-                n_pool += p
-                out["pairs"].append({"a": "|".join(ka), "b": "|".join(kb), "ma": A["median"], "mb": B["median"], "pool": p, "axis": "designer" if same_pkg else "package"})
-    out["designer_vs_package"] = {"org_diffs_n": len(org_spread), "org_median_diff_mm": round(st.median(org_spread), 2) if org_spread else None,
-                                  "pkg_diffs_n": len(pkg_spread), "pkg_median_diff_mm": round(st.median(pkg_spread), 2) if pkg_spread else None,
-                                  "pairs_pooling": n_pool, "pairs": n_pairs,
-                                  "designer_pooling": sum(p["pool"] for p in out["pairs"] if p["axis"] == "designer"), "designer_pairs": sum(p["axis"] == "designer" for p in out["pairs"]),
-                                  "package_pooling": sum(p["pool"] for p in out["pairs"] if p["axis"] == "package"), "package_pairs": sum(p["axis"] == "package" for p in out["pairs"])}
+    out["pairs"], out["designer_vs_package"] = compare(published)
     json.dump(out, open(a.out, "w"), indent=1)
     print(json.dumps(out["designer_vs_package"]), json.dumps(out["instances"]))
-    for k, s in out["rows"].items():
-        print(k, s)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["merge", "table"])
+    ap.add_argument("cmd", choices=["merge", "table", "check"])
     ap.add_argument("--in", dest="inputs", nargs="*")
     ap.add_argument("--out")
     ap.add_argument("--roles")
     a = ap.parse_args()
-    {"merge": merge, "table": table}[a.cmd](a)
+    {"merge": merge, "table": table, "check": check}[a.cmd](a)
 
 
 if __name__ == "__main__":

@@ -743,6 +743,29 @@ else
 fi
 fi  #@ end 33
 
+if want 34; then  #@ watch: tools/corpus/pooling.py tools/corpus/test_pooling.py tools/corpus/classlabel.py tools/corpus/eagle.py tools/spikes/spike5/** tools/bench/data/class-table.json
+echo "== 34 class priors (spike #5): pooling, then the routing, H2 and H3 numbers from the committed rows and summaries"
+T5="$V/spike5"; mkdir -p "$T5"
+python3 -I "$ROOT/tools/corpus/test_pooling.py" > "$T5/pool.txt" 2>&1 && ok "pooling: part, package, class weights, held-out levels, the licence floor" || bad "pooling test: $(tail -1 "$T5/pool.txt")"
+python3 -I "$ROOT/tools/spikes/spike5/report.py" --check > "$T5/route.txt" 2>&1 && ok "route tables, Fisher and rank-sum tests reproduce route-summary.json from the per-seed rows" || bad "route summary: $(tail -1 "$T5/route.txt")"
+python3 -I "$ROOT/tools/spikes/spike5/h2.py" check > "$T5/h2.txt" 2>&1 && ok "H2: $(cat "$T5/h2.txt")" || bad "H2: $(tail -1 "$T5/h2.txt")"
+python3 -I "$ROOT/tools/spikes/spike5/h3_counts.py" --check > "$T5/h3.txt" 2>&1 && ok "H3: strict build signal 8, 1 and 4 repos" || bad "H3: $(tail -1 "$T5/h3.txt")"
+python3 -I -c "
+import json, sys; sys.path.insert(0, '$ROOT/tools/corpus'); import pooling as P
+s = json.load(open('$ROOT/tools/spikes/spike5/pool-summary.json'))
+for arm, sats in s.items():
+    if arm == 'r2_moved_rule':
+        continue
+    for ref, x in sats.items():
+        lv = x['levels']
+        ws = P.weights([0] + [lv[k]['n'] for k in ('package', 'class')])[1:]
+        assert [round(w, 3) for w in ws] == [lv['package']['weight'], lv['class']['weight']], (arm, ref)
+        assert all(v['n'] == 0 or (v['n'] >= 5 and v['repos'] >= 3) for v in lv.values()), (arm, ref)
+rule = s['r2_moved_rule']
+assert rule['cp_res']['joins'] and rule['cp_fly']['joins'], rule
+print('ok')" > "$T5/weights.txt" 2>&1 && ok "pool-summary: the mixture weights and the n >= 5, 3-repo floor hold in every arm" || bad "pool summary: $(tail -1 "$T5/weights.txt")"
+fi  #@ end 34
+
 #@ plumbing
 # per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
 # Under --changed, each by its # watch: header.
