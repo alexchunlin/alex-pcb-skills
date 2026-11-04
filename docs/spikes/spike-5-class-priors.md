@@ -213,8 +213,8 @@ Red marks the two class arms.
 
 - The prior transfers. With LSM6DS3 out, LGA-14 siblings (299 bypass rows, 140 repos) gave 39/50. With all of LGA-14 out, other packages (234 rows, 130 repos, pin frame) gave 33/50, equal to the part prior.
 - Nothing separates the four good arms on clean: 33 to 39, every pair p > 0.26.
-- The class prior's edge over KRT is decoupling distance, not routability: 2.51 against 3.22 failing rows (p = 0.019). KRT's halo around fine-pitch pads keeps caps about 3 mm from the pin (dry runs: C1 2.96, C2 3.14, C3 3.16 mm).
-- `krt_tpl` seeds equal `class_part` seeds: at `--template-weight 100` KRT seats the drawn pose and nudges it for legality (0 to 0.1 mm). Same draws, 38 against 39.
+- The class prior's edge over KRT is decoupling distance, not routability: 2.51 against 3.22 failing rows (p = 0.019). KRT leaves caps about 3 mm from the pin (dry runs: C1 2.96, C2 3.14, C3 3.16 mm). Its halo term around fine-pitch pads is the likely cause; I did not isolate it.
+- `krt_tpl` seeds equal `class_part` seeds: at `--template-weight 100` KRT seats the drawn pose and nudges it for legality (0 to 0.1 mm on 4 dry seeds). Same draws, 38 against 39.
 
 ### H1, r2 (DRV8874)
 
@@ -244,8 +244,8 @@ Red marks the class arm.
 
 - **Rejected seeds decide the row.** All 14 `class` rejections are C13: 7 flying-cap rows at class level, and the seed's own earlier draws sit on them. `krt_tpl` inherits those 14 through its draw, plus 1 `place_simple` left C11 illegal. Among emitted seeds `class` is 27/36 against `uniform` 24/50, p = 0.015, but an arm is not judged on what it declined to emit, so 27/50 stands.
 - **Post-hoc.** The 14 seeds with C13 drawn first: 8 clean, which would make 35/50, p = 0.041 against `uniform`, p = 0.53 against `perturb`. `krt_tpl` from ungated draws: 9 of 15 clean, which would make 23/50. These are not in the verdict. They say draw order on a thin pool cost the arm its seeds, and they would need a fresh pre-registered run to count.
-- R10 drew from 6 `current_mirror` rows in 5 repos, and C10, C11, C12 from HTSSOP-16 siblings (37, 54 and 44 rows). The thin pools repeat: most seeds put R10 on one pose, 6.7 mm from its pin.
-- `krt` is the worst arm on clean here (11/50, below `uniform`, p = 0.011) and the best on `decoupling` but one (1.27). No seed was rejected. Its compact groups crowd the channel past U2; spike 1 saw the same global placer lose on this board.
+- R10 drew from 6 `current_mirror` rows in 5 repos, and C10, C11, C12 from HTSSOP-16 siblings (37, 54 and 44 rows). The gate collapses the thin pool: all 36 emitted seeds put R10 on one pose, 6.7 mm from its pin.
+- `krt` is the worst arm on clean here (11/50, below `uniform`, p = 0.011) and the best on `decoupling` but one (1.27). No seed was rejected. I did not diagnose why it routes worst; spike 1 also saw `place_simple` seeds route poorly on this board.
 - `perturb` matches or beats `class` on everything: 31/50, 28 signal vias, 1.19 `decoupling` fails. The designer's satellites are simply good, as #1 found.
 
 ### Waves judges, r2
@@ -265,7 +265,7 @@ Each arm's best 5 clean placements on Alex's stackup, plus the start. Medians. T
 
 Red marks the designer's start.
 
-No arm beats the start. `class` beats `uniform` here on signal vias, length, VIN and `decoupling`, and it is the closest arm to the start on return vias (9 against 8), but it carries 3 `decoupling` fails against the start's 0, `krt`'s 1 and `perturb`'s 1, and only 2 of its 5 placements stay clean on waves. This is not the mixed case the brief named, since `class` did not win on clean first. The 16 mW of `perturb` and 36 mW of `class` above the start come from moved VM caps, on few placements, so read them as direction only.
+No arm beats the start. `class` beats `uniform` here on signal vias, length, VIN and `decoupling`, and it is the closest arm to the start on return vias (9 against 8), but it carries 3 `decoupling` fails against the start's 0, `krt`'s 1 and `perturb`'s 1, and only 2 of its 5 placements stay clean on waves. This is not the mixed case the brief named, since `class` did not win on clean first. `perturb` sits 10 mW and `class` 36 mW above the start on VIN loss, on 5 placements each, so read those as direction only.
 
 ### H2: designer and package
 
@@ -318,11 +318,11 @@ The null in the issue reads "no better than uniform, or worse than KRT's `py_pla
 
 ## Why not the existing code
 
-- **KRT's placer, decap cost alone.** Run first, with the board locked by KRT's own `place_pose.py lock`, one group anchored on the IC, default weights. Tried with `--decap-weight 10` and a 2 mm limit graded at error (dry, no routing): median pin distance moved at most 0.6 mm. Measured: on r1, 37/50, level with the class prior. On r2, 11/50 against the class prior's 27/50 (p = 0.0018). The gap: on a dense board KRT's compact seeds route worst, and on either board its halo holds caps about 3 mm off fine-pitch pins, which costs `decoupling` rows on r1. On r2 it does well on those rows, so no single statement covers both boards. On r1 no new code is justified by clean rate.
-- **KRT `templates[]`.** The right output format: a drawn pose goes in as a row and KRT seats it to within 0.1 mm on r1. It adds nothing over seating the draw on r1 (38 against 39), and on r2 it lost to the bare draw (14 against 27, p = 0.014), mostly the 15 rejected seeds; 14 of 35 emitted is also lower than the bare arm's 27 of 36.
+- **KRT's placer, decap cost alone.** Run first, with the board locked by KRT's own `place_pose.py lock`, one group anchored on the IC, default weights. Tried with `--decap-weight 10` and a 2 mm limit graded at error (dry, no routing): median pin distance moved at most 0.6 mm. Measured: on r1, 37/50, level with the class prior. On r2, 11/50 against the class prior's 27/50 (p = 0.0018). The gap: on a dense board KRT's compact seeds route worst, and on r1 its caps sit about 3 mm off the pins, which costs `decoupling` rows there. On r2 it does well on those rows, so no single statement covers both boards. On r1 no new code is justified by clean rate.
+- **KRT `templates[]`.** The right output format: a drawn pose goes in as a row and KRT seats it to within 0.1 mm on r1 (4 dry seeds). It adds nothing over seating the draw on r1 (38 against 39), and on r2 it lost to the bare draw (14 against 27, p = 0.014), mostly the 15 rejected seeds; 14 of 35 emitted is also lower than the bare arm's 27 of 36.
 - **Spike 2's part prior.** Reproduced exactly, 33/50. `class_part` at 39 is level with it and uses no row of the part; `class_pkg` matches it at 33 with no row of the package. For a new sensor the part prior has no rows at all, and that is the gap the class prior fills.
 - **`seed_place.py`, `boardmeasure.py`, `scan.py`, `pcbrefstat`.** All extended, no second measurer. `measure()` could not key by role or read Eagle: it keeps a satellite once on the first pad, and it needs pin numbers no Eagle board has. New: role rows, the canonical frame, the pin frame, a `--classes` table apart from `PART_RX`. `eagle.py` is XML lookup for the pin map and the net guard, not a board parser; KiCad's importer reads the board.
-- **Pooling.** No library needed: `tools/corpus/pooling.py` is 40 lines with a test. KRT and kct have no statistics to take.
+- **Pooling.** No library needed: `tools/corpus/pooling.py` is about 50 lines with a test. KRT and kct have no statistics to take.
 
 ## What to merge
 
@@ -337,7 +337,7 @@ The null in the issue reads "no better than uniform, or worse than KRT's `py_pla
 
 - The class prior's real output on r1 is decoupling distance, not routability. A future test should score that first.
 - `cp_fly` at 7 rows passes the floor and still cost 14 seeds. A floor of n >= 5 is a licence floor, not a sampling floor: a tight role on a dense board needs more rows, or to be drawn first.
-- Sampling a pose with rejection on a dense board collapses a thin pool onto a few free spots. R10 mostly landed on one pose.
+- Sampling a pose with rejection on a dense board collapses a thin pool onto a few free spots. R10 landed on one pose in all 36 emitted seeds.
 - Spike 2's `rot` mod 180 dropped which pad faces the pin. The class prior keeps it in `ang`.
 - Pin frame, not package centre, is what lets a sample cross packages: `class_pkg` reached 33/50 with no LGA-14 row.
 - The review's Adafruit 3.14 mm was pad-level with instances as n. With repo as n it is 2.31 mm.
