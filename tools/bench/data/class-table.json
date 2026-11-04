@@ -125,5 +125,1062 @@
    "SY8120": "SY812[0-9]",
    "RT8059": "RT8059"
   }
+ },
+ "labels": {
+  "LSM6DS3": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "LSM6DS3TR-C",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 3uA 4KB IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b\u3001\u540c\u6b65\u4e0e\u65f6\u95f4\u6233 LGA-1",
+   "n_rows": 1
+  },
+  "LSM6DS33": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "LSM6DS33TR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 6uA 8KB IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b\u3001\u540c\u6b65\u4e0e\u65f6\u95f4\u6233 LGA-1",
+   "n_rows": 1
+  },
+  "LSM6DSL": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "LSM6DSLTR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 3uA 4KB IMU (accelerometer + gyroscope) Motion event detection\u3001Synchronization and timestamp ",
+   "n_rows": 1
+  },
+  "LSM6DSM": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "LSM6DSMTR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 4KB Accelerometer Gyroscope SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps LGA-14(2.5x3) Accelerometers ROHS",
+   "n_rows": 2
+  },
+  "LSM6DSO": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "LSM6DSOTR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 9KB Accelerometer Gyroscope SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps LGA-14(2.5x3) Accelerometers ROHS",
+   "n_rows": 1
+  },
+  "LSM6DSOX": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "LSM6DSOXTR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 3uA 9KB IMU (accelerometer + gyroscope) Motion event detection\u3001Synchronization and timestamp SPI\u3001I2",
+   "n_rows": 1
+  },
+  "LSM6DSR": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "LSM6DSRTR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 9KB Accelerometer Gyroscope SPI\u3001I2C\u3001MIPI I3C X,Y,Z X,Y,Z \u00b116g \u00b14000dps LGA-14(2.5x3) Accelerometers",
+   "n_rows": 3
+  },
+  "LSM6DSV": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "LSM6DSV16XTR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 2.6uA 4.5KB IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b14000dps \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b\u3001\u540c\u6b65\u4e0e\u65f6\u95f4\u6233 LGA-14(",
+   "n_rows": 2
+  },
+  "ISM330": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ISM330DHCXTR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+105\u2103 1.71V~3.6V 16bit 3uA 9KB IMU (accelerometer + gyroscope) Motion event detection SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b1400",
+   "n_rows": 3
+  },
+  "ASM330": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ASM330LHHTR",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+105\u2103 16bit 2V~3.6V 3KB 3uA IMU (accelerometer + gyroscope) Motion event detection\u3001Synchronization and timestamp SP",
+   "n_rows": 1
+  },
+  "LSM330": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "reading",
+   "model": "LSM330DLCTR",
+   "category": "New Arrivals / Others",
+   "describe": "LSM330DLCTR New Arrivals ROHS",
+   "n_rows": 1,
+   "evidence": "ST accel + gyro combo"
+  },
+  "BMI160": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "BMI160",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 10uA 16bit 1KB IMU (accelerometer + gyroscope) Motion event detection\u3001Synchronization and timestamp",
+   "n_rows": 2
+  },
+  "BMI270": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "BMI270",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 2KB 3.5uA Accelerometer Gyroscope SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps LGA-14(2.5x3) Acceleromet",
+   "n_rows": 2
+  },
+  "BMI260": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "BMI260",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.7V~3.6V 16bit IMU SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps LGA14-(2.5x3) Accelerometers ROHS",
+   "n_rows": 1
+  },
+  "BMI088": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "BMI088",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 Accelerometer Gyroscope LGA-16(3x4.5) Accelerometers ROHS",
+   "n_rows": 3
+  },
+  "BMI085": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "BMI085",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 16bit 2.4V~3.6V IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps \u540c\u6b65\u4e0e\u65f6\u95f4\u6233 LGA-16(3x4.5) Acceler",
+   "n_rows": 2
+  },
+  "BMI323": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "BMI323",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 IMU (accelerometer + gyroscope) Motion event detection LGA-14 Accelerometers ROHS",
+   "n_rows": 2
+  },
+  "BMI330": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "BMI330",
+   "category": "Accelerometers / Sensors",
+   "describe": "- Accelerometers ROHS",
+   "n_rows": 1
+  },
+  "ICM-42688": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-42688-P",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 2KB 7.5uA IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps Motion Event Dete",
+   "n_rows": 5
+  },
+  "ICM-42605": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-42605",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 2KB 7.5uA IMU (accelerometer + gyroscope) Motion event detection SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b120",
+   "n_rows": 3
+  },
+  "ICM-42670": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-42670-P",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 2.25KB 3.5uA IMU (accelerometer + gyroscope) Motion event detection SPI\u3001I2C\u3001I3C X,Y,Z X,Y,Z \u00b1",
+   "n_rows": 6
+  },
+  "ICM-40627": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-40627",
+   "category": "Accelerometers / Sensors",
+   "describe": "LGA-14 Accelerometers ROHS",
+   "n_rows": 2
+  },
+  "IIM-42652": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "IIM-42652",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+105\u2103 1.71V~3.6V LGA-14(2.5x3) Accelerometers ROHS",
+   "n_rows": 1
+  },
+  "ICM-20602": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-20602",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.45V 16bit 1KB 6uA IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b LGA-16(3x3)",
+   "n_rows": 2
+  },
+  "ICM-20600": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-20600",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.45V 16bit 1KB 6uA IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b LGA-14(2.5x",
+   "n_rows": 2
+  },
+  "ICM-20689": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-20689",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.45V 16bit 4KB IMU (accelerometer + gyroscope) Motion event detection SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps",
+   "n_rows": 2
+  },
+  "ICM-20649": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-20649",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 8uA IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b130g \u00b14000dps \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b QFN-24(3x3) Acce",
+   "n_rows": 4
+  },
+  "ICM-20648": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-20648",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit IMU (accelerometer + gyroscope) SPI\u3001I2C Synchronization and timestamp X,Y,Z X,Y,Z \u00b116g \u00b12000d",
+   "n_rows": 2
+  },
+  "ICM-20608": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "ICM-20608-G",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 0.5KB 1.71V~3.45V 16bit 6uA IMU (accelerometer + gyroscope) Motion event detection SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12",
+   "n_rows": 2
+  },
+  "MPU-6050": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "MPU-6050",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 16bit 1KB 2.375V~3.46V 5uA Accelerometer Gyroscope I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps QFN-24-EP(4x4) Accelerometers",
+   "n_rows": 8
+  },
+  "MPU-6000": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "MPU-6000",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 16bit 1KB 2.375V~3.46V 5uA IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b\u3001\u540c\u6b65\u4e0e\u65f6\u95f4\u6233\u3001\u8fc7\u91cf\u7a0b",
+   "n_rows": 2
+  },
+  "MPU-6500": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "MPU-6500",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 16bit 6uA Accelerometer Gyroscope SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps QFN-24-EP(3x3) Accelerometers ROHS",
+   "n_rows": 4
+  },
+  "MPU-6886": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "reading",
+   "model": "MPU-6886P",
+   "category": "New Arrivals / Others",
+   "describe": "LGA-24_3X3 New Arrivals ROHS",
+   "n_rows": 1,
+   "evidence": "InvenSense 6-axis"
+  },
+  "QMI8658": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "QMI8658C",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.5KB 1.71V~3.6V 16bit IMU (accelerometer + gyroscope) SPI\u3001I2C\u3001I3C Synchronization and timestamp X,Y,Z X,Y,Z \u00b1",
+   "n_rows": 1
+  },
+  "QMI8610": {
+   "table": "imu6",
+   "class": "imu6",
+   "source": "jlc",
+   "model": "QMI8610",
+   "category": "Accelerometers / Sensors",
+   "describe": "-40\u2103~+85\u2103 1.62V~3.47V 1536Byte 16bit IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12560dps \u540c\u6b65\u4e0e\u65f6\u95f4\u6233 LGA-16 Acc",
+   "n_rows": 1
+  },
+  "DRV8874": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8874PWPR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 200m\u03a9 750nA 9A Yes HTSSOP-16-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 1
+  },
+  "DRV8876": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8876PWPR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 3.5A 700m\u03a9 750nA Yes HTSSOP-16-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 6
+  },
+  "DRV8873": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8873HPWPR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 10A 10uA 150m\u03a9 SPI Yes HTSSOP-24-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 2
+  },
+  "DRV8871": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8871DDA",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 10uA 3.6A 565m\u03a9 Interleaved conduction protection\u3001Current sensing/regulation function\u3001Active braking functi",
+   "n_rows": 5
+  },
+  "DRV8870": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8870DDAR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 10uA 3.6A 565m\u03a9 Yes HSOP-8-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 10
+  },
+  "DRV8872": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8872DDA",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 3.6A 565m\u03a9 Interleaved conduction protection\u3001Current sensing/regulation function Yes SO-8 Brushed DC Motor Dr",
+   "n_rows": 4
+  },
+  "DRV8833": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8833PWPR",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1.5A 2 2.7V~10.8V 360m\u03a9 Bipolar Driver Yes TSSOP-16-EP Stepper Motor Driver ROHS",
+   "n_rows": 2
+  },
+  "DRV8835": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8835DSSR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+150\u2103 1.5A 2 2V~7V 305m\u03a9 95nA Yes WSON-12-EP(2x3) Brushed DC Motor Drivers ROHS",
+   "n_rows": 1
+  },
+  "DRV8830": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8830DGQ",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1 1A 2.75V~6.8V 450m\u03a9 I2C Yes MSOP-10-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 4
+  },
+  "DRV8837": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8837DSGR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1.8V~7V 1.9A 120nA 280m\u03a9 Yes WSON-8-EP(2x2) Brushed DC Motor Drivers ROHS",
+   "n_rows": 4
+  },
+  "DRV8838": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8838DSGR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1.8A 1.8A 1.8V~7V 280m\u03a9 5nA Current sensing/regulation function\u3001Active braking function Yes WSON-8-EP(2x2) Bru",
+   "n_rows": 1
+  },
+  "DRV8848": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8848PWP",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 2 2A 350m\u03a9 4V~18V Bipolar Driver Overcurrent Protection\u3001Over temperature protection\u3001Under-voltage lockout\u3001Dead",
+   "n_rows": 3
+  },
+  "DRV8847": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8847PWR",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1A 1\u03a9 2 Bipolar Driver I2C Yes TSSOP-16 Stepper Motor Driver ROHS",
+   "n_rows": 6
+  },
+  "DRV8801": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8801PWP",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 2.8A Interleaved conduction protection\u3001Current sensing/regulation function\u3001Active braking function HTSSOP-16-E",
+   "n_rows": 6
+  },
+  "DRV8841": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8841PWPR",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 2 2.5A 200m\u03a9 8.2V~45V Bipolar Driver Yes HTSSOP-28 Stepper Motor Driver ROHS",
+   "n_rows": 2
+  },
+  "DRV8251": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8251DDAR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 1uA 4.1A 4.5V~48V 450m\u03a9 Yes SO-8-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 4
+  },
+  "DRV8212": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "DRV8212DSGR",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 1.65V~5.5V 280m\u03a9 4A 82nA Interleaved conduction protection\u3001Current sensing/regulation function\u3001Active braki",
+   "n_rows": 3
+  },
+  "A4950": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "A4950ELJTR-T",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1 10uA 600m\u03a9 6A Yes SOIC-8-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 12
+  },
+  "A4953": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "A4953ELJTR-T",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1 10uA 2A 6A 800m\u03a9 Yes SOIC-8-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 1
+  },
+  "A3909": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "A3909GLYTR-T",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+105\u2103 1A 2 2 480m\u03a9 Bipolar Driver Overcurrent Protection\u3001Over temperature protection\u3001Under-voltage lockout Yes MSOP",
+   "n_rows": 2
+  },
+  "TB6612": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "TB6612FNG(O,C,8,EL",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-20\u2103~+85\u2103 1A 1uA 2 2.7V~5.5V 3.2A 500m\u03a9 Yes SSOP-24-208mil Brushed DC Motor Drivers ROHS",
+   "n_rows": 10
+  },
+  "TB67H420": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "reading",
+   "model": "TB67H420FTG",
+   "category": "New Arrivals / Others",
+   "describe": "VQFN-48 New Arrivals ROHS",
+   "n_rows": 3,
+   "evidence": "Toshiba dual H-bridge"
+  },
+  "TB67H450": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "TB67H450FNG,EL",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1 1uA 3A 4.5V~44V 600m\u03a9 Yes HSOP-8-EP Brushed DC Motor Drivers ROHS",
+   "n_rows": 4
+  },
+  "MC33926": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "MC33926PNB",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 225m\u03a9 50uA 5A Yes PQFN-32-EP(8x8) Brushed DC Motor Drivers ROHS",
+   "n_rows": 4
+  },
+  "MC33887": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "MC33887PEK",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 120m\u03a9 5A 5V~28V SOIC-54-EP-300mil Brushed DC Motor Drivers ROHS",
+   "n_rows": 6
+  },
+  "MP6550": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "MP6550GG-Z",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+125\u2103 1 1.8V~22V 240m\u03a9 2A 80uA QFN-12(2x2) Brushed DC Motor Drivers ROHS",
+   "n_rows": 3
+  },
+  "L298": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "L298N",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-25\u2103~+130\u2103 2 2A 4.5V~7V Bipolar Driver MultiwAtt-15 Stepper Motor Driver ROHS",
+   "n_rows": 9
+  },
+  "L293": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "L293D(XBLW)",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+150\u2103 1.2\u03a9 4.5V~36V 600mA No Over temperature protection DIP-16 Stepper Motor Driver ROHS",
+   "n_rows": 19
+  },
+  "L9110": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "L9110S",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-20\u2103~+80\u2103 100nA 2.5A 3V~9V SOP-8 Brushed DC Motor Drivers ROHS",
+   "n_rows": 20
+  },
+  "L6205": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "L6205D",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-25\u2103~+125\u2103 2 2.8A 620m\u03a9 8V~52V 8V~52V Bipolar Driver Yes SOIC-20-300mil Stepper Motor Driver ROHS",
+   "n_rows": 14
+  },
+  "LV8548": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "LV8548MC-AH",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-30\u2103~+85\u2103 1A 1\u03a9 1\u30012 4V~16V Bipolar Driver Yes SOIC-10-1mm Stepper Motor Driver ROHS",
+   "n_rows": 2
+  },
+  "HR8833": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "HR8833",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1.5A 2 2.7V~15V 380m\u03a9 Bipolar Driver Yes HTSSOP-16-EP Stepper Motor Driver ROHS",
+   "n_rows": 3
+  },
+  "AT8833": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "AT8833CT",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1A 2 2.7V~15V 800m\u03a9 Bipolar Driver Yes HTSSOP-16 Stepper Motor Driver ROHS",
+   "n_rows": 3
+  },
+  "AT8236": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "AT8236",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 1 200m\u03a9 20uA 3A 6A ESOP-8 Brushed DC Motor Drivers ROHS",
+   "n_rows": 7
+  },
+  "RZ7886": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "RZ7886",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-25\u2103~+85\u2103 DIP-8 Brushed DC Motor Drivers ROHS",
+   "n_rows": 2
+  },
+  "TC78H660": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "TC78H660FTG,EL",
+   "category": "Stepper Motor Driver / Motor Driver ICs",
+   "describe": "-40\u2103~+85\u2103 2 2.5V~16V 2.5V~16V 2A 480m\u03a9 Bipolar Driver Overcurrent Protection\u3001Over temperature protection\u3001Under-voltage l",
+   "n_rows": 1
+  },
+  "STSPIN240": {
+   "table": "hbridge",
+   "class": "hbridge",
+   "source": "jlc",
+   "model": "STSPIN240",
+   "category": "Brushed DC Motor Drivers / Motor Driver ICs",
+   "describe": "-40\u2103~+150\u2103 1.3A 2 400m\u03a9 80nA Interleaved conduction protection\u3001Current sensing/regulation function QFN-16-EP(3x3) Brushe",
+   "n_rows": 1
+  },
+  "AMS1117-3.3": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "AMS1117-3.3",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103 0.003%Vout 1 1.1V@(800mA) 15V 1A 3.3V 5mA 72dB@(120Hz) Fixed Over Current Protection\u3001Short Circuit Protection",
+   "n_rows": 20
+  },
+  "AP2112": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "AP2112K-3.3TRG1",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(Ta) 1 250mV@(600mA) 3.3V 50uVrms 55uA 600mA 65dB@(1kHz) 6V Fixed Over Current Protection\u3001Thermal Shutdown\u3001Ena",
+   "n_rows": 5
+  },
+  "MIC5225": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "MIC5225YM5",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(Tj) 1 1.24V~14V 150mA 16V 29uA 310mV@(150mA) Adjustable Over Current Protection\u3001Reverse connection protectio",
+   "n_rows": 19
+  },
+  "MIC5219": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "MIC5219-3.3YM5-TR",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(Tj) 1 12V 170uA 3.3V 500mA 600mV@(500mA) 75dB@(120Hz) Fixed Over Current Protection\u3001Over Temperature Protect",
+   "n_rows": 20
+  },
+  "AP7361": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "AP7361-FGE-7",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(Ta) 1 1A 1V~5V 65dB@(1kHz) 6V 700mV@(1A) 70uA Adjustable Over Current Protection\u3001Over Temperature Protection\u3001",
+   "n_rows": 20
+  },
+  "LM1117": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "LM1117MPX-1.8/NOPB",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "0\u2103~+125\u2103@(Tj) 1 1.2V@(800mA) 1.8V 15V 54uVrms 5mA 75dB@(120Hz) 800mA Fixed Over Current Protection Positive SOT-223-4 Vo",
+   "n_rows": 20
+  },
+  "XC6206": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "XC6206P332MR-G",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(Ta) 1 1uA 200mA 3.3V 6V Fixed Over Current Protection Positive SOT-23-3L Voltage Regulators - Linear, Low Dro",
+   "n_rows": 20
+  },
+  "XC6220": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "XC6220B331MR",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(Ta) 1 25uA 3.3V 400mV@(800mA) 5.5V 50dB@(10kHz) 900mA Fixed Over Current Protection\u3001Over Temperature Protecti",
+   "n_rows": 20
+  },
+  "XC6210": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "reading",
+   "model": "XC6210-33",
+   "category": "SMT / Others",
+   "describe": "SOT23-5 SMT ROHS",
+   "n_rows": 30,
+   "evidence": "Torex LDO"
+  },
+  "RT9080": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "RT9080-TD",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "SOT-23-5 Voltage Regulators - Linear, Low Drop Out (LDO) Regulators ROHS",
+   "n_rows": 20
+  },
+  "RT9013": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "RT9013-33GB",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(Tj) 1 25uA 3.3V 30uVrms 400mV@(500mA) 5.5V 500mA 50dB@(10kHz) Fixed Over Current Protection\u3001Over Temperature",
+   "n_rows": 20
+  },
+  "ME6211": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "ME6211C28M5G-N",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(Ta) 1 2.8V 220mV@(200mA) 450mA 50uVrms 55uA 6V 70dB@(1kHz) Enable Fixed Positive SOT-23-5 Voltage Regulators ",
+   "n_rows": 20
+  },
+  "MCP1700": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "reading",
+   "model": "MCP1700",
+   "category": "SMT / Others",
+   "describe": "SOT-23-3_L2.9-W1.6-P1.90-LS2.8-BR SMT ROHS",
+   "n_rows": 30,
+   "evidence": "Microchip fixed LDO"
+  },
+  "MCP1702": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "MCP1702-5002E/TO",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(Tj) 1 13.2V 250mA 2uA 330mV@(250mA) 44dB@(100Hz) 5V Fixed Over Current Protection\u3001Over Temperature Protectio",
+   "n_rows": 20
+  },
+  "MCP1703": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "reading",
+   "model": "MCP1703-3302",
+   "category": "New Arrivals / Others",
+   "describe": "SOT-23-3_L2.9-W1.3-P0.95-LS2.4-BR New Arrivals ROHS",
+   "n_rows": 30,
+   "evidence": "Microchip fixed LDO"
+  },
+  "MCP1825": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "reading",
+   "model": "MCP1825S-33",
+   "category": "New Arrivals / Others",
+   "describe": "SOT-223-3 New Arrivals ROHS",
+   "n_rows": 30,
+   "evidence": "Microchip LDO"
+  },
+  "TLV1117": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "TLV1117-50IDCYR",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(Tj) 0.003%Vout 1 1.4V@(800mA) 15V 5V 75dB@(120Hz) 800mA Fixed Over Current Protection Positive SOT-223-4 Vol",
+   "n_rows": 20
+  },
+  "TLV757": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "TLV75733PDBVR",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(Tj) 1 1A 3.3V 40uA 46dB@(100kHz) 5.5V 650mV@(1A) 71.5uVrms Fixed Positive Under Voltage Lockout\u3001Over Current",
+   "n_rows": 7
+  },
+  "TLV755": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "TLV75533PDBVR",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(Tj) 1 238mV@(500mA) 25uA 3.3V 46dB@(100kHz) 5.5V 500mA 71.5uVrms Fixed Over Current Protection\u3001Thermal Shutd",
+   "n_rows": 9
+  },
+  "TLV700": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "TLV70033DDCR",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(Tj) 1 200mA 3.3V 31uA 48uVrms 5.5V 68dB Fixed Over Current Protection Positive SOT-23-5 Voltage Regulators -",
+   "n_rows": 12
+  },
+  "HT7333": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "HT7333-A",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(Ta) 1 12V 250mA 3.3V 3.5uA 90mV@(40mA) Fixed Positive SOT-89-3 Voltage Regulators - Linear, Low Drop Out (LDO",
+   "n_rows": 19
+  },
+  "NCP1117": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "NCP1117DTAG",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "0\u2103~+125\u2103@(Ta) 1 1.07V@(800mA) 1.25V~18.8V 1A 20V 6mA 73dB Adjustable Over Current Protection\u3001Thermal shutdown Positive D",
+   "n_rows": 20
+  },
+  "LP2985": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "reading",
+   "model": "LP2985",
+   "category": "New Arrivals / Others",
+   "describe": "SOT23-5 New Arrivals ROHS",
+   "n_rows": 30,
+   "evidence": "TI fixed LDO"
+  },
+  "LP5907": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "LP5907MFX-1.2/NOPB",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103 1 1.2V 250mA 250mV@(250mA) 25uA 5.5V 6.5uVrms 60dB@(100kHz)\u300190dB@(100Hz) Fixed Positive Under Voltage Lockout",
+   "n_rows": 20
+  },
+  "SPX3819": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "SPX3819M5-L-3-3/TR",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103 1 16V 3.3V 340mV@(500mA) 40uVrms 500mA 70dB 90uA Fixed Over Current Protection\u3001Over Temperature Protection\u3001En",
+   "n_rows": 20
+  },
+  "LD1117": {
+   "table": "ldo_fixed",
+   "class": "ldo_fixed",
+   "source": "jlc",
+   "model": "LD1117AG-AD-AA3-A-R",
+   "category": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators / Power Management (PMIC)",
+   "describe": "-20\u2103~+125\u2103@(Tj) 0.003%Vout 1 1.25V~13.7V 1.3V@(1A) 15V 1A 75dB@(120Hz) Adjustable Over Current Protection\u3001Over Temperatu",
+   "n_rows": 20
+  },
+  "TPS54620": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "TPS54620RGYR",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+150\u2103@(TJ) 1 1.6MHz 4.5V~17V 600uA 6A 800mV~15V Adjustable Buck Buck Built-in Yes VQFN-14-EP(3.5x3.5) DC-DC Convert",
+   "n_rows": 5
+  },
+  "TPS54202": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "TPS54202HDDCT",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(TJ) 1 2A 4.5V~28V 45uA 500kHz 596mV~28V Adjustable Buck Buck Built-in Yes SOT-23-6 DC-DC Converters ROHS",
+   "n_rows": 9
+  },
+  "TPS563200": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "TPS563200DDCR",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(TA) 1 3A 4.5V~17V 650kHz 760mV~7V Adjustable Buck Buck Built-in Yes TSOT-23-6 DC-DC Converters ROHS",
+   "n_rows": 3
+  },
+  "TPS562200": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "reading",
+   "model": "TPS562200",
+   "category": "SMT / Others",
+   "describe": "SOT-23-6 SMT ROHS",
+   "n_rows": 3,
+   "evidence": "TI synchronous buck"
+  },
+  "TPS561201": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "TPS561201DDCT",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(TA) 1 1A 380uA 4.5V~17V 580kHz 760mV~7V Adjustable Buck Buck Built-in Yes SOT-23-6 DC-DC Converters ROHS",
+   "n_rows": 3
+  },
+  "TPS62xxx": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "TPS62130RGTR",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(TA) 1 17uA 2.5MHz 3A 3V~17V 900mV~6V Adjustable Buck Buck Built-in Yes QFN-16-EP(3x3) DC-DC Converters ROHS",
+   "n_rows": 9
+  },
+  "TLV6256x": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "TLV62569DBVR",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(TJ) 1 1.5MHz 2.5V~5.5V 2A 600mV~5.5V Adjustable Buck Buck Built-in Yes SOT-23-5 DC-DC Converters ROHS",
+   "n_rows": 15
+  },
+  "AP6320x": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "AP63203WU-7",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(TA) 1 1.1MHz 22uA 2A 3.3V 3.8V~32V Buck Built-in Fixed Overcurrent Protection\u3001Light load efficient mode\u3001Cycle",
+   "n_rows": 2
+  },
+  "AP63357": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "AP63357DV-7",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103 1 22uA 3.5A 3.8V~32V 450kHz 800mV~31V Adjustable Buck Built-in Overcurrent Protection\u3001Light load efficient mo",
+   "n_rows": 2
+  },
+  "MP2315": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "reading",
+   "model": "MP2315",
+   "category": "SMT / Others",
+   "describe": "SOT-23-8 SMT ROHS",
+   "n_rows": 11,
+   "evidence": "MPS synchronous buck"
+  },
+  "MP2307": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "reading",
+   "model": "MP2307",
+   "category": "New Arrivals / Others",
+   "describe": "ESOP-8_L4.9-W3.9-P1.27-LS6.0-EP New Arrivals ROHS",
+   "n_rows": 7,
+   "evidence": "MPS synchronous buck"
+  },
+  "MP1495": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "reading",
+   "model": "MP1495S",
+   "category": "SMT / Others",
+   "describe": "SOT-23-8 SMT ROHS",
+   "n_rows": 13,
+   "evidence": "MPS synchronous buck"
+  },
+  "LMR33630": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "reading",
+   "category": null,
+   "n_rows": 20,
+   "evidence": "TI synchronous buck"
+  },
+  "LMR36015": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "LMR36015BRNXR",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+150\u2103@(TJ) 1 1.5A 1MHz 4.2V~60V Adjustable Buck Buck Built-in Yes VQFN-12(2x3) DC-DC Converters ROHS",
+   "n_rows": 17
+  },
+  "SY8089": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "SY8089AAAC",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(TA) 1 1MHz 2.7V~5.5V 2A 55uA Adjustable Buck Buck Built-in Yes SOT-23-5 DC-DC Converters ROHS",
+   "n_rows": 12
+  },
+  "SY8113": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "SY8113BADC",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+125\u2103@(TJ) 1 100uA 3A 4.5V~18V 500kHz Adjustable Buck Buck Built-in Yes TSOT-23-6 DC-DC Converters ROHS",
+   "n_rows": 15
+  },
+  "SY8120": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "SY8120B1ABC",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(TA) 1 2A 4.5V~18V 400uA 500kHz Adjustable Buck Buck Built-in Yes SOT-23-6 DC-DC Converters ROHS",
+   "n_rows": 9
+  },
+  "RT8059": {
+   "table": "buck_sync",
+   "class": "buck_sync",
+   "source": "jlc",
+   "model": "RT8059GJ5",
+   "category": "DC-DC Converters / Power Management (PMIC)",
+   "describe": "-40\u2103~+85\u2103@(TA) 1 1.5MHz 1A 2.8V~5.5V 600mV~5.5V 78uA Adjustable Buck Buck Built-in Yes TSOT-23-5 DC-DC Converters ROHS",
+   "n_rows": 2
+  }
  }
 }
