@@ -2,7 +2,7 @@
 """Spike 5: KRT's place_simple moving only the satellites, the rest of the board locked (the prior-art arms).
 
   python3 -I tools/spikes/spike5/krt_arm.py prep  --board r1 [--moved C1,C2,C3]
-  python3 -I tools/spikes/spike5/krt_arm.py place --board r1 --seed 0 [--weight W] [--template T.json]
+  python3 -I tools/spikes/spike5/krt_arm.py place --board r1 --seed 0 [--intent I.json] [-- extra place_simple flags]
 
 prep: strip the archived board (zones kept), lock every footprint but the moved satellites with KRT's own `place_pose.py
 lock`, emit the intent (`check_floorplan --emit-intent --no-declare-decaps` unless --decaps-from is asked: the archived

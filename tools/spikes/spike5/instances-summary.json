@@ -1,0 +1,815 @@
+{
+ "classes": {
+  "imu6": {
+   "projects": 995,
+   "repos": 664,
+   "with_kicad_pcb": 998,
+   "board_matched": 539,
+   "measured": {
+    "kicad": 324,
+    "third-party": 160,
+    "adafruit": 12,
+    "sparkfun": 11
+   },
+   "measured_repos": 434,
+   "packages": {
+    "LGA-14": 295,
+    "QFN-24 4x4": 112,
+    "LGA-16 3x4.5": 44,
+    "QFN-24 3x3": 27,
+    "16-pad 3x3": 25,
+    "28p-2.5x2.0": 3,
+    "24p-5.0x5.0": 1
+   }
+  },
+  "hbridge": {
+   "projects": 1041,
+   "repos": 668,
+   "with_kicad_pcb": 973,
+   "board_matched": 465,
+   "measured": {
+    "kicad": 233,
+    "third-party": 180,
+    "sparkfun": 17,
+    "adafruit": 9
+   },
+   "measured_repos": 249,
+   "packages": {
+    "SSOP-24": 107,
+    "HTSSOP-16": 92,
+    "SON-8": 50,
+    "HSOP-8": 44,
+    "WSON-12": 30,
+    "8p-5.0x4.0": 25,
+    "8p-5.5x4.0": 16,
+    "32p-7.5x7.5-ep": 16
+   }
+  },
+  "ldo_fixed": {
+   "projects": 5139,
+   "repos": 3379,
+   "with_kicad_pcb": 5245,
+   "board_matched": 264,
+   "measured": {},
+   "measured_repos": 0,
+   "packages": {}
+  },
+  "buck_sync": {
+   "projects": 708,
+   "repos": 465,
+   "with_kicad_pcb": 688,
+   "board_matched": 3,
+   "measured": {},
+   "measured_repos": 0,
+   "packages": {}
+  }
+ },
+ "parts": {
+  "LSM6DS3": {
+   "class": "imu6",
+   "projects": 100,
+   "repos": 72,
+   "kicad_measured": 49,
+   "eagle_measured": 17
+  },
+  "LSM6DS33": {
+   "class": "imu6",
+   "projects": 2,
+   "repos": 2,
+   "kicad_measured": 2,
+   "eagle_measured": 8
+  },
+  "LSM6DSL": {
+   "class": "imu6",
+   "projects": 40,
+   "repos": 18,
+   "kicad_measured": 12,
+   "eagle_measured": 3
+  },
+  "LSM6DSM": {
+   "class": "imu6",
+   "projects": 10,
+   "repos": 8,
+   "kicad_measured": 6,
+   "eagle_measured": 4
+  },
+  "LSM6DSO": {
+   "class": "imu6",
+   "projects": 30,
+   "repos": 24,
+   "kicad_measured": 16,
+   "eagle_measured": 0
+  },
+  "LSM6DSOX": {
+   "class": "imu6",
+   "projects": 13,
+   "repos": 12,
+   "kicad_measured": 9,
+   "eagle_measured": 20
+  },
+  "LSM6DSR": {
+   "class": "imu6",
+   "projects": 6,
+   "repos": 5,
+   "kicad_measured": 16,
+   "eagle_measured": 0
+  },
+  "LSM6DSV": {
+   "class": "imu6",
+   "projects": 8,
+   "repos": 8,
+   "kicad_measured": 6,
+   "eagle_measured": 3
+  },
+  "ISM330": {
+   "class": "imu6",
+   "projects": 10,
+   "repos": 9,
+   "kicad_measured": 4,
+   "eagle_measured": 10
+  },
+  "ASM330": {
+   "class": "imu6",
+   "projects": 6,
+   "repos": 6,
+   "kicad_measured": 5,
+   "eagle_measured": 0
+  },
+  "BMI160": {
+   "class": "imu6",
+   "projects": 48,
+   "repos": 36,
+   "kicad_measured": 16,
+   "eagle_measured": 5
+  },
+  "BMI270": {
+   "class": "imu6",
+   "projects": 32,
+   "repos": 26,
+   "kicad_measured": 21,
+   "eagle_measured": 11
+  },
+  "BMI088": {
+   "class": "imu6",
+   "projects": 81,
+   "repos": 46,
+   "kicad_measured": 37,
+   "eagle_measured": 7
+  },
+  "BMI323": {
+   "class": "imu6",
+   "projects": 6,
+   "repos": 5,
+   "kicad_measured": 5,
+   "eagle_measured": 0
+  },
+  "ICM-42688": {
+   "class": "imu6",
+   "projects": 40,
+   "repos": 34,
+   "kicad_measured": 24,
+   "eagle_measured": 11
+  },
+  "ICM-42605": {
+   "class": "imu6",
+   "projects": 3,
+   "repos": 3,
+   "kicad_measured": 3,
+   "eagle_measured": 0
+  },
+  "ICM-42670": {
+   "class": "imu6",
+   "projects": 25,
+   "repos": 11,
+   "kicad_measured": 9,
+   "eagle_measured": 0
+  },
+  "ICM-40627": {
+   "class": "imu6",
+   "projects": 2,
+   "repos": 2,
+   "kicad_measured": 2,
+   "eagle_measured": 0
+  },
+  "IIM-42652": {
+   "class": "imu6",
+   "projects": 10,
+   "repos": 5,
+   "kicad_measured": 5,
+   "eagle_measured": 0
+  },
+  "ICM-20602": {
+   "class": "imu6",
+   "projects": 22,
+   "repos": 19,
+   "kicad_measured": 15,
+   "eagle_measured": 1
+  },
+  "ICM-20600": {
+   "class": "imu6",
+   "projects": 1,
+   "repos": 1,
+   "kicad_measured": 1,
+   "eagle_measured": 1
+  },
+  "ICM-20689": {
+   "class": "imu6",
+   "projects": 6,
+   "repos": 4,
+   "kicad_measured": 2,
+   "eagle_measured": 1
+  },
+  "ICM-20649": {
+   "class": "imu6",
+   "projects": 0,
+   "repos": 0,
+   "kicad_measured": 0,
+   "eagle_measured": 5
+  },
+  "ICM-20648": {
+   "class": "imu6",
+   "projects": 12,
+   "repos": 5,
+   "kicad_measured": 6,
+   "eagle_measured": 0
+  },
+  "MPU-6050": {
+   "class": "imu6",
+   "projects": 483,
+   "repos": 308,
+   "kicad_measured": 30,
+   "eagle_measured": 46
+  },
+  "MPU-6000": {
+   "class": "imu6",
+   "projects": 24,
+   "repos": 20,
+   "kicad_measured": 13,
+   "eagle_measured": 21
+  },
+  "MPU-6500": {
+   "class": "imu6",
+   "projects": 18,
+   "repos": 15,
+   "kicad_measured": 7,
+   "eagle_measured": 9
+  },
+  "QMI8658": {
+   "class": "imu6",
+   "projects": 3,
+   "repos": 2,
+   "kicad_measured": 2,
+   "eagle_measured": 0
+  },
+  "QMI8610": {
+   "class": "imu6",
+   "projects": 1,
+   "repos": 1,
+   "kicad_measured": 1,
+   "eagle_measured": 0
+  },
+  "DRV8874": {
+   "class": "hbridge",
+   "projects": 34,
+   "repos": 19,
+   "kicad_measured": 13,
+   "eagle_measured": 1
+  },
+  "DRV8876": {
+   "class": "hbridge",
+   "projects": 10,
+   "repos": 6,
+   "kicad_measured": 3,
+   "eagle_measured": 0
+  },
+  "DRV8873": {
+   "class": "hbridge",
+   "projects": 18,
+   "repos": 4,
+   "kicad_measured": 3,
+   "eagle_measured": 0
+  },
+  "DRV8871": {
+   "class": "hbridge",
+   "projects": 25,
+   "repos": 22,
+   "kicad_measured": 1,
+   "eagle_measured": 12
+  },
+  "DRV8870": {
+   "class": "hbridge",
+   "projects": 20,
+   "repos": 14,
+   "kicad_measured": 2,
+   "eagle_measured": 2
+  },
+  "DRV8872": {
+   "class": "hbridge",
+   "projects": 7,
+   "repos": 6,
+   "kicad_measured": 1,
+   "eagle_measured": 0
+  },
+  "DRV8833": {
+   "class": "hbridge",
+   "projects": 99,
+   "repos": 72,
+   "kicad_measured": 21,
+   "eagle_measured": 38
+  },
+  "DRV8835": {
+   "class": "hbridge",
+   "projects": 27,
+   "repos": 18,
+   "kicad_measured": 5,
+   "eagle_measured": 26
+  },
+  "DRV8830": {
+   "class": "hbridge",
+   "projects": 11,
+   "repos": 7,
+   "kicad_measured": 5,
+   "eagle_measured": 1
+  },
+  "DRV8837": {
+   "class": "hbridge",
+   "projects": 31,
+   "repos": 23,
+   "kicad_measured": 24,
+   "eagle_measured": 11
+  },
+  "DRV8838": {
+   "class": "hbridge",
+   "projects": 12,
+   "repos": 9,
+   "kicad_measured": 9,
+   "eagle_measured": 2
+  },
+  "DRV8848": {
+   "class": "hbridge",
+   "projects": 2,
+   "repos": 2,
+   "kicad_measured": 2,
+   "eagle_measured": 4
+  },
+  "DRV8847": {
+   "class": "hbridge",
+   "projects": 14,
+   "repos": 9,
+   "kicad_measured": 5,
+   "eagle_measured": 0
+  },
+  "DRV8801": {
+   "class": "hbridge",
+   "projects": 2,
+   "repos": 1,
+   "kicad_measured": 0,
+   "eagle_measured": 1
+  },
+  "DRV8841": {
+   "class": "hbridge",
+   "projects": 12,
+   "repos": 5,
+   "kicad_measured": 1,
+   "eagle_measured": 0
+  },
+  "DRV8251": {
+   "class": "hbridge",
+   "projects": 13,
+   "repos": 5,
+   "kicad_measured": 8,
+   "eagle_measured": 0
+  },
+  "DRV8212": {
+   "class": "hbridge",
+   "projects": 21,
+   "repos": 15,
+   "kicad_measured": 13,
+   "eagle_measured": 0
+  },
+  "A4950": {
+   "class": "hbridge",
+   "projects": 10,
+   "repos": 7,
+   "kicad_measured": 10,
+   "eagle_measured": 7
+  },
+  "A4953": {
+   "class": "hbridge",
+   "projects": 1,
+   "repos": 1,
+   "kicad_measured": 0,
+   "eagle_measured": 4
+  },
+  "A3909": {
+   "class": "hbridge",
+   "projects": 4,
+   "repos": 3,
+   "kicad_measured": 4,
+   "eagle_measured": 0
+  },
+  "TB6612": {
+   "class": "hbridge",
+   "projects": 111,
+   "repos": 81,
+   "kicad_measured": 52,
+   "eagle_measured": 53
+  },
+  "TB67H420": {
+   "class": "hbridge",
+   "projects": 1,
+   "repos": 1,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TB67H450": {
+   "class": "hbridge",
+   "projects": 7,
+   "repos": 7,
+   "kicad_measured": 7,
+   "eagle_measured": 6
+  },
+  "MC33926": {
+   "class": "hbridge",
+   "projects": 20,
+   "repos": 15,
+   "kicad_measured": 2,
+   "eagle_measured": 20
+  },
+  "MP6550": {
+   "class": "hbridge",
+   "projects": 2,
+   "repos": 2,
+   "kicad_measured": 1,
+   "eagle_measured": 0
+  },
+  "L298": {
+   "class": "hbridge",
+   "projects": 249,
+   "repos": 163,
+   "kicad_measured": 0,
+   "eagle_measured": 1
+  },
+  "L293": {
+   "class": "hbridge",
+   "projects": 219,
+   "repos": 136,
+   "kicad_measured": 0,
+   "eagle_measured": 1
+  },
+  "L9110": {
+   "class": "hbridge",
+   "projects": 30,
+   "repos": 18,
+   "kicad_measured": 12,
+   "eagle_measured": 16
+  },
+  "L6205": {
+   "class": "hbridge",
+   "projects": 2,
+   "repos": 1,
+   "kicad_measured": 1,
+   "eagle_measured": 0
+  },
+  "LV8548": {
+   "class": "hbridge",
+   "projects": 1,
+   "repos": 1,
+   "kicad_measured": 2,
+   "eagle_measured": 0
+  },
+  "HR8833": {
+   "class": "hbridge",
+   "projects": 2,
+   "repos": 1,
+   "kicad_measured": 1,
+   "eagle_measured": 0
+  },
+  "AT8236": {
+   "class": "hbridge",
+   "projects": 3,
+   "repos": 3,
+   "kicad_measured": 1,
+   "eagle_measured": 0
+  },
+  "RZ7886": {
+   "class": "hbridge",
+   "projects": 2,
+   "repos": 1,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TC78H660": {
+   "class": "hbridge",
+   "projects": 14,
+   "repos": 10,
+   "kicad_measured": 15,
+   "eagle_measured": 0
+  },
+  "STSPIN240": {
+   "class": "hbridge",
+   "projects": 13,
+   "repos": 6,
+   "kicad_measured": 9,
+   "eagle_measured": 0
+  },
+  "AMS1117-3.3": {
+   "class": "ldo_fixed",
+   "projects": 1289,
+   "repos": 912,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "AP2112": {
+   "class": "ldo_fixed",
+   "projects": 619,
+   "repos": 372,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "MIC5225": {
+   "class": "ldo_fixed",
+   "projects": 16,
+   "repos": 12,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "MIC5219": {
+   "class": "ldo_fixed",
+   "projects": 84,
+   "repos": 66,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "AP7361": {
+   "class": "ldo_fixed",
+   "projects": 82,
+   "repos": 61,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "LM1117": {
+   "class": "ldo_fixed",
+   "projects": 584,
+   "repos": 393,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "XC6206": {
+   "class": "ldo_fixed",
+   "projects": 421,
+   "repos": 293,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "XC6220": {
+   "class": "ldo_fixed",
+   "projects": 70,
+   "repos": 59,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "XC6210": {
+   "class": "ldo_fixed",
+   "projects": 32,
+   "repos": 22,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "RT9080": {
+   "class": "ldo_fixed",
+   "projects": 48,
+   "repos": 41,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "RT9013": {
+   "class": "ldo_fixed",
+   "projects": 30,
+   "repos": 18,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "ME6211": {
+   "class": "ldo_fixed",
+   "projects": 91,
+   "repos": 63,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "MCP1700": {
+   "class": "ldo_fixed",
+   "projects": 309,
+   "repos": 207,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "MCP1702": {
+   "class": "ldo_fixed",
+   "projects": 64,
+   "repos": 28,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "MCP1703": {
+   "class": "ldo_fixed",
+   "projects": 91,
+   "repos": 68,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "MCP1825": {
+   "class": "ldo_fixed",
+   "projects": 44,
+   "repos": 33,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TLV1117": {
+   "class": "ldo_fixed",
+   "projects": 107,
+   "repos": 72,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TLV757": {
+   "class": "ldo_fixed",
+   "projects": 50,
+   "repos": 32,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TLV755": {
+   "class": "ldo_fixed",
+   "projects": 71,
+   "repos": 46,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TLV700": {
+   "class": "ldo_fixed",
+   "projects": 86,
+   "repos": 69,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "HT7333": {
+   "class": "ldo_fixed",
+   "projects": 39,
+   "repos": 29,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "NCP1117": {
+   "class": "ldo_fixed",
+   "projects": 403,
+   "repos": 243,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "LP2985": {
+   "class": "ldo_fixed",
+   "projects": 155,
+   "repos": 97,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "LP5907": {
+   "class": "ldo_fixed",
+   "projects": 115,
+   "repos": 61,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "SPX3819": {
+   "class": "ldo_fixed",
+   "projects": 145,
+   "repos": 99,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "LD1117": {
+   "class": "ldo_fixed",
+   "projects": 439,
+   "repos": 302,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TPS54620": {
+   "class": "buck_sync",
+   "projects": 4,
+   "repos": 4,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TPS54202": {
+   "class": "buck_sync",
+   "projects": 36,
+   "repos": 24,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TPS563200": {
+   "class": "buck_sync",
+   "projects": 31,
+   "repos": 24,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TPS562200": {
+   "class": "buck_sync",
+   "projects": 27,
+   "repos": 19,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TPS561201": {
+   "class": "buck_sync",
+   "projects": 35,
+   "repos": 12,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TPS62xxx": {
+   "class": "buck_sync",
+   "projects": 254,
+   "repos": 165,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "TLV6256x": {
+   "class": "buck_sync",
+   "projects": 95,
+   "repos": 64,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "AP6320x": {
+   "class": "buck_sync",
+   "projects": 124,
+   "repos": 92,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "AP63357": {
+   "class": "buck_sync",
+   "projects": 7,
+   "repos": 6,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "MP2315": {
+   "class": "buck_sync",
+   "projects": 7,
+   "repos": 7,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "MP2307": {
+   "class": "buck_sync",
+   "projects": 19,
+   "repos": 15,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "LMR36015": {
+   "class": "buck_sync",
+   "projects": 3,
+   "repos": 3,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "SY8089": {
+   "class": "buck_sync",
+   "projects": 57,
+   "repos": 26,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "SY8113": {
+   "class": "buck_sync",
+   "projects": 9,
+   "repos": 7,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "SY8120": {
+   "class": "buck_sync",
+   "projects": 13,
+   "repos": 10,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  },
+  "RT8059": {
+   "class": "buck_sync",
+   "projects": 1,
+   "repos": 1,
+   "kicad_measured": 0,
+   "eagle_measured": 0
+  }
+ },
+ "labels": {
+  "jlc": 103,
+  "reading": 13
+ }
+}

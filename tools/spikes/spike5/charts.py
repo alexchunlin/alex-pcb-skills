@@ -27,7 +27,7 @@ def clean_bars(board, title, sub, name, callout, bar=None):
     for i, v in enumerate(vals):
         a.text(v + 0.5, i, f"{v}", va="center", family="Roboto Mono", fontsize=10)
     if bar:
-        a.axvline(bar, color="#d9a521", linestyle="--", linewidth=1.5)
+        a.axvline(bar, color="#e6c229", linestyle="--", linewidth=1.5)
         a.text(bar + 0.4, len(arms) - 0.5, f"pass bar {bar}", fontsize=9, va="bottom")
     a.set_xlim(0, 50)
     a.set_xlabel("Seeds clean after pcb route auto, of 50")
@@ -40,9 +40,8 @@ def clean_bars(board, title, sub, name, callout, bar=None):
 
 def h2_rows():
     s = json.load(open(HERE / "h2-summary.json"))["rows"]
-    keep = [(k.split("|"), v) for k, v in s.items() if k.split("|")[3] in ("bypass", "vm_bypass", "vm_bulk") and k.split("|")[2] != "?"]
+    keep = [(k.split("|"), v) for k, v in s.items() if k.split("|")[3] in ("bypass", "vm_bypass") and "p-" not in k.split("|")[2]]
     keep.sort(key=lambda kv: (kv[0][0], kv[0][3], kv[0][2], kv[0][1]))
-    keep = keep[:22]
     fig, a = plt.subplots(figsize=(9, 0.34 * len(keep) + 1.6))
     orgs = sorted({k[1] for k, _ in keep})
     pal = ax_pal(len(orgs))
@@ -51,7 +50,7 @@ def h2_rows():
         a.plot([v["q25"], v["q75"]], [i, i], color=c, linewidth=2.0)
         a.plot([v["median"]], [i], marker="s", color=c, markersize=6)
     a.set_yticks(range(len(keep)))
-    a.set_yticklabels([f"{k[3]}  {k[2]}  {k[1]}  n {v['repos']} repos" for k, v in reversed(keep)], fontsize=8)
+    a.set_yticklabels([f"{k[3]}  {k[2]}  {k[1]}  {v['repos']} repos" for k, v in reversed(keep)], fontsize=8)
     a.set_xlabel("Pad-to-pad distance to the pin, mm (repo medians: median and IQR)")
     a.set_ylabel("Role, package, source")
     a.grid(axis="x", linestyle=(0, (2, 4)))
