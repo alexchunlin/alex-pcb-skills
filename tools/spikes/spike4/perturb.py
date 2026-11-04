@@ -3,6 +3,9 @@
 
   python3 -I tools/spikes/spike4/perturb.py gen   [--boards opus,sonnet,fable,opus2] [--n 20] [--workers 2]
   python3 -I tools/spikes/spike4/perturb.py route [--boards ...] [--workers 3] [--tag T]
+  python3 -I tools/spikes/spike4/perturb.py run   [--boards ...] [--k0 21] [--n 149] [--sigmas spike1] [--gen-workers 3]
+                                                [--workers 4] [--scratch /tmp/spike1/gen] [--tag spike1]
+  python3 -I tools/spikes/spike4/perturb.py noise --boards opus2 --k 3 [--reps 5] [--scratch ...] [--tag T]
 
 gen: per board the route bench's own input (archived project copied, footprints sorted, tracks and vias stripped, pours
 kept: route_bench.prep), then placement 0 (as archived) and n perturbed placements (perturb_kpy.py, sigma 1, 2, 3, 4 mm
@@ -12,6 +15,10 @@ route: each placement routed with the bench's `krt outer` config (KRT's default 
 kept, sizes exact, the full pass: `--quick 2` left 11 airwires on the archived opus2 placement, so its via count is not a
 label), measured as the bench measures; one row per placement in tools/bench/results/placements.jsonl with the placement
 as (ref, x, y, rot) so spike #1 can reuse it; a restart skips placements that already have a row. Scratch /tmp/spike4/perturb3/<board>/p<k>/.
+run (spike #1): gen and route pipelined, placements k0..n per board interleaved across boards, sigma per board from
+SIGMAS[--sigmas] (spike #1 tuned it per board from spike 4's clean rates), at most --workers KRT processes at once (the gen
+side runs no router). noise: one placement routed --reps times into krt-outer/rep<i>/ (label noise).
+Boards: the four rung-2 placements and `r1sonnet` (examples/rung1-zener-a2-sonnet, spike #1's generalisation probe).
 """
 import argparse, concurrent.futures as cf, datetime as dt, importlib.util, json, os, shutil, subprocess, sys
 from pathlib import Path
@@ -23,6 +30,17 @@ SCR = Path("/tmp/spike4/perturb3")
 CONFIG = "outer"   # route_bench config for the labels; outer_quick2 (KRT --quick 2) left 11 airwires on opus2 p0 where the full pass leaves 0
 _spec = importlib.util.spec_from_file_location("route_bench", ROOT / "tools/bench/route_bench.py")
 rb = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(rb)
+rb.BOARDS.setdefault("r1sonnet", "examples/rung1-zener-a2-sonnet/board")   # spike #1 (D): the rung-1 board, no shared parts
+# sigma (mm) per board, cycled by k: spike4 = 1, 2, 3, 4 everywhere; spike1 = tuned per board from spike 4's clean rates
+# (opus 7/21 with none clean at 4 mm, sonnet 5/21, opus2 8/21, fable 1/21: its archived placement leaves 6 airwires)
+SIGMAS = {"spike4": {}, "spike1": {"opus": [0.5, 1.0, 2.0, 3.0], "sonnet": [0.5, 1.0, 2.0, 3.0, 4.0], "opus2": [1.0, 2.0, 3.0, 4.0],
+                                   "fable": [0.25, 0.5, 1.0, 1.5], "r1sonnet": [0.5, 1.0, 2.0, 3.0]}}
+SIGMA_SET = "spike4"
+
+
+def sigma_of(board, k):
+    sig = SIGMAS[SIGMA_SET].get(board) or [1.0, 2.0, 3.0, 4.0]
+    return sig[(k - 1) % len(sig)]
 
 
 def sh(cmd):
@@ -71,7 +89,7 @@ def gen_one(board, k, b):
         # rejection by KiCad's own DRC: a placement whose stripped board has more plain errors than the archived one
         # (courtyard overlap, pad-to-pad clearance, copper to edge) is drawn again with the next seed; the box and
         # polygon tests in perturb_kpy.py catch most, some vendored courtyards leave the pins outside
-        sigma = 1.0 + (k - 1) % 4
+        sigma = sigma_of(board, k)
         base_err = overlap_errors(json.load(open(SCR / board / "p0" / "drc" / "drc.json"))["plain"]["by_type"].get("error", {}))
         for tries in range(12):
             seed = k + 1000 * tries
@@ -99,10 +117,19 @@ def gen_one(board, k, b):
     return meta
 
 
-def route_one(meta, tag):
+def route_one(meta, tag, sub=""):
+    return finish(meta, krt(meta, sub), tag, sub)
+
+
+def krt(meta, sub=""):
+    """The router call alone (the pipeline's KRT slot)."""
     pcb = Path(meta["pcb"])
-    out_dir = pcb.parent / f"krt-{CONFIG}"
-    rr = rb.run_router("krt", CONFIG, pcb, out_dir, 600)
+    out_dir = pcb.parent / f"krt-{CONFIG}" / sub if sub else pcb.parent / f"krt-{CONFIG}"
+    return rb.run_router("krt", CONFIG, pcb, out_dir, 600)
+
+
+def finish(meta, rr, tag, sub=""):
+    """Refill, measure with DRC, the row."""
     m = rb.measure(rr["board"], meta["settings"]) if rr.get("board") else {"error": rr.get("error", "no output")}
     row = {"ts": dt.datetime.now().isoformat(timespec="seconds"), "tag": tag, "router": "krt", "config": CONFIG,
            **{k: meta[k] for k in ("board", "k", "seed", "sigma", "moved", "conflicts", "signal_conflicts", "rounds", "nets",
@@ -118,18 +145,108 @@ def route_one(meta, tag):
         row["clean"] = bool(row["airwires"] == 0 and row["new_errors"] == 0)
     row["placement"] = meta["placement"]
     row["edges"] = meta["edges"]
+    if sub:
+        row["rep"] = sub
     return row
 
 
+def done_keys(tag):
+    """(board, k) that already have a row under this tag and config (a restart skips them)."""
+    done = set()
+    if OUT.exists():
+        for line in OUT.read_text().splitlines():
+            r = json.loads(line) if line.strip() else {}
+            if r.get("tag") == tag and r.get("config") == CONFIG and "error" not in r:
+                done.add((r["board"], r["k"]))
+    return done
+
+
+def fmt(row):
+    return (f"{row['board']} p{row['k']} sigma {row['sigma']} conflicts {row['conflicts']}/{row['signal_conflicts']} hpwl {row['hpwl_mm']} "
+            f"-> {'CLEAN' if row.get('clean') else 'open/new'} air {row.get('airwires')} sig vias {row.get('signal_vias')} vias {row.get('vias')} "
+            f"len {row.get('length_mm')} wall {row.get('wall_s')}")
+
+
+def run_pipeline(boards, k0, n, tag, gen_workers, workers):
+    """gen on gen_workers threads, each finished placement handed to a route pool of `workers` threads (the KRT cap)."""
+    import threading
+    bases = {b: base(b) for b in boards}
+    for b in boards:   # placement 0 first: it sets each board's error budget
+        gen_one(b, 0, bases[b])
+    done = done_keys(tag)
+    jobs = [(b, k) for k in range(k0, n + 1) for b in boards if (b, k) not in done]
+    lock = threading.Lock()
+    ahead = threading.Semaphore(workers + gen_workers)   # gen runs at most a few placements ahead of the router
+    with cf.ThreadPoolExecutor(gen_workers) as gx, cf.ThreadPoolExecutor(workers) as rx, cf.ThreadPoolExecutor(gen_workers) as mx, \
+            OUT.open("a") as fh:
+        routes = []
+
+        def measured(meta, rr):
+            try:
+                row = finish(meta, rr, tag)
+            except Exception as e:  # noqa: BLE001
+                print(f"{meta['board']} p{meta['k']} MEASURE ERROR {type(e).__name__}: {e}"[:300], flush=True)
+                return
+            with lock:
+                fh.write(json.dumps(row) + "\n"); fh.flush()
+                print(fmt(row), flush=True)
+
+        def routed(meta):
+            try:
+                rr = krt(meta)
+            except Exception as e:  # noqa: BLE001
+                print(f"{meta['board']} p{meta['k']} ROUTE ERROR {type(e).__name__}: {e}"[:300], flush=True)
+                return
+            finally:
+                ahead.release()
+            routes.append(mx.submit(measured, meta, rr))
+
+        def gen(b, k):
+            try:
+                m = gen_one(b, k, bases[b])
+            except Exception as e:  # noqa: BLE001
+                print(f"{b} p{k} GEN ERROR {type(e).__name__}: {e}"[:300], flush=True)
+                ahead.release()
+                return
+            routes.append(rx.submit(routed, m))
+
+        futs = []
+        for b, k in jobs:
+            ahead.acquire()
+            futs.append(gx.submit(gen, b, k))
+        for f in futs:
+            f.result()
+        rx.shutdown(wait=True)   # every route has handed its measure on
+        mx.shutdown(wait=True)   # before the results file closes
+
+
 def main():
+    global SCR, SIGMA_SET
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["gen", "route"])
+    ap.add_argument("cmd", choices=["gen", "route", "run", "noise"])
     ap.add_argument("--boards", default="opus,sonnet,fable,opus2")
     ap.add_argument("--n", type=int, default=20)
     ap.add_argument("--workers", type=int, default=2)
     ap.add_argument("--tag", default="spike4-h1")
+    ap.add_argument("--k0", type=int, default=1, help="run: first placement index")
+    ap.add_argument("--gen-workers", type=int, default=3)
+    ap.add_argument("--sigmas", default="spike4", choices=sorted(SIGMAS))
+    ap.add_argument("--scratch", default=str(SCR))
+    ap.add_argument("--k", type=int, help="noise: the placement routed --reps times")
+    ap.add_argument("--reps", type=int, default=5)
     a = ap.parse_args()
+    SCR, SIGMA_SET = Path(a.scratch), a.sigmas
     boards = a.boards.split(",")
+    if a.cmd == "run":
+        run_pipeline(boards, a.k0, a.n, a.tag, a.gen_workers, a.workers)
+        return
+    if a.cmd == "noise":
+        meta = json.load(open(SCR / boards[0] / f"p{a.k}" / "meta.json"))
+        with cf.ThreadPoolExecutor(a.workers) as ex, OUT.open("a") as fh:
+            for row in ex.map(lambda i: route_one(meta, a.tag, f"rep{i}"), range(1, a.reps + 1)):
+                fh.write(json.dumps(row) + "\n"); fh.flush()
+                print(fmt(row), flush=True)
+        return
     if a.cmd == "gen":
         bases = {b: base(b) for b in boards}
         with cf.ThreadPoolExecutor(a.workers) as ex:   # placement 0 first: it sets each board's error budget
