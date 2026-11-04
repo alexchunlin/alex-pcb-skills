@@ -360,4 +360,4 @@ The null in the issue reads "no better than uniform, or worse than KRT's `py_pla
 - A pre-registered r2 rerun with tight roles drawn first. The 35/50 is post-hoc.
 - The Altium arm, dropped by the issue.
 
-verify_all and replay results are recorded at the end of this file once they are in.
+verify_all `--changed`: 31 passed, 0 failed (units 30, 32, 34, verify_select). Section 34 reads committed rows and summaries only, no routing. `python3 -I tools/bench/replay.py`: 24 labels, recall 14 of 17 catchable, 0 false fails.
