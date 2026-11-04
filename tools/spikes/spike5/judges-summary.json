@@ -76,5 +76,18 @@
   "currents_fails": 2,
   "feeds_fails": 2,
   "decoupling_fails": 1
+ },
+ "class_rerun": {
+  "n": 5,
+  "clean": 1,
+  "signal_vias": 48,
+  "length_mm": 656.7,
+  "vin_mW": 112.8,
+  "bucket3_off_mm": 0.2,
+  "return_via_bad": 10,
+  "exposure_mm": 0.8,
+  "currents_fails": 4,
+  "feeds_fails": 3,
+  "decoupling_fails": 3
  }
 }
