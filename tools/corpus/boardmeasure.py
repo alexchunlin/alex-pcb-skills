@@ -243,8 +243,6 @@ def measure_roles(job, b=None):
     xs, ys = [q[0] for q in pts], [q[1] for q in pts]
     mx, my = (max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2
     p1 = next((p for p in pads if p.GetNumber() in ("1", "A1", "P$1", "P1")), None)
-    if p1 is None:
-        return {"ok": False, "why": "no pad 1"}
     c0 = {i: (q[0] - mx, q[1] - my) for i, q in raw.items()}
     qr = abs(ic.GetOrientationDegrees() % 90) < 1e-3
     swap0 = qr and abs(ic.GetOrientationDegrees() % 180 - 90) < 1e-3
@@ -256,13 +254,19 @@ def measure_roles(job, b=None):
         return (h, w) if swap0 else (w, h)
 
     hx, hy = (max(xs) - min(xs)) / 2, (max(ys) - min(ys)) / 2
-    pad1_central = abs(c0[id(p1)][0]) < 0.25 * hx and abs(c0[id(p1)][1]) < 0.25 * hy    # a library that numbers the thermal pad 1
+    # a library that numbers the thermal pad 1, or names pads by pin: no canonical turn, the pin frame needs none
+    pad1_central = p1 is None or (abs(c0[id(p1)][0]) < 0.25 * hx and abs(c0[id(p1)][1]) < 0.25 * hy)
     k = 0 if pad1_central else canon_turn(c0[id(p1)], local_size(p1), hx, hy)
     canon = {i: rotk(q[0], q[1], k) for i, q in c0.items()}
+    # a back-side footprint's GetFPRelativePosition keeps the flip, so frame() leaves it mirrored: pad 1 lands bottom left
+    mir = bool(p1 is not None and flipped and canon[id(p1)][1] > 0 and not pad1_central)
+    if mir:
+        canon = {i: (q[0], -q[1]) for i, q in canon.items()}
 
     def to_canon(pt):
         x, y = to_local(m, ToMM(pt.x - pos.x), ToMM(pt.y - pos.y))
-        return rotk(x - mx, y - my, k)
+        x, y = rotk(x - mx, y - my, k)
+        return (x, -y) if mir else (x, y)
 
     areas, tht = [], 0
     for p in pads:
@@ -351,7 +355,7 @@ def measure_roles(job, b=None):
         seen_ref.add((r["role"], r["ref"]))
         out.append(r)
     return {"ok": True, "ic_ref": ic.GetReference(), "ic_fpid": str(ic.GetFPID().GetLibItemName())[:60], "pkg": key, "ext": ext, "ep": ep, "n_pads": len(pads), "tht": tht,
-            "turn": k, "pad1": [round(x, 2) for x in canon[id(p1)]], "pad1_central": pad1_central, "flipped": flipped, "rows": out, "roles_seen": sorted({v[0] for v in roles.values()}),
+            "turn": k, "pad1": [round(x, 2) for x in canon[id(p1)]] if p1 is not None else [0, 0], "pad1_central": pad1_central, "flipped": flipped, "rows": out, "roles_seen": sorted({v[0] for v in roles.values()}),
             "no_pin_name": no_fn, "n_footprints": len(fps)}
 
 

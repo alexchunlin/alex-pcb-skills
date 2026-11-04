@@ -14,9 +14,33 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-PKG_NAME = {"14p-2.5x2.0": "LGA-14 (3x2.5)", "16p-2.5x2.5": "LGA-16 (3x3)", "24p-4.0x4.0-ep": "QFN-24 (4x4)", "24p-3.0x3.0-ep": "QFN-24 (3x3)", "16p-5.5x4.5-ep": "HTSSOP-16",
-            "12p-2.5x2.0-ep": "WSON-12", "24p-7.0x7.0": "SSOP-24", "24p-7.5x7.0": "SSOP-24", "8p-5.5x4.0-ep": "HSOP-8", "16p-2.5x2.0": "LGA-16 (2.5x3)"}
 MAX_EXT = {"imu6": 6.5, "hbridge": 16.0}
+
+
+def family(pkg):
+    """A package family from the key: the importers' pad-extent noise (LGA-14 reads 2.32 to 2.72 mm by library) must not split a package."""
+    import re
+    m = re.match(r"(\d+)p-([\d.]+)x([\d.]+)", pkg)
+    n, w, h = int(m.group(1)), float(m.group(2)), float(m.group(3))
+    if n == 14 and w <= 3.0 and h <= 2.5:
+        return "LGA-14"
+    if n == 16 and w <= 3.0 and h <= 3.0:
+        return "LGA-16"
+    if n == 16 and 5.0 <= w <= 6.5 and 4.0 <= h <= 5.0:
+        return "HTSSOP-16"
+    if n == 24 and w <= 3.5:
+        return "QFN-24 3x3"
+    if n == 24 and 3.5 < w <= 4.5:
+        return "QFN-24 4x4"
+    if n == 24 and 6.5 <= w <= 8.5:
+        return "SSOP-24"
+    if n == 12 and w <= 3.5:
+        return "WSON-12"
+    if n == 8 and "-ep" in pkg and 5.0 <= w <= 6.5:
+        return "HSOP-8"
+    if n == 8 and 2.0 <= w <= 3.5 and h <= 2.5:
+        return "SON-8"
+    return pkg
 
 
 def q(xs, p):
@@ -76,7 +100,7 @@ def table(a):
         for x in r["rows"]:
             if x["back"]:
                 continue
-            cells[(r["cls"], org, r["pkg"], x["role"])].append((r["repo"], x["d_pad"]))
+            cells[(r["cls"], org, family(r["pkg"]), x["role"])].append((r["repo"], x["d_pad"]))
             fams[(r["cls"], x["role"], "class")].append((r["repo"], x["d_pad"]))
     out = {"instances": {f"{c}|{o}": v for (c, o), v in sorted(insts.items())}, "rows": {}, "pairs": [], "class_rows": {}}
     published = {}
