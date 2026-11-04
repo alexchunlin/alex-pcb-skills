@@ -111,8 +111,28 @@ def summary():
             bu = c > u and fp[(arm, "uniform")]["fisher_p"] < 0.05
             kp = fp[(arm, "krt")]["fisher_p"]
             nl = (c > k and kp < 0.05) if k >= 33 else not (k > c and kp < 0.05)
-            verdicts[arm] = {"clean": c, "at_28": c >= 28, "beats_uniform": bu, "not_lose_krt": nl, "pass": bool(c >= 28 and bu and nl)}
+            verdicts[arm] = {"clean": c, "at_28": c >= 28, "beats_uniform": bu, "clears_krt_rule": nl, "pass": bool(c >= 28 and bu and nl)}
     out["r1_verdicts"] = verdicts
+    r2 = out["r2"]["arms"]
+    if "class" in r2 and "perturb" in r2:
+        c, u = r2["class"], r2["uniform"]
+        rows_lower = (c["decoupling_fail_mean"] + c["feeds_fail_mean"]) < (u["decoupling_fail_mean"] + u["feeds_fail_mean"])
+        lose = lambda o: r2[o]["clean"] > c["clean"] and fp[("class", o)]["fisher_p"] < 0.05
+        beats = c["clean"] > u["clean"] and fp[("class", "uniform")]["fisher_p"] < 0.05
+        rows_ok = rows_lower and fp[("class", "uniform")]["rows_ranksum_p"] < 0.05
+        out["r2_verdict"] = {"beats_uniform_clean": beats, "rows_beat_uniform": bool(rows_ok), "clears_krt_rule": not lose("krt"), "clears_krt_tpl_rule": not lose("krt_tpl"), "pass": bool(beats and rows_ok and not lose("krt") and not lose("krt_tpl")),
+                             "emitted_class_vs_uniform_p": round(fisher(c["clean"], u["clean"], c["emitted"], u["emitted"]), 5)}
+    # post-hoc, never in the /50 tables: r2's rejected seeds rerouted, class with a stuck part at the designer's pose, krt_tpl from ungated draws
+    sens = [json.loads(l) for l in open(RESULTS) if '"tag": "sens3"' in l or ('"tag": "sens"' in l and '"arm": "krt_tpl"' in l)]
+    if sens:
+        out["sensitivity"] = {}
+        for arm in ("class", "krt_tpl"):
+            rs = [x for x in sens if x["arm"] == arm and x["board"] == "r2"]
+            add = sum(bool(x.get("auto", {}).get("clean")) for x in rs)
+            base = r2[arm]["clean"]
+            out["sensitivity"][arm] = {"rerouted": len(rs), "emitted": sum(x["seed_ok"] for x in rs), "clean_added": add, "clean_total": base + add,
+                                       "fisher_vs_uniform_p": round(fisher(base + add, r2["uniform"]["clean"]), 5), "fisher_vs_perturb_p": round(fisher(base + add, r2["perturb"]["clean"]), 5),
+                                       "levels": sorted({str(v) for x in rs for v in (x.get("levels") or {}).values()})}
     return out
 
 
@@ -126,7 +146,7 @@ def table(s):
         print("\n| Comparison | Clean | Fisher p | Signal vias, medians | Rank-sum p | Rows rank-sum p |\n|---|---|---:|---|---:|---:|")
         for c in s[b]["comparisons"]:
             print(f"| `{c['a']}` vs `{c['b']}` | {c['clean'][0]} vs {c['clean'][1]} | {c['fisher_p']} | {c.get('sv_medians')} | {c.get('sv_ranksum_p')} | {c.get('rows_ranksum_p')} |")
-    print("\nverdicts", json.dumps(s.get("r1_verdicts")))
+    print("\nverdicts", json.dumps(s.get("r1_verdicts")), json.dumps(s.get("r2_verdict")), json.dumps(s.get("sensitivity")))
 
 
 def main():

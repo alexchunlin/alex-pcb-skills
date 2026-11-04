@@ -80,7 +80,7 @@ def seed_board(board, arm, seed, d, moved, a):
         if extra is None:
             extra = ["--pool", POOLS / f"{board}-{arm}.json"]
         mode = {"part": "prior", "uniform": "uniform", "perturb": "perturb"}.get(arm, "class")
-        sd = seed_place(board, src, out, mode, seed, moved, *extra)
+        sd = seed_place(board, src, out, mode, seed, moved, *extra, *(["--keep-stuck"] if a.keep_stuck else []))
         return sd, out if sd.get("ok") else None
     extra, intent = [], None
     if arm == "krt_tpl":
@@ -177,7 +177,7 @@ def cmd_run(a):
     todo = [(arm, s) for s in seeds for arm in a.arms.split(",") if (a.tag, a.board, arm, s) not in done]
     print(f"{a.board}: {len(todo)} to route, moved {pr['moved']}", flush=True)
     with cf.ThreadPoolExecutor(a.jobs) as ex:
-        for fu in cf.as_completed([ex.submit(one, a.board, arm, s, a, pr["moved"]) for arm, s in todo]):
+        for fu in cf.as_completed([ex.submit(one, a.board, arm, s, a, a.order.split(",") if a.order else pr["moved"]) for arm, s in todo]):
             fu.result()
 
 
@@ -206,6 +206,8 @@ def main():
     ap.add_argument("--template-weight", type=float, default=100.0)
     ap.add_argument("--results", default=str(RESULTS))
     ap.add_argument("--keep", action="store_true")
+    ap.add_argument("--order", help="the draw order of the moved parts, tightest role first (a sensitivity run, its own --tag)")
+    ap.add_argument("--keep-stuck", action="store_true", help="class: a part with no legal draw keeps the designer's pose (a sensitivity run, its own --tag)")
     ap.add_argument("--nogate", action="store_true", help="krt_tpl: template rows from the first draw, not gated (a sensitivity run, its own --tag)")
     a = ap.parse_args()
     {"run": cmd_run, "designer": cmd_designer}[a.cmd](a)

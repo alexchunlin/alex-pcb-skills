@@ -81,6 +81,7 @@ def judges():
         for i, v in enumerate(vals):
             a.text(v, i, f" {v}", va="center", family="Roboto Mono", fontsize=8)
         a.set_xlabel(lab + ", median")
+        a.set_ylabel("Arm")
         a.grid(axis="x", linestyle=(0, (2, 4)))
         a.grid(axis="y", visible=False)
     axs[0].set_ylabel("Arm")

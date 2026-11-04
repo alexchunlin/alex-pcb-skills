@@ -484,15 +484,46 @@
    "clean": 39,
    "at_28": true,
    "beats_uniform": true,
-   "not_lose_krt": false,
+   "clears_krt_rule": false,
    "pass": false
   },
   "class_pkg": {
    "clean": 33,
    "at_28": true,
    "beats_uniform": true,
-   "not_lose_krt": false,
+   "clears_krt_rule": false,
    "pass": false
+  }
+ },
+ "r2_verdict": {
+  "beats_uniform_clean": false,
+  "rows_beat_uniform": true,
+  "clears_krt_rule": true,
+  "clears_krt_tpl_rule": true,
+  "pass": false,
+  "emitted_class_vs_uniform_p": 0.01489
+ },
+ "sensitivity": {
+  "class": {
+   "rerouted": 14,
+   "emitted": 14,
+   "clean_added": 8,
+   "clean_total": 35,
+   "fisher_vs_uniform_p": 0.04143,
+   "fisher_vs_perturb_p": 0.52688,
+   "levels": [
+    "class",
+    "package"
+   ]
+  },
+  "krt_tpl": {
+   "rerouted": 15,
+   "emitted": 15,
+   "clean_added": 9,
+   "clean_total": 23,
+   "fisher_vs_uniform_p": 1.0,
+   "fisher_vs_perturb_p": 0.15985,
+   "levels": []
   }
  }
 }

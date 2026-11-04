@@ -14,6 +14,7 @@ class:   spike 5. pool.json holds, per moved ref, its target pad and samples [du
 perturb: spike 5. The designer's x, y plus N(0, sigma) per axis, the rotation kept.
 gate:    spike 5, no draw: report whether a placed board's moved parts pass this same courtyard-box gate (the KRT arms).
 --dry prints the poses and writes no board (the templates arm feeds them to KRT). --nogate keeps the first draw, legal or not.
+--keep-stuck leaves a part with no legal draw at the designer's pose instead of rejecting the seed.
 All reject a draw whose courtyard box overlaps another footprint's or leaves the outline box (up to 500 draws per part).
 Prints one JSON line: {ok, draws, moved: {ref: [x, y, rot]}}.
 """
@@ -125,6 +126,7 @@ def main():
     sigma = float(arg("--sigma", "1.0"))
     start = {r: (ToMM(fps[r].GetPosition().x), ToMM(fps[r].GetPosition().y), fps[r].GetOrientationDegrees()) for r in move}
     placed, draws, levels = {}, 0, {}
+    n_locked = len(fixed)
     for ref in move:
         f = fps[ref]
         nets = [p.GetNetname() for p in f.Pads()]
@@ -169,6 +171,16 @@ def main():
                 levels[ref] = lvl
             break
         else:
+            if "--keep-stuck" in sys.argv:   # spike 5 sensitivity: a part with no legal draw keeps the designer's pose
+                f.SetPosition(pcbnew.VECTOR2I(FromMM(start[ref][0]), FromMM(start[ref][1])))
+                f.SetOrientationDegrees(start[ref][2])
+                bx = cy_box(f)
+                # against the parts this seed moved only: the designer's own pose may touch a neighbour's box, and that is hers
+                if not any(overlap(bx, mb) for mb in fixed[n_locked:]):
+                    fixed.append(bx)
+                    placed[ref] = [round(start[ref][0], 3), round(start[ref][1], 3), start[ref][2]]
+                    levels[ref] = "designer"
+                    continue
             print(json.dumps({"ok": False, "draws": draws, "why": f"{ref}: no legal draw in 500"}))
             return
     if "--dry" not in sys.argv:
