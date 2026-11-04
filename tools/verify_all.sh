@@ -712,6 +712,37 @@ pl=$(jq_ "$RS/b.json" "' | '.join(r['status'] + ' ' + r['msg'][:200] for r in d[
 case "$pl" in "fail U3 (AMS1117-3.3): C bulk from VOUT"*"mm pad to pad (corpus p90 0.5)"*"fail U3 (AMS1117-3.3): no L - from VOUT"*) ok "planted refstat rows fail: a 0.5 mm limit on the VOUT bulk cap, and an inductor no design here has" ;; *) bad "planted refstat rows: $pl" ;; esac
 fi  #@ end 32
 
+if want 33; then  #@ watch: tools/spikes/spike1/** tools/bench/results/placements.jsonl tools/bench/results/spike1_rank.json examples/rung2-zener-a2-opus/board/**
+echo "== 33 placement surrogate (spike #1): the rank test from the committed rows, and the features recomputed on the attempt-2 board"
+T1="$V/spike1"; mkdir -p "$T1"
+# the rank test needs numpy and scikit-learn: the repo's .venv (in a worktree, the main checkout's), or SPIKE1_PY
+PY1="${SPIKE1_PY:-$ROOT/.venv/bin/python3}"
+[ -x "$PY1" ] || PY1="$(cd "$(git -C "$ROOT" rev-parse --git-common-dir 2>/dev/null)/.." 2>/dev/null && pwd)/.venv/bin/python3"
+if [ -x "$PY1" ] && "$PY1" -c "import sklearn, scipy, matplotlib" 2>/dev/null; then
+  # every number in tools/bench/results/spike1_rank.json from the rows in placements.jsonl (no routing, about 20 s)
+  "$PY1" -I "$ROOT/tools/spikes/spike1/rank.py" --check > "$T1/rank.txt" 2>&1 && ok "rank test reproduces spike1_rank.json from the committed placement rows" \
+    || bad "rank test: $(grep -v Warn "$T1/rank.txt" | tail -2 | tr '\n' ' ')"
+  # the features: the archived attempt-2 placement's stored features recomputed from a fresh stripped copy of the board
+  cp "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pro" "$T1/"
+  $PCB route canon "$T1/motor1.kicad_pcb" > /dev/null 2>&1; $PCB route strip "$T1/motor1.kicad_pcb" > /dev/null 2>&1
+  $PCB py "$ROOT/tools/spikes/spike1/board_kpy.py" "$T1/motor1.kicad_pcb" "$T1/static.json" > /dev/null 2>&1
+  "$PY1" -I -c "
+import json, sys; sys.path.insert(0, '$ROOT/tools/spikes/spike1'); import features as F, surrogate as S
+st = json.load(open('$T1/static.json'))
+r = next(r for r in S.load() if r['board'] == 'opus2' and r['k'] == 0)
+dec = json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json'))['decoupling']
+f = F.features(st, r['placement'], dec, (r['conflicts'], r['signal_conflicts']))
+bad = [k for k in S.FEATS if abs(f[k] - r['feat'][k]) > 1e-6]
+assert not bad, bad
+assert abs(f['hpwl'] - r['hpwl_mm']) < 1e-3, (f['hpwl'], r['hpwl_mm'])
+print(f['hpwl'], f['conflicts'], f['pads_off_pour'])" > "$T1/feat.txt" 2>&1 \
+    && ok "features: the attempt-2 placement's 18 stored features recomputed from a fresh copy (HPWL equals pcb q conflicts' $(cut -d' ' -f1 "$T1/feat.txt") mm)" \
+    || bad "features recomputed: $(tail -1 "$T1/feat.txt")"
+else
+  nochecks "spike 1 rank test: no python with scikit-learn (repo .venv or SPIKE1_PY)"
+fi
+fi  #@ end 33
+
 #@ plumbing
 # per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
 # Under --changed, each by its # watch: header.
