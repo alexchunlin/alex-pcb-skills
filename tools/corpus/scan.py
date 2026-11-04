@@ -9,6 +9,9 @@ executed, and the committed index holds hits only (no file contents).
   $PY -I tools/corpus/scan.py boards [--parts AMS1117-3.3,LSM6DS3]   # pass 2: pcb_files of the shards with hits
   python3 -I tools/corpus/scan.py licences                         # one GraphQL query per 50 repos: SPDX id per hit
   python3 -I tools/corpus/scan.py summary
+  $PY -I tools/corpus/scan.py index --classes --work /tmp/spike5-corpus/kicad   # spike 5: the same pass over the sibling
+                                                                     # parts of tools/bench/data/class-table.json, into
+                                                                     # corpus-class-index.jsonl, not PART_RX or corpus-index
 
 Pass 1 reads three small columns per shard (about 2 MB of the shard's 80 to 400 MB; the boards and renders are the rest)
 and finds placed symbols by lib_id or Value (v6+ s-expression schematics: the instances after `lib_symbols`; legacy
@@ -30,6 +33,20 @@ sys.path.insert(0, str(ROOT / "skills/kicad-design/scripts"))
 from pcbrefstat import PART_RX as PARTS  # noqa: E402
 COMMON = ["AMS1117-3.3", "LSM6DS3", "ESP32-WROOM-32", "ESP32-S3-WROOM-1"]
 RX = {p: re.compile(r, re.I) for p, r in PARTS.items()}
+
+
+def use_classes():
+    """Spike 5: point the scanner at the class table. Part names stay unique across classes; `class` joins each row later."""
+    global INDEX, PARTS, RX, COMMON, IC_VALUES
+    tab = json.load(open(ROOT / "tools/bench/data/class-table.json"))["classes"]
+    PARTS = {p: r for c in tab.values() for p, r in c.items()}
+    RX = {p: re.compile(r, re.I) for p, r in PARTS.items()}
+    INDEX = ROOT / "tools/bench/data/corpus-class-index.jsonl"
+    COMMON = []
+    IC_VALUES = {}
+
+
+IC_VALUES = None    # class mode: distinct IC symbol names and values, for the misses pass (counts only, kept under --work)
 
 
 def sexp_end(text: str, start: int) -> int:
@@ -130,7 +147,13 @@ def scan_shard(shard: int, work: Path):
         kinds[kind] = kinds.get(kind, 0) + 1
         if kind == "other":
             continue
-        hits = match_parts(placed_symbols(text, kind))
+        syms = placed_symbols(text, kind)
+        if IC_VALUES is not None:
+            for ref, lib, val in syms:
+                if re.match(r"(U|IC)\d", ref):
+                    for t in {lib.split(":")[-1], val}:
+                        IC_VALUES[t] = IC_VALUES.get(t, 0) + 1
+        hits = match_parts(syms)
         if not hits:
             continue
         ext = r.get("extensions_used") or []
@@ -189,11 +212,15 @@ def cmd_index(a):
             if n % 20 == 0:
                 state["seconds"] += time.time() - t0; t0 = time.time()
                 json.dump(state, open(state_p, "w")); save_index(rows)
+                if IC_VALUES is not None:
+                    json.dump(dict(IC_VALUES), open(work / f"ic-values-{lo}.json", "w"))
                 print(f"{len(state['done'])} shards, {state['rows']} rows: " + ", ".join(f"{p} {projects(p)}" for p in PARTS), flush=True)
-            if all(projects(p) >= a.target for p in COMMON):
+            if COMMON and all(projects(p) >= a.target for p in COMMON):
                 print("stop rule: every common part at target"); ex.shutdown(cancel_futures=True); break
     state["seconds"] += time.time() - t0
     json.dump(state, open(state_p, "w")); save_index(rows)
+    if IC_VALUES is not None:
+        json.dump(dict(IC_VALUES), open(work / f"ic-values-{lo}.json", "w"))
     print(f"done: {len(state['done'])} shards, {state['rows']} rows, {state['seconds']:.0f} s; kinds {state['kinds']}")
 
 
@@ -220,8 +247,8 @@ def pick_board(pcbs, part, refs):
 def cmd_boards(a):
     work = Path(a.work)
     rows = load_index()
-    parts = a.parts.split(",")
-    caps = {p: (10 ** 9 if p in ("LSM6DS3", "DRV8874", "TPS54620") else a.cap) for p in parts}
+    parts = sorted({r["part"] for r in rows}) if a.parts == "all" else a.parts.split(",")
+    caps = {p: (10 ** 9 if p in ("LSM6DS3", "DRV8874", "TPS54620") or a.cap <= 0 else a.cap) for p in parts}
     want, seen = {}, {p: 0 for p in parts}
     for r in rows:
         if r["part"] in parts and r["has_pcb_ext"] and seen[r["part"]] < caps[r["part"]]:
@@ -312,9 +339,12 @@ def main(argv):
     ap.add_argument("--jobs", type=int, default=6)
     ap.add_argument("--target", type=int, default=200)
     ap.add_argument("--parts", default="AMS1117-3.3,LSM6DS3,ESP32-WROOM-32,ESP32-S3-WROOM-1")
+    ap.add_argument("--classes", action="store_true", help="spike 5: the class table and corpus-class-index.jsonl (--parts all, --cap 0: no cap)")
     ap.add_argument("--no-apply", action="store_true", help="licences: query and cache only (another pass is writing the index)")
     ap.add_argument("--cap", type=int, default=300, help="board-bearing hits per common part to fetch boards for")
     a = ap.parse_args(argv)
+    if a.classes:
+        use_classes()
     {"index": cmd_index, "boards": cmd_boards, "licences": cmd_licences, "summary": cmd_summary}[a.mode](a)
 
 
