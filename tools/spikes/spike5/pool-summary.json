@@ -1,0 +1,241 @@
+{
+ "r1-class_part": {
+  "C1": {
+   "role": "bypass",
+   "used_role": "bypass",
+   "levels": {
+    "package": {
+     "n": 299,
+     "repos": 140,
+     "weight": 1.0
+    },
+    "class": {
+     "n": 533,
+     "repos": 260,
+     "weight": 0.0
+    }
+   },
+   "d_median": 2.03,
+   "d_q25": 1.6,
+   "d_q75": 4.09
+  },
+  "C2": {
+   "role": "bypass",
+   "used_role": "bypass",
+   "levels": {
+    "package": {
+     "n": 299,
+     "repos": 140,
+     "weight": 1.0
+    },
+    "class": {
+     "n": 533,
+     "repos": 260,
+     "weight": 0.0
+    }
+   },
+   "d_median": 2.03,
+   "d_q25": 1.6,
+   "d_q75": 4.09
+  },
+  "C3": {
+   "role": "bulk",
+   "used_role": "bulk",
+   "levels": {
+    "package": {
+     "n": 231,
+     "repos": 123,
+     "weight": 1.0
+    },
+    "class": {
+     "n": 402,
+     "repos": 221,
+     "weight": 0.0
+    }
+   },
+   "d_median": 8.95,
+   "d_q25": 3.48,
+   "d_q75": 18.63
+  }
+ },
+ "r1-class_pkg": {
+  "C1": {
+   "role": "bypass",
+   "used_role": "bypass",
+   "levels": {
+    "package": {
+     "n": 0,
+     "repos": 0,
+     "weight": 0.0
+    },
+    "class": {
+     "n": 234,
+     "repos": 130,
+     "weight": 1.0
+    }
+   },
+   "d_median": 2.13,
+   "d_q25": 1.47,
+   "d_q75": 3.82
+  },
+  "C2": {
+   "role": "bypass",
+   "used_role": "bypass",
+   "levels": {
+    "package": {
+     "n": 0,
+     "repos": 0,
+     "weight": 0.0
+    },
+    "class": {
+     "n": 234,
+     "repos": 130,
+     "weight": 1.0
+    }
+   },
+   "d_median": 2.13,
+   "d_q25": 1.47,
+   "d_q75": 3.82
+  },
+  "C3": {
+   "role": "bulk",
+   "used_role": "bulk",
+   "levels": {
+    "package": {
+     "n": 0,
+     "repos": 0,
+     "weight": 0.0
+    },
+    "class": {
+     "n": 171,
+     "repos": 110,
+     "weight": 1.0
+    }
+   },
+   "d_median": 9.15,
+   "d_q25": 5.56,
+   "d_q75": 16.47
+  }
+ },
+ "r2-class": {
+  "C10": {
+   "role": "vm_bypass",
+   "used_role": "vm_bypass",
+   "levels": {
+    "package": {
+     "n": 37,
+     "repos": 16,
+     "weight": 1.0
+    },
+    "class": {
+     "n": 229,
+     "repos": 119,
+     "weight": 0.0
+    }
+   },
+   "d_median": 3.28,
+   "d_q25": 2.44,
+   "d_q75": 5.08
+  },
+  "C11": {
+   "role": "vm_bulk",
+   "used_role": "vm_bulk",
+   "levels": {
+    "package": {
+     "n": 54,
+     "repos": 34,
+     "weight": 1.0
+    },
+    "class": {
+     "n": 288,
+     "repos": 146,
+     "weight": 0.0
+    }
+   },
+   "d_median": 6.66,
+   "d_q25": 4.39,
+   "d_q75": 7.59
+  },
+  "R10": {
+   "role": "current_mirror",
+   "used_role": "current_mirror",
+   "levels": {
+    "package": {
+     "n": 0,
+     "repos": 0,
+     "weight": 0.0
+    },
+    "class": {
+     "n": 6,
+     "repos": 5,
+     "weight": 1.0
+    }
+   },
+   "d_median": 3.89,
+   "d_q25": 3.03,
+   "d_q75": 6.04
+  },
+  "C12": {
+   "role": "cp_res",
+   "used_role": "cp_res",
+   "levels": {
+    "package": {
+     "n": 44,
+     "repos": 28,
+     "weight": 1.0
+    },
+    "class": {
+     "n": 54,
+     "repos": 36,
+     "weight": 0.0
+    }
+   },
+   "d_median": 3.07,
+   "d_q25": 2.48,
+   "d_q75": 3.89
+  },
+  "C13": {
+   "role": "cp_fly",
+   "used_role": "cp_fly",
+   "levels": {
+    "package": {
+     "n": 0,
+     "repos": 0,
+     "weight": 0.0
+    },
+    "class": {
+     "n": 7,
+     "repos": 7,
+     "weight": 1.0
+    }
+   },
+   "d_median": 1.95,
+   "d_q25": 1.69,
+   "d_q75": 2.65
+  }
+ },
+ "r2_moved_rule": {
+  "cp_res": {
+   "n": 54,
+   "repos": 36,
+   "parts": {
+    "L6205": 1,
+    "DRV8833": 47,
+    "DRV8873": 3,
+    "DRV8876": 2,
+    "HR8833": 1
+   },
+   "joins": true
+  },
+  "cp_fly": {
+   "n": 7,
+   "repos": 7,
+   "parts": {
+    "DRV8873": 3,
+    "DRV8876": 3,
+    "DRV8801": 1
+   },
+   "joins": true
+  }
+ }
+}

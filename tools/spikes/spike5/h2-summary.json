@@ -1,0 +1,2150 @@
+{
+ "instances": {
+  "hbridge|adafruit": 9,
+  "hbridge|kicad": 233,
+  "hbridge|sparkfun": 17,
+  "hbridge|third-party": 180,
+  "imu6|adafruit": 12,
+  "imu6|kicad": 324,
+  "imu6|sparkfun": 11,
+  "imu6|third-party": 160
+ },
+ "rows": {
+  "hbridge|adafruit|SSOP-24|vcc_bulk": {
+   "n": 7,
+   "repos": 4,
+   "median": 6.19,
+   "q25": 4.51,
+   "q75": 7.55,
+   "p90": 8.3
+  },
+  "hbridge|adafruit|SSOP-24|vcc_bypass": {
+   "n": 6,
+   "repos": 3,
+   "median": 10.21,
+   "q25": 7.41,
+   "q75": 11.73,
+   "p90": 12.64
+  },
+  "hbridge|adafruit|SSOP-24|vm_bulk": {
+   "n": 13,
+   "repos": 4,
+   "median": 10.56,
+   "q25": 8.24,
+   "q75": 12.75,
+   "p90": 16.3
+  },
+  "hbridge|kicad|6p-1.5x1.0|vm_bulk": {
+   "n": 7,
+   "repos": 3,
+   "median": 21.36,
+   "q25": 12.86,
+   "q75": 25.98,
+   "p90": 28.76
+  },
+  "hbridge|kicad|6p-1.5x1.0|vm_bypass": {
+   "n": 8,
+   "repos": 4,
+   "median": 2.08,
+   "q25": 1.94,
+   "q75": 2.34,
+   "p90": 2.61
+  },
+  "hbridge|kicad|HSOP-8|shunt": {
+   "n": 8,
+   "repos": 4,
+   "median": 4.14,
+   "q25": 3.42,
+   "q75": 5.36,
+   "p90": 6.66
+  },
+  "hbridge|kicad|HSOP-8|vm_bulk": {
+   "n": 15,
+   "repos": 7,
+   "median": 9.98,
+   "q25": 6.85,
+   "q75": 16.81,
+   "p90": 38.4
+  },
+  "hbridge|kicad|HSOP-8|vm_bypass": {
+   "n": 13,
+   "repos": 8,
+   "median": 2.42,
+   "q25": 2.03,
+   "q75": 3.43,
+   "p90": 6.73
+  },
+  "hbridge|kicad|HTSSOP-16|cp_fly": {
+   "n": 12,
+   "repos": 7,
+   "median": 2.67,
+   "q25": 1.98,
+   "q75": 2.94,
+   "p90": 3.03
+  },
+  "hbridge|kicad|HTSSOP-16|cp_res": {
+   "n": 24,
+   "repos": 15,
+   "median": 3.26,
+   "q25": 2.48,
+   "q75": 3.58,
+   "p90": 4.75
+  },
+  "hbridge|kicad|HTSSOP-16|current_mirror": {
+   "n": 6,
+   "repos": 5,
+   "median": 4.13,
+   "q25": 2.84,
+   "q75": 4.13,
+   "p90": 4.15
+  },
+  "hbridge|kicad|HTSSOP-16|limit_setting": {
+   "n": 7,
+   "repos": 4,
+   "median": 4.61,
+   "q25": 4.19,
+   "q75": 7.96,
+   "p90": 13.99
+  },
+  "hbridge|kicad|HTSSOP-16|shunt": {
+   "n": 11,
+   "repos": 4,
+   "median": 3.51,
+   "q25": 2.8,
+   "q75": 4.23,
+   "p90": 4.36
+  },
+  "hbridge|kicad|HTSSOP-16|vcc_bulk": {
+   "n": 24,
+   "repos": 9,
+   "median": 3.38,
+   "q25": 2.61,
+   "q75": 3.99,
+   "p90": 10.4
+  },
+  "hbridge|kicad|HTSSOP-16|vm_bulk": {
+   "n": 29,
+   "repos": 18,
+   "median": 7.28,
+   "q25": 5.13,
+   "q75": 23.45,
+   "p90": 29.01
+  },
+  "hbridge|kicad|HTSSOP-16|vm_bypass": {
+   "n": 29,
+   "repos": 15,
+   "median": 3.31,
+   "q25": 2.84,
+   "q75": 4.62,
+   "p90": 5.05
+  },
+  "hbridge|kicad|LGA-16|shunt": {
+   "n": 9,
+   "repos": 3,
+   "median": 1.72,
+   "q25": 1.47,
+   "q75": 2.17,
+   "p90": 2.45
+  },
+  "hbridge|kicad|LGA-16|vm_bulk": {
+   "n": 10,
+   "repos": 6,
+   "median": 4.13,
+   "q25": 2.53,
+   "q75": 18.66,
+   "p90": 53.73
+  },
+  "hbridge|kicad|LGA-16|vm_bypass": {
+   "n": 6,
+   "repos": 4,
+   "median": 1.74,
+   "q25": 1.49,
+   "q75": 2.49,
+   "p90": 3.54
+  },
+  "hbridge|kicad|SON-8|vcc_bulk": {
+   "n": 16,
+   "repos": 10,
+   "median": 12.24,
+   "q25": 3.55,
+   "q75": 20.27,
+   "p90": 34.65
+  },
+  "hbridge|kicad|SON-8|vcc_bypass": {
+   "n": 21,
+   "repos": 11,
+   "median": 2.45,
+   "q25": 2.01,
+   "q75": 4.27,
+   "p90": 11.83
+  },
+  "hbridge|kicad|SON-8|vm_bulk": {
+   "n": 11,
+   "repos": 7,
+   "median": 2.81,
+   "q25": 2.21,
+   "q75": 28.16,
+   "p90": 42.02
+  },
+  "hbridge|kicad|SON-8|vm_bypass": {
+   "n": 14,
+   "repos": 8,
+   "median": 1.75,
+   "q25": 1.36,
+   "q75": 2.21,
+   "p90": 3.52
+  },
+  "hbridge|kicad|SSOP-24|vcc_bulk": {
+   "n": 32,
+   "repos": 24,
+   "median": 7.54,
+   "q25": 3.99,
+   "q75": 18.91,
+   "p90": 46.35
+  },
+  "hbridge|kicad|SSOP-24|vcc_bypass": {
+   "n": 32,
+   "repos": 24,
+   "median": 6.3,
+   "q25": 3.55,
+   "q75": 17.73,
+   "p90": 43.48
+  },
+  "hbridge|kicad|SSOP-24|vm_bulk": {
+   "n": 61,
+   "repos": 27,
+   "median": 8.12,
+   "q25": 4.68,
+   "q75": 20.85,
+   "p90": 39.51
+  },
+  "hbridge|kicad|SSOP-24|vm_bypass": {
+   "n": 47,
+   "repos": 25,
+   "median": 6.53,
+   "q25": 3.21,
+   "q75": 14.27,
+   "p90": 25.26
+  },
+  "hbridge|sparkfun|SSOP-24|vcc_bypass": {
+   "n": 6,
+   "repos": 6,
+   "median": 6.39,
+   "q25": 5.41,
+   "q75": 9.82,
+   "p90": 15.37
+  },
+  "hbridge|sparkfun|SSOP-24|vm_bulk": {
+   "n": 5,
+   "repos": 4,
+   "median": 6.25,
+   "q25": 5.81,
+   "q75": 7.74,
+   "p90": 9.65
+  },
+  "hbridge|sparkfun|WSON-12|vm_bulk": {
+   "n": 6,
+   "repos": 5,
+   "median": 4.4,
+   "q25": 2.98,
+   "q75": 6.2,
+   "p90": 6.88
+  },
+  "hbridge|sparkfun|WSON-12|vm_bypass": {
+   "n": 6,
+   "repos": 5,
+   "median": 1.61,
+   "q25": 1.61,
+   "q75": 1.72,
+   "p90": 3.82
+  },
+  "hbridge|third-party|32p-7.5x7.5-ep|vm_bulk": {
+   "n": 11,
+   "repos": 4,
+   "median": 12.67,
+   "q25": 11.32,
+   "q75": 12.67,
+   "p90": 12.67
+  },
+  "hbridge|third-party|32p-7.5x7.5-ep|vm_bypass": {
+   "n": 11,
+   "repos": 4,
+   "median": 12.83,
+   "q25": 10.68,
+   "q75": 12.83,
+   "p90": 12.83
+  },
+  "hbridge|third-party|8p-5.0x4.0|vcc_bulk": {
+   "n": 14,
+   "repos": 6,
+   "median": 8.06,
+   "q25": 8.06,
+   "q75": 33.05,
+   "p90": 41.38
+  },
+  "hbridge|third-party|HSOP-8|limit_setting": {
+   "n": 8,
+   "repos": 4,
+   "median": 5.84,
+   "q25": 4.34,
+   "q75": 6.88,
+   "p90": 7.1
+  },
+  "hbridge|third-party|HSOP-8|shunt": {
+   "n": 13,
+   "repos": 6,
+   "median": 3.29,
+   "q25": 2.33,
+   "q75": 3.88,
+   "p90": 4.8
+  },
+  "hbridge|third-party|HSOP-8|vm_bulk": {
+   "n": 17,
+   "repos": 7,
+   "median": 2.48,
+   "q25": 2.39,
+   "q75": 4.7,
+   "p90": 6.79
+  },
+  "hbridge|third-party|HSOP-8|vm_bypass": {
+   "n": 15,
+   "repos": 6,
+   "median": 3.71,
+   "q25": 2.59,
+   "q75": 3.85,
+   "p90": 4.1
+  },
+  "hbridge|third-party|HTSSOP-16|cp_res": {
+   "n": 28,
+   "repos": 17,
+   "median": 3.64,
+   "q25": 2.61,
+   "q75": 3.92,
+   "p90": 3.92
+  },
+  "hbridge|third-party|HTSSOP-16|shunt": {
+   "n": 6,
+   "repos": 3,
+   "median": 4.62,
+   "q25": 4.23,
+   "q75": 6.05,
+   "p90": 6.91
+  },
+  "hbridge|third-party|HTSSOP-16|vcc_bulk": {
+   "n": 34,
+   "repos": 21,
+   "median": 3.02,
+   "q25": 2.26,
+   "q75": 3.27,
+   "p90": 3.79
+  },
+  "hbridge|third-party|HTSSOP-16|vm_bulk": {
+   "n": 32,
+   "repos": 20,
+   "median": 6.74,
+   "q25": 4.64,
+   "q75": 6.89,
+   "p90": 14.83
+  },
+  "hbridge|third-party|HTSSOP-16|vm_bypass": {
+   "n": 17,
+   "repos": 7,
+   "median": 8.2,
+   "q25": 4.44,
+   "q75": 11.19,
+   "p90": 14.44
+  },
+  "hbridge|third-party|SON-8|vcc_bulk": {
+   "n": 8,
+   "repos": 5,
+   "median": 8.43,
+   "q25": 7.5,
+   "q75": 9.55,
+   "p90": 18.4
+  },
+  "hbridge|third-party|SON-8|vcc_bypass": {
+   "n": 10,
+   "repos": 5,
+   "median": 3.05,
+   "q25": 2.34,
+   "q75": 4.81,
+   "p90": 7.36
+  },
+  "hbridge|third-party|SON-8|vm_bulk": {
+   "n": 8,
+   "repos": 5,
+   "median": 10.47,
+   "q25": 5.47,
+   "q75": 10.5,
+   "p90": 25.38
+  },
+  "hbridge|third-party|SON-8|vm_bypass": {
+   "n": 9,
+   "repos": 6,
+   "median": 2.43,
+   "q25": 1.76,
+   "q75": 2.53,
+   "p90": 2.6
+  },
+  "hbridge|third-party|SSOP-24|vcc_bulk": {
+   "n": 23,
+   "repos": 15,
+   "median": 7.14,
+   "q25": 6.11,
+   "q75": 12.51,
+   "p90": 22.38
+  },
+  "hbridge|third-party|SSOP-24|vcc_bypass": {
+   "n": 24,
+   "repos": 17,
+   "median": 5.98,
+   "q25": 4.87,
+   "q75": 9.88,
+   "p90": 17.49
+  },
+  "hbridge|third-party|SSOP-24|vm_bulk": {
+   "n": 46,
+   "repos": 23,
+   "median": 7.2,
+   "q25": 5.21,
+   "q75": 12.66,
+   "p90": 19.46
+  },
+  "hbridge|third-party|SSOP-24|vm_bypass": {
+   "n": 31,
+   "repos": 15,
+   "median": 7.57,
+   "q25": 4.89,
+   "q75": 14.87,
+   "p90": 20.2
+  },
+  "hbridge|third-party|WSON-12|vcc_bypass": {
+   "n": 10,
+   "repos": 6,
+   "median": 4.92,
+   "q25": 1.93,
+   "q75": 13.86,
+   "p90": 17.41
+  },
+  "hbridge|third-party|WSON-12|vm_bulk": {
+   "n": 15,
+   "repos": 10,
+   "median": 4.4,
+   "q25": 2.98,
+   "q75": 18.17,
+   "p90": 23.47
+  },
+  "hbridge|third-party|WSON-12|vm_bypass": {
+   "n": 18,
+   "repos": 12,
+   "median": 2.42,
+   "q25": 1.61,
+   "q75": 10.8,
+   "p90": 30.49
+  },
+  "imu6|adafruit|LGA-14|bulk": {
+   "n": 10,
+   "repos": 6,
+   "median": 6.1,
+   "q25": 2.46,
+   "q75": 10.97,
+   "p90": 12.47
+  },
+  "imu6|adafruit|LGA-14|bypass": {
+   "n": 7,
+   "repos": 6,
+   "median": 2.31,
+   "q25": 2.09,
+   "q75": 3.61,
+   "p90": 5.12
+  },
+  "imu6|adafruit|LGA-16|bulk": {
+   "n": 7,
+   "repos": 4,
+   "median": 7.96,
+   "q25": 7.13,
+   "q75": 9.19,
+   "p90": 10.58
+  },
+  "imu6|adafruit|LGA-16|bypass": {
+   "n": 6,
+   "repos": 4,
+   "median": 5.69,
+   "q25": 4.3,
+   "q75": 7.33,
+   "p90": 8.19
+  },
+  "imu6|kicad|16p-4.0x2.5|bulk": {
+   "n": 34,
+   "repos": 17,
+   "median": 15.82,
+   "q25": 8.89,
+   "q75": 22.65,
+   "p90": 29.11
+  },
+  "imu6|kicad|16p-4.0x2.5|bypass": {
+   "n": 39,
+   "repos": 19,
+   "median": 1.71,
+   "q25": 1.3,
+   "q75": 2.62,
+   "p90": 5.11
+  },
+  "imu6|kicad|LGA-14|bulk": {
+   "n": 207,
+   "repos": 114,
+   "median": 11.29,
+   "q25": 5.98,
+   "q75": 20.53,
+   "p90": 31.68
+  },
+  "imu6|kicad|LGA-14|bypass": {
+   "n": 275,
+   "repos": 132,
+   "median": 2.38,
+   "q25": 1.59,
+   "q75": 5.88,
+   "p90": 11.14
+  },
+  "imu6|kicad|LGA-16|bulk": {
+   "n": 14,
+   "repos": 8,
+   "median": 5.8,
+   "q25": 3.61,
+   "q75": 9.04,
+   "p90": 17.98
+  },
+  "imu6|kicad|LGA-16|bypass": {
+   "n": 15,
+   "repos": 9,
+   "median": 2.31,
+   "q25": 1.91,
+   "q75": 3.53,
+   "p90": 6.01
+  },
+  "imu6|kicad|QFN-24 3x3|bulk": {
+   "n": 6,
+   "repos": 3,
+   "median": 22.09,
+   "q25": 16.03,
+   "q75": 34.54,
+   "p90": 42.01
+  },
+  "imu6|kicad|QFN-24 3x3|bypass": {
+   "n": 8,
+   "repos": 4,
+   "median": 1.71,
+   "q25": 1.42,
+   "q75": 2.01,
+   "p90": 2.11
+  },
+  "imu6|kicad|QFN-24 4x4|bulk": {
+   "n": 31,
+   "repos": 23,
+   "median": 10.15,
+   "q25": 7.54,
+   "q75": 17.46,
+   "p90": 42.4
+  },
+  "imu6|kicad|QFN-24 4x4|bypass": {
+   "n": 39,
+   "repos": 24,
+   "median": 2.78,
+   "q25": 1.53,
+   "q75": 6.63,
+   "p90": 8.18
+  },
+  "imu6|sparkfun|LGA-14|bulk": {
+   "n": 5,
+   "repos": 3,
+   "median": 11.68,
+   "q25": 8.62,
+   "q75": 13.71,
+   "p90": 14.93
+  },
+  "imu6|sparkfun|LGA-14|bypass": {
+   "n": 18,
+   "repos": 8,
+   "median": 1.73,
+   "q25": 1.49,
+   "q75": 2.45,
+   "p90": 3.75
+  },
+  "imu6|third-party|16p-4.0x2.5|bulk": {
+   "n": 12,
+   "repos": 6,
+   "median": 8.71,
+   "q25": 8.71,
+   "q75": 8.9,
+   "p90": 13.16
+  },
+  "imu6|third-party|16p-4.0x2.5|bypass": {
+   "n": 14,
+   "repos": 7,
+   "median": 1.28,
+   "q25": 1.28,
+   "q75": 3.99,
+   "p90": 7.95
+  },
+  "imu6|third-party|LGA-14|bulk": {
+   "n": 81,
+   "repos": 35,
+   "median": 5.75,
+   "q25": 2.98,
+   "q75": 11.11,
+   "p90": 20.11
+  },
+  "imu6|third-party|LGA-14|bypass": {
+   "n": 91,
+   "repos": 39,
+   "median": 2.1,
+   "q25": 1.71,
+   "q75": 3.5,
+   "p90": 5.91
+  },
+  "imu6|third-party|LGA-16|bulk": {
+   "n": 6,
+   "repos": 4,
+   "median": 6.0,
+   "q25": 4.96,
+   "q75": 6.6,
+   "p90": 7.69
+  },
+  "imu6|third-party|LGA-16|bypass": {
+   "n": 5,
+   "repos": 4,
+   "median": 5.34,
+   "q25": 3.77,
+   "q75": 6.85,
+   "p90": 6.85
+  },
+  "imu6|third-party|QFN-24 3x3|bulk": {
+   "n": 14,
+   "repos": 11,
+   "median": 6.31,
+   "q25": 5.15,
+   "q75": 16.61,
+   "p90": 24.78
+  },
+  "imu6|third-party|QFN-24 3x3|bypass": {
+   "n": 17,
+   "repos": 9,
+   "median": 1.38,
+   "q25": 1.38,
+   "q75": 2.15,
+   "p90": 5.01
+  },
+  "imu6|third-party|QFN-24 4x4|bulk": {
+   "n": 44,
+   "repos": 36,
+   "median": 9.04,
+   "q25": 4.93,
+   "q75": 16.39,
+   "p90": 21.64
+  },
+  "imu6|third-party|QFN-24 4x4|bypass": {
+   "n": 82,
+   "repos": 50,
+   "median": 2.99,
+   "q25": 1.91,
+   "q75": 4.35,
+   "p90": 8.46
+  }
+ },
+ "pairs": [
+  {
+   "a": "hbridge|adafruit|SSOP-24|vcc_bulk",
+   "b": "hbridge|kicad|SSOP-24|vcc_bulk",
+   "ma": 6.19,
+   "mb": 7.54,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|adafruit|SSOP-24|vcc_bulk",
+   "b": "hbridge|third-party|SSOP-24|vcc_bulk",
+   "ma": 6.19,
+   "mb": 7.14,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|adafruit|SSOP-24|vcc_bypass",
+   "b": "hbridge|kicad|SSOP-24|vcc_bypass",
+   "ma": 10.21,
+   "mb": 6.3,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|adafruit|SSOP-24|vcc_bypass",
+   "b": "hbridge|sparkfun|SSOP-24|vcc_bypass",
+   "ma": 10.21,
+   "mb": 6.39,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|adafruit|SSOP-24|vcc_bypass",
+   "b": "hbridge|third-party|SSOP-24|vcc_bypass",
+   "ma": 10.21,
+   "mb": 5.98,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|adafruit|SSOP-24|vm_bulk",
+   "b": "hbridge|kicad|SSOP-24|vm_bulk",
+   "ma": 10.56,
+   "mb": 8.12,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|adafruit|SSOP-24|vm_bulk",
+   "b": "hbridge|sparkfun|SSOP-24|vm_bulk",
+   "ma": 10.56,
+   "mb": 6.25,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|adafruit|SSOP-24|vm_bulk",
+   "b": "hbridge|third-party|SSOP-24|vm_bulk",
+   "ma": 10.56,
+   "mb": 7.2,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bulk",
+   "b": "hbridge|kicad|HSOP-8|vm_bulk",
+   "ma": 21.36,
+   "mb": 9.98,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bulk",
+   "b": "hbridge|kicad|HTSSOP-16|vm_bulk",
+   "ma": 21.36,
+   "mb": 7.28,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bulk",
+   "b": "hbridge|kicad|LGA-16|vm_bulk",
+   "ma": 21.36,
+   "mb": 4.13,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bulk",
+   "b": "hbridge|kicad|SON-8|vm_bulk",
+   "ma": 21.36,
+   "mb": 2.81,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bulk",
+   "b": "hbridge|kicad|SSOP-24|vm_bulk",
+   "ma": 21.36,
+   "mb": 8.12,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bypass",
+   "b": "hbridge|kicad|HSOP-8|vm_bypass",
+   "ma": 2.08,
+   "mb": 2.42,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bypass",
+   "b": "hbridge|kicad|HTSSOP-16|vm_bypass",
+   "ma": 2.08,
+   "mb": 3.31,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bypass",
+   "b": "hbridge|kicad|LGA-16|vm_bypass",
+   "ma": 2.08,
+   "mb": 1.74,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bypass",
+   "b": "hbridge|kicad|SON-8|vm_bypass",
+   "ma": 2.08,
+   "mb": 1.75,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|6p-1.5x1.0|vm_bypass",
+   "b": "hbridge|kicad|SSOP-24|vm_bypass",
+   "ma": 2.08,
+   "mb": 6.53,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|shunt",
+   "b": "hbridge|kicad|HTSSOP-16|shunt",
+   "ma": 4.14,
+   "mb": 3.51,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|shunt",
+   "b": "hbridge|kicad|LGA-16|shunt",
+   "ma": 4.14,
+   "mb": 1.72,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|shunt",
+   "b": "hbridge|third-party|HSOP-8|shunt",
+   "ma": 4.14,
+   "mb": 3.29,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bulk",
+   "b": "hbridge|kicad|HTSSOP-16|vm_bulk",
+   "ma": 9.98,
+   "mb": 7.28,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bulk",
+   "b": "hbridge|kicad|LGA-16|vm_bulk",
+   "ma": 9.98,
+   "mb": 4.13,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bulk",
+   "b": "hbridge|kicad|SON-8|vm_bulk",
+   "ma": 9.98,
+   "mb": 2.81,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bulk",
+   "b": "hbridge|kicad|SSOP-24|vm_bulk",
+   "ma": 9.98,
+   "mb": 8.12,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bulk",
+   "b": "hbridge|third-party|HSOP-8|vm_bulk",
+   "ma": 9.98,
+   "mb": 2.48,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bypass",
+   "b": "hbridge|kicad|HTSSOP-16|vm_bypass",
+   "ma": 2.42,
+   "mb": 3.31,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bypass",
+   "b": "hbridge|kicad|LGA-16|vm_bypass",
+   "ma": 2.42,
+   "mb": 1.74,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bypass",
+   "b": "hbridge|kicad|SON-8|vm_bypass",
+   "ma": 2.42,
+   "mb": 1.75,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bypass",
+   "b": "hbridge|kicad|SSOP-24|vm_bypass",
+   "ma": 2.42,
+   "mb": 6.53,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HSOP-8|vm_bypass",
+   "b": "hbridge|third-party|HSOP-8|vm_bypass",
+   "ma": 2.42,
+   "mb": 3.71,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|cp_res",
+   "b": "hbridge|third-party|HTSSOP-16|cp_res",
+   "ma": 3.26,
+   "mb": 3.64,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|shunt",
+   "b": "hbridge|kicad|LGA-16|shunt",
+   "ma": 3.51,
+   "mb": 1.72,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|shunt",
+   "b": "hbridge|third-party|HTSSOP-16|shunt",
+   "ma": 3.51,
+   "mb": 4.62,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vcc_bulk",
+   "b": "hbridge|kicad|SON-8|vcc_bulk",
+   "ma": 3.38,
+   "mb": 12.24,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vcc_bulk",
+   "b": "hbridge|kicad|SSOP-24|vcc_bulk",
+   "ma": 3.38,
+   "mb": 7.54,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vcc_bulk",
+   "b": "hbridge|third-party|HTSSOP-16|vcc_bulk",
+   "ma": 3.38,
+   "mb": 3.02,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vm_bulk",
+   "b": "hbridge|kicad|LGA-16|vm_bulk",
+   "ma": 7.28,
+   "mb": 4.13,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vm_bulk",
+   "b": "hbridge|kicad|SON-8|vm_bulk",
+   "ma": 7.28,
+   "mb": 2.81,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vm_bulk",
+   "b": "hbridge|kicad|SSOP-24|vm_bulk",
+   "ma": 7.28,
+   "mb": 8.12,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vm_bulk",
+   "b": "hbridge|third-party|HTSSOP-16|vm_bulk",
+   "ma": 7.28,
+   "mb": 6.74,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vm_bypass",
+   "b": "hbridge|kicad|LGA-16|vm_bypass",
+   "ma": 3.31,
+   "mb": 1.74,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vm_bypass",
+   "b": "hbridge|kicad|SON-8|vm_bypass",
+   "ma": 3.31,
+   "mb": 1.75,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vm_bypass",
+   "b": "hbridge|kicad|SSOP-24|vm_bypass",
+   "ma": 3.31,
+   "mb": 6.53,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|HTSSOP-16|vm_bypass",
+   "b": "hbridge|third-party|HTSSOP-16|vm_bypass",
+   "ma": 3.31,
+   "mb": 8.2,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|LGA-16|vm_bulk",
+   "b": "hbridge|kicad|SON-8|vm_bulk",
+   "ma": 4.13,
+   "mb": 2.81,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|LGA-16|vm_bulk",
+   "b": "hbridge|kicad|SSOP-24|vm_bulk",
+   "ma": 4.13,
+   "mb": 8.12,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|LGA-16|vm_bypass",
+   "b": "hbridge|kicad|SON-8|vm_bypass",
+   "ma": 1.74,
+   "mb": 1.75,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|LGA-16|vm_bypass",
+   "b": "hbridge|kicad|SSOP-24|vm_bypass",
+   "ma": 1.74,
+   "mb": 6.53,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|SON-8|vcc_bulk",
+   "b": "hbridge|kicad|SSOP-24|vcc_bulk",
+   "ma": 12.24,
+   "mb": 7.54,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|SON-8|vcc_bulk",
+   "b": "hbridge|third-party|SON-8|vcc_bulk",
+   "ma": 12.24,
+   "mb": 8.43,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SON-8|vcc_bypass",
+   "b": "hbridge|kicad|SSOP-24|vcc_bypass",
+   "ma": 2.45,
+   "mb": 6.3,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|SON-8|vcc_bypass",
+   "b": "hbridge|third-party|SON-8|vcc_bypass",
+   "ma": 2.45,
+   "mb": 3.05,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SON-8|vm_bulk",
+   "b": "hbridge|kicad|SSOP-24|vm_bulk",
+   "ma": 2.81,
+   "mb": 8.12,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|SON-8|vm_bulk",
+   "b": "hbridge|third-party|SON-8|vm_bulk",
+   "ma": 2.81,
+   "mb": 10.47,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SON-8|vm_bypass",
+   "b": "hbridge|kicad|SSOP-24|vm_bypass",
+   "ma": 1.75,
+   "mb": 6.53,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|kicad|SON-8|vm_bypass",
+   "b": "hbridge|third-party|SON-8|vm_bypass",
+   "ma": 1.75,
+   "mb": 2.43,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SSOP-24|vcc_bulk",
+   "b": "hbridge|third-party|SSOP-24|vcc_bulk",
+   "ma": 7.54,
+   "mb": 7.14,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SSOP-24|vcc_bypass",
+   "b": "hbridge|sparkfun|SSOP-24|vcc_bypass",
+   "ma": 6.3,
+   "mb": 6.39,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SSOP-24|vcc_bypass",
+   "b": "hbridge|third-party|SSOP-24|vcc_bypass",
+   "ma": 6.3,
+   "mb": 5.98,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SSOP-24|vm_bulk",
+   "b": "hbridge|sparkfun|SSOP-24|vm_bulk",
+   "ma": 8.12,
+   "mb": 6.25,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SSOP-24|vm_bulk",
+   "b": "hbridge|third-party|SSOP-24|vm_bulk",
+   "ma": 8.12,
+   "mb": 7.2,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|kicad|SSOP-24|vm_bypass",
+   "b": "hbridge|third-party|SSOP-24|vm_bypass",
+   "ma": 6.53,
+   "mb": 7.57,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|sparkfun|SSOP-24|vcc_bypass",
+   "b": "hbridge|third-party|SSOP-24|vcc_bypass",
+   "ma": 6.39,
+   "mb": 5.98,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|sparkfun|SSOP-24|vm_bulk",
+   "b": "hbridge|sparkfun|WSON-12|vm_bulk",
+   "ma": 6.25,
+   "mb": 4.4,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|sparkfun|SSOP-24|vm_bulk",
+   "b": "hbridge|third-party|SSOP-24|vm_bulk",
+   "ma": 6.25,
+   "mb": 7.2,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|sparkfun|WSON-12|vm_bulk",
+   "b": "hbridge|third-party|WSON-12|vm_bulk",
+   "ma": 4.4,
+   "mb": 4.4,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|sparkfun|WSON-12|vm_bypass",
+   "b": "hbridge|third-party|WSON-12|vm_bypass",
+   "ma": 1.61,
+   "mb": 2.42,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bulk",
+   "b": "hbridge|third-party|HSOP-8|vm_bulk",
+   "ma": 12.67,
+   "mb": 2.48,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bulk",
+   "b": "hbridge|third-party|HTSSOP-16|vm_bulk",
+   "ma": 12.67,
+   "mb": 6.74,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bulk",
+   "b": "hbridge|third-party|SON-8|vm_bulk",
+   "ma": 12.67,
+   "mb": 10.47,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bulk",
+   "b": "hbridge|third-party|SSOP-24|vm_bulk",
+   "ma": 12.67,
+   "mb": 7.2,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bulk",
+   "b": "hbridge|third-party|WSON-12|vm_bulk",
+   "ma": 12.67,
+   "mb": 4.4,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bypass",
+   "b": "hbridge|third-party|HSOP-8|vm_bypass",
+   "ma": 12.83,
+   "mb": 3.71,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bypass",
+   "b": "hbridge|third-party|HTSSOP-16|vm_bypass",
+   "ma": 12.83,
+   "mb": 8.2,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bypass",
+   "b": "hbridge|third-party|SON-8|vm_bypass",
+   "ma": 12.83,
+   "mb": 2.43,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bypass",
+   "b": "hbridge|third-party|SSOP-24|vm_bypass",
+   "ma": 12.83,
+   "mb": 7.57,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|32p-7.5x7.5-ep|vm_bypass",
+   "b": "hbridge|third-party|WSON-12|vm_bypass",
+   "ma": 12.83,
+   "mb": 2.42,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|8p-5.0x4.0|vcc_bulk",
+   "b": "hbridge|third-party|HTSSOP-16|vcc_bulk",
+   "ma": 8.06,
+   "mb": 3.02,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|8p-5.0x4.0|vcc_bulk",
+   "b": "hbridge|third-party|SON-8|vcc_bulk",
+   "ma": 8.06,
+   "mb": 8.43,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|8p-5.0x4.0|vcc_bulk",
+   "b": "hbridge|third-party|SSOP-24|vcc_bulk",
+   "ma": 8.06,
+   "mb": 7.14,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|shunt",
+   "b": "hbridge|third-party|HTSSOP-16|shunt",
+   "ma": 3.29,
+   "mb": 4.62,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|vm_bulk",
+   "b": "hbridge|third-party|HTSSOP-16|vm_bulk",
+   "ma": 2.48,
+   "mb": 6.74,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|vm_bulk",
+   "b": "hbridge|third-party|SON-8|vm_bulk",
+   "ma": 2.48,
+   "mb": 10.47,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|vm_bulk",
+   "b": "hbridge|third-party|SSOP-24|vm_bulk",
+   "ma": 2.48,
+   "mb": 7.2,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|vm_bulk",
+   "b": "hbridge|third-party|WSON-12|vm_bulk",
+   "ma": 2.48,
+   "mb": 4.4,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|vm_bypass",
+   "b": "hbridge|third-party|HTSSOP-16|vm_bypass",
+   "ma": 3.71,
+   "mb": 8.2,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|vm_bypass",
+   "b": "hbridge|third-party|SON-8|vm_bypass",
+   "ma": 3.71,
+   "mb": 2.43,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|vm_bypass",
+   "b": "hbridge|third-party|SSOP-24|vm_bypass",
+   "ma": 3.71,
+   "mb": 7.57,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HSOP-8|vm_bypass",
+   "b": "hbridge|third-party|WSON-12|vm_bypass",
+   "ma": 3.71,
+   "mb": 2.42,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HTSSOP-16|vcc_bulk",
+   "b": "hbridge|third-party|SON-8|vcc_bulk",
+   "ma": 3.02,
+   "mb": 8.43,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HTSSOP-16|vcc_bulk",
+   "b": "hbridge|third-party|SSOP-24|vcc_bulk",
+   "ma": 3.02,
+   "mb": 7.14,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HTSSOP-16|vm_bulk",
+   "b": "hbridge|third-party|SON-8|vm_bulk",
+   "ma": 6.74,
+   "mb": 10.47,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HTSSOP-16|vm_bulk",
+   "b": "hbridge|third-party|SSOP-24|vm_bulk",
+   "ma": 6.74,
+   "mb": 7.2,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HTSSOP-16|vm_bulk",
+   "b": "hbridge|third-party|WSON-12|vm_bulk",
+   "ma": 6.74,
+   "mb": 4.4,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HTSSOP-16|vm_bypass",
+   "b": "hbridge|third-party|SON-8|vm_bypass",
+   "ma": 8.2,
+   "mb": 2.43,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HTSSOP-16|vm_bypass",
+   "b": "hbridge|third-party|SSOP-24|vm_bypass",
+   "ma": 8.2,
+   "mb": 7.57,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|HTSSOP-16|vm_bypass",
+   "b": "hbridge|third-party|WSON-12|vm_bypass",
+   "ma": 8.2,
+   "mb": 2.42,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SON-8|vcc_bulk",
+   "b": "hbridge|third-party|SSOP-24|vcc_bulk",
+   "ma": 8.43,
+   "mb": 7.14,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SON-8|vcc_bypass",
+   "b": "hbridge|third-party|SSOP-24|vcc_bypass",
+   "ma": 3.05,
+   "mb": 5.98,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SON-8|vcc_bypass",
+   "b": "hbridge|third-party|WSON-12|vcc_bypass",
+   "ma": 3.05,
+   "mb": 4.92,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SON-8|vm_bulk",
+   "b": "hbridge|third-party|SSOP-24|vm_bulk",
+   "ma": 10.47,
+   "mb": 7.2,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SON-8|vm_bulk",
+   "b": "hbridge|third-party|WSON-12|vm_bulk",
+   "ma": 10.47,
+   "mb": 4.4,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SON-8|vm_bypass",
+   "b": "hbridge|third-party|SSOP-24|vm_bypass",
+   "ma": 2.43,
+   "mb": 7.57,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SON-8|vm_bypass",
+   "b": "hbridge|third-party|WSON-12|vm_bypass",
+   "ma": 2.43,
+   "mb": 2.42,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SSOP-24|vcc_bypass",
+   "b": "hbridge|third-party|WSON-12|vcc_bypass",
+   "ma": 5.98,
+   "mb": 4.92,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SSOP-24|vm_bulk",
+   "b": "hbridge|third-party|WSON-12|vm_bulk",
+   "ma": 7.2,
+   "mb": 4.4,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "hbridge|third-party|SSOP-24|vm_bypass",
+   "b": "hbridge|third-party|WSON-12|vm_bypass",
+   "ma": 7.57,
+   "mb": 2.42,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|adafruit|LGA-14|bulk",
+   "b": "imu6|adafruit|LGA-16|bulk",
+   "ma": 6.1,
+   "mb": 7.96,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|adafruit|LGA-14|bulk",
+   "b": "imu6|kicad|LGA-14|bulk",
+   "ma": 6.1,
+   "mb": 11.29,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-14|bulk",
+   "b": "imu6|sparkfun|LGA-14|bulk",
+   "ma": 6.1,
+   "mb": 11.68,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-14|bulk",
+   "b": "imu6|third-party|LGA-14|bulk",
+   "ma": 6.1,
+   "mb": 5.75,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-14|bypass",
+   "b": "imu6|adafruit|LGA-16|bypass",
+   "ma": 2.31,
+   "mb": 5.69,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|adafruit|LGA-14|bypass",
+   "b": "imu6|kicad|LGA-14|bypass",
+   "ma": 2.31,
+   "mb": 2.38,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-14|bypass",
+   "b": "imu6|sparkfun|LGA-14|bypass",
+   "ma": 2.31,
+   "mb": 1.73,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-14|bypass",
+   "b": "imu6|third-party|LGA-14|bypass",
+   "ma": 2.31,
+   "mb": 2.1,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-16|bulk",
+   "b": "imu6|kicad|LGA-16|bulk",
+   "ma": 7.96,
+   "mb": 5.8,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-16|bulk",
+   "b": "imu6|third-party|LGA-16|bulk",
+   "ma": 7.96,
+   "mb": 6.0,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-16|bypass",
+   "b": "imu6|kicad|LGA-16|bypass",
+   "ma": 5.69,
+   "mb": 2.31,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|adafruit|LGA-16|bypass",
+   "b": "imu6|third-party|LGA-16|bypass",
+   "ma": 5.69,
+   "mb": 5.34,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bulk",
+   "b": "imu6|kicad|LGA-14|bulk",
+   "ma": 15.82,
+   "mb": 11.29,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bulk",
+   "b": "imu6|kicad|LGA-16|bulk",
+   "ma": 15.82,
+   "mb": 5.8,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bulk",
+   "b": "imu6|kicad|QFN-24 3x3|bulk",
+   "ma": 15.82,
+   "mb": 22.09,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bulk",
+   "b": "imu6|kicad|QFN-24 4x4|bulk",
+   "ma": 15.82,
+   "mb": 10.15,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bulk",
+   "b": "imu6|third-party|16p-4.0x2.5|bulk",
+   "ma": 15.82,
+   "mb": 8.71,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bypass",
+   "b": "imu6|kicad|LGA-14|bypass",
+   "ma": 1.71,
+   "mb": 2.38,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bypass",
+   "b": "imu6|kicad|LGA-16|bypass",
+   "ma": 1.71,
+   "mb": 2.31,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bypass",
+   "b": "imu6|kicad|QFN-24 3x3|bypass",
+   "ma": 1.71,
+   "mb": 1.71,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bypass",
+   "b": "imu6|kicad|QFN-24 4x4|bypass",
+   "ma": 1.71,
+   "mb": 2.78,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|16p-4.0x2.5|bypass",
+   "b": "imu6|third-party|16p-4.0x2.5|bypass",
+   "ma": 1.71,
+   "mb": 1.28,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bulk",
+   "b": "imu6|kicad|LGA-16|bulk",
+   "ma": 11.29,
+   "mb": 5.8,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bulk",
+   "b": "imu6|kicad|QFN-24 3x3|bulk",
+   "ma": 11.29,
+   "mb": 22.09,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bulk",
+   "b": "imu6|kicad|QFN-24 4x4|bulk",
+   "ma": 11.29,
+   "mb": 10.15,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bulk",
+   "b": "imu6|sparkfun|LGA-14|bulk",
+   "ma": 11.29,
+   "mb": 11.68,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bulk",
+   "b": "imu6|third-party|LGA-14|bulk",
+   "ma": 11.29,
+   "mb": 5.75,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bypass",
+   "b": "imu6|kicad|LGA-16|bypass",
+   "ma": 2.38,
+   "mb": 2.31,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bypass",
+   "b": "imu6|kicad|QFN-24 3x3|bypass",
+   "ma": 2.38,
+   "mb": 1.71,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bypass",
+   "b": "imu6|kicad|QFN-24 4x4|bypass",
+   "ma": 2.38,
+   "mb": 2.78,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bypass",
+   "b": "imu6|sparkfun|LGA-14|bypass",
+   "ma": 2.38,
+   "mb": 1.73,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|LGA-14|bypass",
+   "b": "imu6|third-party|LGA-14|bypass",
+   "ma": 2.38,
+   "mb": 2.1,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|LGA-16|bulk",
+   "b": "imu6|kicad|QFN-24 3x3|bulk",
+   "ma": 5.8,
+   "mb": 22.09,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-16|bulk",
+   "b": "imu6|kicad|QFN-24 4x4|bulk",
+   "ma": 5.8,
+   "mb": 10.15,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-16|bulk",
+   "b": "imu6|third-party|LGA-16|bulk",
+   "ma": 5.8,
+   "mb": 6.0,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|LGA-16|bypass",
+   "b": "imu6|kicad|QFN-24 3x3|bypass",
+   "ma": 2.31,
+   "mb": 1.71,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-16|bypass",
+   "b": "imu6|kicad|QFN-24 4x4|bypass",
+   "ma": 2.31,
+   "mb": 2.78,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|LGA-16|bypass",
+   "b": "imu6|third-party|LGA-16|bypass",
+   "ma": 2.31,
+   "mb": 5.34,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|QFN-24 3x3|bulk",
+   "b": "imu6|kicad|QFN-24 4x4|bulk",
+   "ma": 22.09,
+   "mb": 10.15,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|QFN-24 3x3|bulk",
+   "b": "imu6|third-party|QFN-24 3x3|bulk",
+   "ma": 22.09,
+   "mb": 6.31,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|QFN-24 3x3|bypass",
+   "b": "imu6|kicad|QFN-24 4x4|bypass",
+   "ma": 1.71,
+   "mb": 2.78,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|kicad|QFN-24 3x3|bypass",
+   "b": "imu6|third-party|QFN-24 3x3|bypass",
+   "ma": 1.71,
+   "mb": 1.38,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|QFN-24 4x4|bulk",
+   "b": "imu6|third-party|QFN-24 4x4|bulk",
+   "ma": 10.15,
+   "mb": 9.04,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|kicad|QFN-24 4x4|bypass",
+   "b": "imu6|third-party|QFN-24 4x4|bypass",
+   "ma": 2.78,
+   "mb": 2.99,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|sparkfun|LGA-14|bulk",
+   "b": "imu6|third-party|LGA-14|bulk",
+   "ma": 11.68,
+   "mb": 5.75,
+   "pool": false,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|sparkfun|LGA-14|bypass",
+   "b": "imu6|third-party|LGA-14|bypass",
+   "ma": 1.73,
+   "mb": 2.1,
+   "pool": true,
+   "axis": "designer"
+  },
+  {
+   "a": "imu6|third-party|16p-4.0x2.5|bulk",
+   "b": "imu6|third-party|LGA-14|bulk",
+   "ma": 8.71,
+   "mb": 5.75,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|16p-4.0x2.5|bulk",
+   "b": "imu6|third-party|LGA-16|bulk",
+   "ma": 8.71,
+   "mb": 6.0,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|16p-4.0x2.5|bulk",
+   "b": "imu6|third-party|QFN-24 3x3|bulk",
+   "ma": 8.71,
+   "mb": 6.31,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|16p-4.0x2.5|bulk",
+   "b": "imu6|third-party|QFN-24 4x4|bulk",
+   "ma": 8.71,
+   "mb": 9.04,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|16p-4.0x2.5|bypass",
+   "b": "imu6|third-party|LGA-14|bypass",
+   "ma": 1.28,
+   "mb": 2.1,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|16p-4.0x2.5|bypass",
+   "b": "imu6|third-party|LGA-16|bypass",
+   "ma": 1.28,
+   "mb": 5.34,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|16p-4.0x2.5|bypass",
+   "b": "imu6|third-party|QFN-24 3x3|bypass",
+   "ma": 1.28,
+   "mb": 1.38,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|16p-4.0x2.5|bypass",
+   "b": "imu6|third-party|QFN-24 4x4|bypass",
+   "ma": 1.28,
+   "mb": 2.99,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-14|bulk",
+   "b": "imu6|third-party|LGA-16|bulk",
+   "ma": 5.75,
+   "mb": 6.0,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-14|bulk",
+   "b": "imu6|third-party|QFN-24 3x3|bulk",
+   "ma": 5.75,
+   "mb": 6.31,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-14|bulk",
+   "b": "imu6|third-party|QFN-24 4x4|bulk",
+   "ma": 5.75,
+   "mb": 9.04,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-14|bypass",
+   "b": "imu6|third-party|LGA-16|bypass",
+   "ma": 2.1,
+   "mb": 5.34,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-14|bypass",
+   "b": "imu6|third-party|QFN-24 3x3|bypass",
+   "ma": 2.1,
+   "mb": 1.38,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-14|bypass",
+   "b": "imu6|third-party|QFN-24 4x4|bypass",
+   "ma": 2.1,
+   "mb": 2.99,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-16|bulk",
+   "b": "imu6|third-party|QFN-24 3x3|bulk",
+   "ma": 6.0,
+   "mb": 6.31,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-16|bulk",
+   "b": "imu6|third-party|QFN-24 4x4|bulk",
+   "ma": 6.0,
+   "mb": 9.04,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-16|bypass",
+   "b": "imu6|third-party|QFN-24 3x3|bypass",
+   "ma": 5.34,
+   "mb": 1.38,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|LGA-16|bypass",
+   "b": "imu6|third-party|QFN-24 4x4|bypass",
+   "ma": 5.34,
+   "mb": 2.99,
+   "pool": false,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|QFN-24 3x3|bulk",
+   "b": "imu6|third-party|QFN-24 4x4|bulk",
+   "ma": 6.31,
+   "mb": 9.04,
+   "pool": true,
+   "axis": "package"
+  },
+  {
+   "a": "imu6|third-party|QFN-24 3x3|bypass",
+   "b": "imu6|third-party|QFN-24 4x4|bypass",
+   "ma": 1.38,
+   "mb": 2.99,
+   "pool": false,
+   "axis": "package"
+  }
+ ],
+ "class_rows": {
+  "hbridge|cp_fly": {
+   "n": 18,
+   "repos": 13,
+   "median": 2.67,
+   "q25": 1.9,
+   "q75": 3.03,
+   "p90": 3.2
+  },
+  "hbridge|cp_res": {
+   "n": 64,
+   "repos": 42,
+   "median": 3.19,
+   "q25": 2.51,
+   "q75": 3.92,
+   "p90": 4.82
+  },
+  "hbridge|current_mirror": {
+   "n": 11,
+   "repos": 9,
+   "median": 4.13,
+   "q25": 2.84,
+   "q75": 5.14,
+   "p90": 9.19
+  },
+  "hbridge|limit_setting": {
+   "n": 21,
+   "repos": 11,
+   "median": 4.61,
+   "q25": 3.11,
+   "q75": 5.84,
+   "p90": 7.25
+  },
+  "hbridge|shunt": {
+   "n": 63,
+   "repos": 28,
+   "median": 2.73,
+   "q25": 2.12,
+   "q75": 4.23,
+   "p90": 6.25
+  },
+  "hbridge|vcc_bulk": {
+   "n": 179,
+   "repos": 105,
+   "median": 6.0,
+   "q25": 3.05,
+   "q75": 11.49,
+   "p90": 30.56
+  },
+  "hbridge|vcc_bypass": {
+   "n": 136,
+   "repos": 83,
+   "median": 5.23,
+   "q25": 2.45,
+   "q75": 10.21,
+   "p90": 18.84
+  },
+  "hbridge|vm_bulk": {
+   "n": 317,
+   "repos": 156,
+   "median": 6.75,
+   "q25": 4.71,
+   "q75": 15.82,
+   "p90": 25.02
+  },
+  "hbridge|vm_bypass": {
+   "n": 250,
+   "repos": 125,
+   "median": 4.04,
+   "q25": 2.16,
+   "q75": 7.71,
+   "p90": 17.38
+  },
+  "imu6|bulk": {
+   "n": 481,
+   "repos": 258,
+   "median": 9.78,
+   "q25": 5.58,
+   "q75": 18.75,
+   "p90": 29.09
+  },
+  "imu6|bypass": {
+   "n": 627,
+   "repos": 304,
+   "median": 2.31,
+   "q25": 1.67,
+   "q75": 4.4,
+   "p90": 9.13
+  }
+ },
+ "designer_vs_package": {
+  "org_diffs_n": 54,
+  "org_median_diff_mm": 0.95,
+  "pkg_diffs_n": 120,
+  "pkg_median_diff_mm": 2.95,
+  "pairs_pooling": 48,
+  "pairs": 174,
+  "designer_pooling": 22,
+  "designer_pairs": 54,
+  "package_pooling": 26,
+  "package_pairs": 120
+ }
+}
