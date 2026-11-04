@@ -1,0 +1,32 @@
+{
+ "LSM6DS3": {
+  "repos": 60,
+  "live": 60,
+  "release": 3,
+  "tag": 11,
+  "gerbers": 31,
+  "bom": 27,
+  "any": 39,
+  "strict": 8
+ },
+ "DRV8874": {
+  "repos": 14,
+  "live": 14,
+  "release": 5,
+  "tag": 6,
+  "gerbers": 5,
+  "bom": 4,
+  "any": 10,
+  "strict": 1
+ },
+ "AMS1117-3.3": {
+  "repos": 100,
+  "live": 99,
+  "release": 9,
+  "tag": 13,
+  "gerbers": 44,
+  "bom": 30,
+  "any": 66,
+  "strict": 4
+ }
+}
