@@ -2,17 +2,17 @@
  "r1": {
   "arms": {
    "uniform": {
-    "seeds": 40,
+    "seeds": 50,
     "rejected": 0,
-    "emitted": 40,
-    "clean": 12,
-    "clean_of_emitted": 0.3,
-    "signal_vias_median": 5.0,
+    "emitted": 50,
+    "clean": 17,
+    "clean_of_emitted": 0.34,
+    "signal_vias_median": 5,
     "signal_vias_min": 2,
     "signal_vias_max": 8,
-    "vias_median": 18.5,
-    "length_median_mm": 175.3,
-    "decoupling_fail_mean": 4.83,
+    "vias_median": 18,
+    "length_median_mm": 175.6,
+    "decoupling_fail_mean": 4.76,
     "feeds_fail_mean": 0,
     "rows_n": [
      8,
@@ -20,17 +20,17 @@
     ]
    },
    "part": {
-    "seeds": 40,
+    "seeds": 50,
     "rejected": 0,
-    "emitted": 40,
-    "clean": 29,
-    "clean_of_emitted": 0.725,
+    "emitted": 50,
+    "clean": 33,
+    "clean_of_emitted": 0.66,
     "signal_vias_median": 8,
     "signal_vias_min": 3,
-    "signal_vias_max": 10,
+    "signal_vias_max": 11,
     "vias_median": 19,
     "length_median_mm": 172.0,
-    "decoupling_fail_mean": 3.52,
+    "decoupling_fail_mean": 3.58,
     "feeds_fail_mean": 0,
     "rows_n": [
      8,
@@ -38,17 +38,17 @@
     ]
    },
    "krt": {
-    "seeds": 40,
+    "seeds": 50,
     "rejected": 0,
-    "emitted": 40,
-    "clean": 30,
-    "clean_of_emitted": 0.75,
-    "signal_vias_median": 6.0,
+    "emitted": 50,
+    "clean": 37,
+    "clean_of_emitted": 0.74,
+    "signal_vias_median": 6,
     "signal_vias_min": 4,
     "signal_vias_max": 11,
-    "vias_median": 17.0,
-    "length_median_mm": 182.1,
-    "decoupling_fail_mean": 3.37,
+    "vias_median": 17,
+    "length_median_mm": 182.5,
+    "decoupling_fail_mean": 3.22,
     "feeds_fail_mean": 0,
     "rows_n": [
      8,
@@ -61,31 +61,31 @@
     "a": "krt",
     "b": "uniform",
     "clean": [
-     30,
-     12
+     37,
+     17
     ],
     "fisher_p": 0.00011,
     "sv_medians": [
-     6.0,
-     5.0
+     6,
+     5
     ],
-    "sv_ranksum_p": 0.32859,
-    "rows_ranksum_p": 6e-05
+    "sv_ranksum_p": 0.08489,
+    "rows_ranksum_p": 0.0
    },
    {
     "a": "krt",
     "b": "part",
     "clean": [
-     30,
-     29
+     37,
+     33
     ],
-    "fisher_p": 1.0,
+    "fisher_p": 0.51309,
     "sv_medians": [
-     6.0,
+     6,
      8
     ],
-    "sv_ranksum_p": 0.01021,
-    "rows_ranksum_p": 0.48337
+    "sv_ranksum_p": 0.00965,
+    "rows_ranksum_p": 0.13004
    }
   ]
  },
