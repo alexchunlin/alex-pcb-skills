@@ -361,3 +361,15 @@ The null in the issue reads "no better than uniform, or worse than KRT's `py_pla
 - The Altium arm, dropped by the issue.
 
 verify_all `--changed`: 31 passed, 0 failed (units 30, 32, 34, verify_select). Section 34 reads committed rows and summaries only, no routing. `python3 -I tools/bench/replay.py`: 24 labels, recall 14 of 17 catchable, 0 false fails.
+
+## Pre-registered r2 rerun
+
+Added after the report above; this section's Method was committed before the first route of the rerun.
+
+**Question.** Was 27/50 the prior, or the draw order? The post-hoc 35/50 cannot count: 14 of those seeds had been seen.
+
+**Method.** Same board, input, moved set (C10, C11, R10, C12, C13), pool (`/tmp/spike5/pools/r2-class.json`, DRV8874 held out), gate, `pcb route auto` and clean definition as `class` on r2. One change: the moved parts are drawn in ascending order of pool rows, `R10 (6), C13 (7), C10 (37), C12 (44), C11 (54)`. Fresh seeds 100 to 149, tag `rerun`, so no seed overlaps a route already seen. Rejected seeds still count as not clean. A dry draw (no routing) of these 50 seeds gave 0 rejected; R10 lands on one pose in all 50 (116.644, 102.487), so that part is not sampled in practice, in this order or in C13-first.
+
+**Comparators.** `uniform` 24/50, `perturb` 31/50, `krt` 11/50, seeds 0 to 49, unpaired, not rerouted.
+
+**Pass rule.** Clean at or above 35/50, which is Fisher p < 0.05 against `uniform` 24/50 (34 gives 0.068, 35 gives 0.041), and among clean routes fewer failing `feeds` plus `decoupling` rows than `uniform` by rank-sum p < 0.05, and not behind `krt`. Then the r2 verdict changes to "passes on the rerun, with tight roles drawn first". Under 35, the verdict stands and 27/50 was not a draw-order accident. `perturb` is reported beside it. This is a 19th Fisher test, so the Bonferroni line moves to 0.05 / 19 = 0.0026. The best 5 clean placements go through the waves judges as in the main run.
