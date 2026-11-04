@@ -1,6 +1,7 @@
 """Spike #4: one perturbed placement of a stripped board (run with `pcb py`).
 
   pcb py tools/spikes/spike4/perturb_kpy.py IN.kicad_pcb OUT.kicad_pcb --seed N --sigma MM
+  pcb py tools/spikes/spike4/perturb_kpy.py IN.kicad_pcb OUT.kicad_pcb --apply placement.json   (spike #1: [[ref, x, y, rot]])
 
 Every footprint that is not locked, not a connector (J*) and not a mounting hole is moved by (dx, dy) ~ N(0, sigma) mm, rotation kept, in a
 seeded random order; a draw is rejected when the moved courtyard box leaves the Edge.Cuts box or overlaps a same-side
@@ -62,9 +63,28 @@ def poly_area(pa, pb, empty=1e9):
     return i.Area() / 1e12
 
 
+def apply(src, dst, placement):
+    """Spike #1: put every listed footprint at its (x, y, rot), save, refill (a search arm's placement onto another base)."""
+    bd = Board.load(src)
+    pose = {r: (x, y, rot) for r, x, y, rot in json.load(open(placement))}
+    n = 0
+    for f in bd.b.GetFootprints():
+        p = pose.get(f.GetReference())
+        if p:
+            f.SetPosition(VECTOR2I(FromMM(p[0]), FromMM(p[1])))
+            f.SetOrientationDegrees(p[2])
+            n += 1
+    bd.save(dst)
+    out = Board.load(dst)
+    out.fill()
+    print(json.dumps({"out": dst, "applied": n, "of": len(pose)}))
+
+
 def main():
     a = sys.argv[1:]
     src, dst = a[0], a[1]
+    if "--apply" in a:
+        return apply(src, dst, a[a.index("--apply") + 1])
     seed = int(a[a.index("--seed") + 1])
     sigma = float(a[a.index("--sigma") + 1])
     bd = Board.load(src)
