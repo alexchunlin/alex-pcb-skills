@@ -553,7 +553,7 @@ def c_auto(args):
         for ext in (".kicad_pcb", ".kicad_pro", ".kicad_prl"):
             src = os.path.splitext(cur)[0] + ext
             if os.path.exists(src):
-                _sh.copy(src, os.path.join(os.path.dirname(fixed), os.path.basename(src)))
+                shutil.copy(src, os.path.join(os.path.dirname(fixed), os.path.basename(src)))
         got = c_ground_islands([fixed])
         if got["placed"]:
             canonical(fixed)

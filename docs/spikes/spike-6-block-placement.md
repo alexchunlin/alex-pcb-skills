@@ -90,7 +90,9 @@ and what a person would still have to do.
 
 ## Design changes after the Method commit
 
-None yet.
+- **Tool bug fixed mid-run, both arms alike.** The island step of `pcb route auto` crashed with `UnboundLocalError` (`_sh`) on any board
+  that reached 0 airwires without entering the stitch branch. Found by `verify_all` after the designers had started, fixed in the shared
+  scripts, and all seven running designers were told. No judge or row changed.
 
 ## Results
 
