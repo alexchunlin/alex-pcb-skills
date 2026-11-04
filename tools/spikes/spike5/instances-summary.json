@@ -811,5 +811,74 @@
  "labels": {
   "jlc": 103,
   "reading": 13
+ },
+ "frame": {
+  "HTSSOP-16|adafruit": {
+   "n": 2,
+   "pad1_x_median": -2.8,
+   "pad1_y_median": -2.27,
+   "pad1_top_left": 2,
+   "turned": {
+    "1": 2
+   }
+  },
+  "HTSSOP-16|kicad": {
+   "n": 54,
+   "pad1_x_median": -2.86,
+   "pad1_y_median": -2.27,
+   "pad1_top_left": 54,
+   "turned": {
+    "0": 51,
+    "1": 3
+   }
+  },
+  "HTSSOP-16|third-party": {
+   "n": 36,
+   "pad1_x_median": -2.82,
+   "pad1_y_median": -2.27,
+   "pad1_top_left": 36,
+   "turned": {
+    "0": 16,
+    "1": 19,
+    "3": 1
+   }
+  },
+  "LGA-14|adafruit": {
+   "n": 6,
+   "pad1_x_median": -1.16,
+   "pad1_y_median": -0.75,
+   "pad1_top_left": 6,
+   "turned": {
+    "0": 6
+   }
+  },
+  "LGA-14|kicad": {
+   "n": 209,
+   "pad1_x_median": -1.16,
+   "pad1_y_median": -0.75,
+   "pad1_top_left": 209,
+   "turned": {
+    "0": 207,
+    "2": 2
+   }
+  },
+  "LGA-14|sparkfun": {
+   "n": 9,
+   "pad1_x_median": -1.16,
+   "pad1_y_median": -0.75,
+   "pad1_top_left": 9,
+   "turned": {
+    "0": 9
+   }
+  },
+  "LGA-14|third-party": {
+   "n": 68,
+   "pad1_x_median": -1.16,
+   "pad1_y_median": -0.75,
+   "pad1_top_left": 68,
+   "turned": {
+    "0": 68
+   }
+  }
  }
 }

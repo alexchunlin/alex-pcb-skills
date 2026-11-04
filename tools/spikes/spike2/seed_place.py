@@ -13,7 +13,7 @@ class:   spike 5. pool.json holds, per moved ref, its target pad and samples [du
          level by the pool's mixture weights, a repo uniformly in the level, a row uniformly in the repo.
 perturb: spike 5. The designer's x, y plus N(0, sigma) per axis, the rotation kept.
 gate:    spike 5, no draw: report whether a placed board's moved parts pass this same courtyard-box gate (the KRT arms).
---dry prints the poses and writes no board (the templates arm feeds them to KRT).
+--dry prints the poses and writes no board (the templates arm feeds them to KRT). --nogate keeps the first draw, legal or not.
 All reject a draw whose courtyard box overlaps another footprint's or leaves the outline box (up to 500 draws per part).
 Prints one JSON line: {ok, draws, moved: {ref: [x, y, rot]}}.
 """
@@ -154,6 +154,11 @@ def main():
             f.SetPosition(pcbnew.VECTOR2I(FromMM(x), FromMM(y)))
             f.SetOrientationDegrees(ang)
             bx = cy_box(f)
+            if "--nogate" in sys.argv:   # spike 5 sensitivity: the draw as it falls, KRT's template pass makes it legal
+                fixed.append(bx)
+                placed[ref] = [round(x, 3), round(y, 3), ang]
+                levels[ref] = lvl
+                break
             if bx[0] < ex[0] - 1 or bx[1] < ex[1] - 1 or bx[2] > ex[2] + 1 or bx[3] > ex[3] + 1:
                 continue
             if any(overlap(bx, o) for o in fixed):

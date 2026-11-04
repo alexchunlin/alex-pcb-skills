@@ -33,7 +33,20 @@ for c in tab["classes"]:
         if x or m:
             out["parts"][p] = {"class": c, "projects": len({r["key"] for r in x}), "repos": len({r["repo"] for r in x}), "kicad_measured": sum((r.get("org") or "kicad") == "kicad" for r in m),
                                "eagle_measured": sum((r.get("org") or "kicad") != "kicad" for r in m)}
+# the frame check: pad 1 after the canonical turn, per package and source, before anything pools
+import statistics as st  # noqa: E402
+fr = {}
+for r in inst:
+    fam = family(r["pkg"])
+    if fam in ("LGA-14", "HTSSOP-16") and not r.get("pad1_central"):
+        fr.setdefault((fam, r.get("org") or "kicad"), []).append(r)
+out["frame"] = {}
+for (fam, org), rs in sorted(fr.items()):
+    xs, ys = [r["pad1"][0] for r in rs], [r["pad1"][1] for r in rs]
+    out["frame"][f"{fam}|{org}"] = {"n": len(rs), "pad1_x_median": st.median(xs), "pad1_y_median": st.median(ys), "pad1_top_left": sum(x < 0 and y < 0 for x, y in zip(xs, ys)), "turned": dict(Counter(str(r["turn"]) for r in rs))}
 json.dump(out, open(HERE / "instances-summary.json", "w"), indent=1)
+for k, v in out["frame"].items():
+    print(k, v)
 print("| Class | Projects | Repos | With a board file | Board matched | Measured: KiCad / Adafruit / SparkFun / third-party Eagle |\n|---|---:|---:|---:|---:|---|")
 for c, v in out["classes"].items():
     m = v["measured"]

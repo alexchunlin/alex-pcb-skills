@@ -85,7 +85,7 @@ def seed_board(board, arm, seed, d, moved, a):
     extra, intent = [], None
     if arm == "krt_tpl":
         pool_arm = {"r1": "class_part", "r2": "class"}[board]
-        sd = seed_place(board, src, out, "class", seed, moved, "--pool", POOLS / f"{board}-{pool_arm}.json", "--dry")
+        sd = seed_place(board, src, out, "class", seed, moved, "--pool", POOLS / f"{board}-{pool_arm}.json", "--dry", *(["--nogate"] if a.nogate else []))
         if not sd.get("ok"):
             return sd, None
         intent = d / "intent.json"
@@ -206,6 +206,7 @@ def main():
     ap.add_argument("--template-weight", type=float, default=100.0)
     ap.add_argument("--results", default=str(RESULTS))
     ap.add_argument("--keep", action="store_true")
+    ap.add_argument("--nogate", action="store_true", help="krt_tpl: template rows from the first draw, not gated (a sensitivity run, its own --tag)")
     a = ap.parse_args()
     {"run": cmd_run, "designer": cmd_designer}[a.cmd](a)
 
