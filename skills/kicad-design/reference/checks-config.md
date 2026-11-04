@@ -24,6 +24,9 @@ test points `TP*`), the same rule cadcheck applies. Net names are the project's 
   "currents": {"VIN": 4.0, "5V": 3.0, "MOTOR_A": 2.5}, "copper_oz": {"outer": 1.0, "inner": 0.5}, "rise_c": 20,
                                                                         // IPC-2221 width per net vs the narrowest track per layer (rung 2)
   "thermal_vias": {"U3": {"pad": "EP", "min": 9, "within_mm": 2.5}},   // stitching vias on the pad's net near the pad
+  "via_in_pad": {"allow": ["U1.21"]},                                   // SMD pads that may hold a via; thermal_vias pads are already exempt
+  "edge_margin": {"tracks_mm": 1.0, "vias_mm": 1.0, "parts_mm": 1.0, "connector_mm": 1.5, "skip_refs": []},  // J* and H* exempt as parts
+  "gnd_islands": {"ground": "GND", "warn_mm2": 0.5, "max_mm2": 2.0},    // ground fill pieces with no ground copper
   "feeds": [{"pad": "U3.11", "amps": 2.5, "within_mm": 2.0}],           // what reaches a high-current pad: vias + touching tracks, as amps
   "calcs": [                                                            // formula rows, in order; R("R5"), C("C3"), L("L1") read the netlist values
     {"id": "p_ldo", "expr": "(5.0 - 3.3) * 0.5", "unit": "W", "max": 1.0},

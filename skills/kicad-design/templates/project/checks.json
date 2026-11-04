@@ -40,14 +40,41 @@
   },
   "rise_c": 20,
   "thermal_vias": {},
-  "refplane": {"ground": "GND", "step_mm": 0.25, "max_gap_mm": 0, "mid_max_mm": 5, "skip_nets": [],
-               "_why": "Alex's stackup: In1 and In2 both solid GND, rails routed, every signal over unbroken ground (REFPLANE-1); the limit follows the net's bucket in `signals`"},
-  "return_via": {"ground": "GND", "_why": "a via on a bucket-3 net needs a GND via within 2 mm (SIG-2)"},
-  "exposure": {"within_mm": 1.0, "victim_weight": 3, "_why": "same-layer track beside the switch node, victims weighted (SIG-3)"},
+  "refplane": {
+    "ground": "GND",
+    "step_mm": 0.25,
+    "max_gap_mm": 0,
+    "mid_max_mm": 5,
+    "skip_nets": [],
+    "_why": "Alex's stackup: In1 and In2 both solid GND, rails routed, every signal over unbroken ground (REFPLANE-1); the limit follows the net's bucket in `signals`"
+  },
+  "return_via": {
+    "ground": "GND",
+    "_why": "a via on a bucket-3 net needs a GND via within 2 mm (SIG-2)"
+  },
+  "exposure": {
+    "within_mm": 1.0,
+    "victim_weight": 3,
+    "_why": "same-layer track beside the switch node, victims weighted (SIG-3)"
+  },
   "signals": {
     "_about": "SIG-1: per signal net, the driver's edge and where the number comes from; `pcb signals checks.json --netlist x.xml` computes the knee (0.5 / t_rise) and bucket (1 <1 MHz, 2 1-50, 3 50-500, 4 >=500) and lists the nets left out. t_rise_ns null = DC. victim = analog, high impedance: wants distance from aggressors more than ground.",
-    "EXAMPLE_PWM": {"driver": "MCU GPIO on J3 -> U2.1", "t_rise_ns": 3, "source": "assumption: 3.3 V CMOS GPIO, no series R", "slowed_by": [], "victim": false},
-    "EXAMPLE_ISENSE": {"driver": "IPROPI through R11 1k / C14 100 nF", "t_rise_ns": 220000, "source": "RC 100 us, 2.2 RC", "slowed_by": ["R11 1k + C14 100 nF"], "victim": true}
+    "EXAMPLE_PWM": {
+      "driver": "MCU GPIO on J3 -> U2.1",
+      "t_rise_ns": 3,
+      "source": "assumption: 3.3 V CMOS GPIO, no series R",
+      "slowed_by": [],
+      "victim": false
+    },
+    "EXAMPLE_ISENSE": {
+      "driver": "IPROPI through R11 1k / C14 100 nF",
+      "t_rise_ns": 220000,
+      "source": "RC 100 us, 2.2 RC",
+      "slowed_by": [
+        "R11 1k + C14 100 nF"
+      ],
+      "victim": true
+    }
   },
   "calcs": [
     {
@@ -58,5 +85,8 @@
       "note": "replace with the design's own calculations; R('R1') reads a value from the netlist"
     }
   ],
-  "feeds": []
+  "feeds": [],
+  "via_in_pad": {},
+  "edge_margin": {},
+  "gnd_islands": {}
 }

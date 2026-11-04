@@ -24,6 +24,8 @@ layout scripts do not.
 | `b.line`, `b.arc`, `b.text(s, x, y, layer, size, thick, rot, mirror=None)`, `b.arrow(a, b)` | drawings; `B.*` text is mirrored unless told otherwise | |
 | `b.fields(ref, {name: value})`, `b.field(ref, name)` | hidden fields on F.Fab; upper-cases `Lcsc`/`Mpn`; case-insensitive read | no `GetFieldByName` in 10.0.1 (R1-S1-T5) |
 | `b.refdes(ref, visible, at, rot, size)`, `b.hide_refdes(keep=())` | reference text; keep what the bring-up doc names (R1-Z1-F4) | |
+| `b.park(keep)` | every footprint not in `keep` to a grid right of the outline, for `pcb block` stages | spike #6 |
+| `b.ground_islands(min_mm2=0.5, edge_mm=None)` | a ground via in each piece of ground fill KiCad would rip up, then refill; `b.fill_islands()` lists the pieces | spike #6 |
 | `b.fill(passes=2)` | save, reload, `BuildConnectivity`, fill, save, twice; `b.b` is the reloaded board afterwards | in-memory fill segfaults (R1-S1-T5); first fill leaves islands (P1-T10) |
 | `b.save(path=None)`, `b.summary()` | | |
 

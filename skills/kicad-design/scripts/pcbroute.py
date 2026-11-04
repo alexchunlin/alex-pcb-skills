@@ -30,6 +30,7 @@
   classes BOARD --config checks.json [--round 0.05] [--min MM] [--dry]
                                                     net classes from the config's currents (IPC-2221 widths, W<mm>) and
                                                     victims (Sense) into the .kicad_pro, for a board that has none
+  ground-islands BOARD [--min-mm2 0.5] [--edge-mm 1.0] [--dry]   a via into each ground fill island (spike #6); `auto` runs it last
   return-vias BOARD --config checks.json [--netlist x.xml] [--max-mm 2] [--buckets 3,4] [--dry]
                                                     a ground via beside every bucket-3/4 via without one within max_mm
                                                     (SIG-2); `waves --return-vias` runs it after the finish, before the
@@ -204,6 +205,10 @@ JAVA = os.environ.get("JAVA", "/opt/homebrew/opt/openjdk/bin/java")
 # KRT: the board setup is never rewritten and sizes stay exact on the first pass; the second pass may neck a net that
 # did not fit down to the board's own minimums (P6-T3: 'board' closed the last VIN airwire on the Opus board)
 KRT_PASSES = [["--no-fix-drc-settings", "--escalation", "off"], ["--no-fix-drc-settings", "--escalation", "board"]]
+# Spike #6, Alex's rules: no via in a pad (KRT allows it unless told otherwise; mask web between via and pad) and copper
+# 1 mm off the outline, not at the setup's floor. PCB_ROUTE_RULES=0 routes as before, other values replace the arguments
+# (the before/after measurement).
+ROUTE_RULES = ["--same-net-pad-clearance", "0.15", "--board-edge-clearance", "1.0"]
 FR_ARGS = ["-mt", "4", "-da", "--gui.enabled=false", "--logging.file.enabled=false"]
 
 
@@ -231,7 +236,9 @@ def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_a
     if engine == "krt":
         if not os.path.exists(KRT_PY):
             sys.exit(f"pcbroute: KiCadRoutingTools not installed at {KRT_DIR} (KRT_DIR, KRT_PY; see tools/bench/README.md)")
-        extra = KRT_PASSES[min(pass_no, len(KRT_PASSES)) - 1] + ([] if inner_tracks else outer_only_args(board)) + list(extra_args)
+        rules = os.environ.get("PCB_ROUTE_RULES")
+        rules = ROUTE_RULES if rules is None else ([] if rules == "0" else rules.split())
+        extra = KRT_PASSES[min(pass_no, len(KRT_PASSES)) - 1] + rules + ([] if inner_tracks else outer_only_args(board)) + list(extra_args)
         cmd = [KRT_PY, os.path.join(KRT_DIR, "py_router/route.py"), board, routed, "--json-out", os.path.join(out_dir, "krt.json"), *extra]
         # KRT orders rip-up candidates by iterating a set of net names, so its second pass varied with Python's per-process
         # string hash seed (1 run in 4 on the rung-1 board, ROUTE-T3); a fixed seed makes every pass reproducible
@@ -537,6 +544,29 @@ def c_auto(args):
             better = (rec["airwires"], sum(rec["new_errors"].values())) <= (last["airwires"], sum(last["new_errors"].values()))
             say("PCBROUTE stitch", len(actions), "actions", [a["action"] for a in actions], "-> airwires", rec["airwires"], "new", rec["new_errors"],
                 "kept" if better else "DISCARDED (worse)")
+            passes.append(rec if better else {**rec, "discarded": True})
+            if better:
+                final, cur, last = m, fixed, rec
+    if last.get("airwires") == 0 and not opt(args, "--no-islands", flag=True):   # spike #6: ground the fill's islands, last, on a clean board
+        fixed = os.path.join(work, "islands", os.path.basename(board))
+        os.makedirs(os.path.dirname(fixed), exist_ok=True)
+        for ext in (".kicad_pcb", ".kicad_pro", ".kicad_prl"):
+            src = os.path.splitext(cur)[0] + ext
+            if os.path.exists(src):
+                _sh.copy(src, os.path.join(os.path.dirname(fixed), os.path.basename(src)))
+        got = c_ground_islands([fixed])
+        if got["placed"]:
+            canonical(fixed)
+            Board.load(fixed).fill()
+            keep = len(OUT)
+            m = c_measure([fixed, "--drc", "--pack", pack])
+            del OUT[keep:]
+            d = m.get("drc", {})
+            rec = {"pass": "islands", "placed": got["placed"], "skipped": got["skipped"], "airwires": m["ratsnest"]["airwires"], "open": m["open"],
+                   "vias": m["vias"], "tracks": m["tracks"], "length_mm": m["length_mm"], "min_width_mm": m["min_width_mm"], "plain_errors": d.get("plain_errors"),
+                   "packed_errors": d.get("packed_errors"), "new_errors": new_errors(d.get("plain_by_type", {}), inherited), "setup_changed": False}
+            better = (rec["airwires"], sum(rec["new_errors"].values())) <= (last["airwires"], sum(last["new_errors"].values()))
+            say("PCBROUTE islands", len(got["placed"]), "vias, airwires", rec["airwires"], "new", rec["new_errors"], "kept" if better else "DISCARDED (worse)")
             passes.append(rec if better else {**rec, "discarded": True})
             if better:
                 final, cur, last = m, fixed, rec
@@ -1040,6 +1070,19 @@ def c_return_vias(args):
     return rec
 
 
+def c_ground_islands(args):
+    """pcb route ground-islands BOARD [--min-mm2 0.5] [--edge-mm 1.0] [--dry]
+    Tie the ground fill's islands to ground with a via rather than let KiCad rip them up (Alex, spike #6): each piece with
+    no ground copper gets a through via at the deepest clear spot inside it, then the zones refill as they were set."""
+    bd = Board.load(args[0])
+    bd.clearance = pcbnew.ToMM(bd.b.GetDesignSettings().m_MinClearance) or 0.2
+    r = bd.ground_islands(min_mm2=float(opt(args, "--min-mm2", "0.5")), edge_mm=float(opt(args, "--edge-mm", "1.0")), dry=opt(args, "--dry", flag=True))
+    if not opt(args, "--dry", flag=True):
+        bd.save()
+    say("PCBROUTE ground-islands", len(r["placed"]), "vias placed", r["placed"], "skipped", r["skipped"])
+    return r
+
+
 def c_classes(args):
     """pcb route classes BOARD --config checks.json [--round 0.05] [--min MM] [--dry]
     Net classes from the config, for a board that has none (a foreign board on the bench): one class per IPC-2221
@@ -1081,7 +1124,7 @@ def c_classes(args):
     return {"board": board, "pro": pro, "classes": [c["name"] for c in ns["classes"]], "nets": out}
 
 
-CMDS = {"waves": c_waves, "return-vias": c_return_vias, "classes": c_classes, "strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
+CMDS = {"waves": c_waves, "return-vias": c_return_vias, "ground-islands": c_ground_islands, "classes": c_classes, "strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
         "canon": c_canon}
 
 

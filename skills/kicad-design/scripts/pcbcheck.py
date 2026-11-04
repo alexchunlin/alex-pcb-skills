@@ -34,6 +34,15 @@ Checks (v0):
                extended types warn with the feeder fee and any basic alternative the cache lists, stock under
                boards x quantity fails, a total row sums the fees. Opt-in: {"cache": path, "assembly": "economic",
                "boards": 5, "max_extended": null} (spike #3, C2: 17 extended types, $52 of a $125-150 order)
+  via_in_pad   no via touches an SMD pad of any net (Alex, spike #6): the via's copper must clear the pad, so a mask web
+               keeps solder on the pad. Exposed pads named in `thermal_vias` are exempt, and any pad in {"allow": ["U2.21"]}
+               with the footprint's unnumbered copper. Opt-in: {} or {"allow": [...]}, on in the template
+  edge_margin  tracks, vias and parts stay off the outline (Alex, spike #6): {"tracks_mm": 1.0, "vias_mm": 1.0, "parts_mm": 1.0,
+               "connector_mm": 1.5, "skip_refs": []}; connectors (J*) and holes (H*, MH*) are exempt as parts and a track
+               end within connector_mm of a pad on its own net on a J* footprint is the connector's exit. Opt-in, on in the template
+  gnd_islands  the ground fill refilled with island removal off, on a copy: every piece with no ground copper over
+               warn_mm2 (0.5) warns, over max_mm2 (2.0) fails (Alex, spike #6: tie islands to ground with a via, `pcb route
+               ground-islands`, which `pcb route auto` runs). Opt-in: {"ground": "GND"}, on in the template
   thermal_vias declared minimum stitching vias on a pad's net within `within_mm` of the pad (thermal pad to pour)
   feed_room    placement-stage: every SMD `feeds` pad gets a trial pcblib plan_feeds on an in-memory copy (biggest
                current first, neighbours splayed apart, each feed reserved for the next), so a pad whose feed cannot fit
@@ -83,7 +92,7 @@ import pcbrefstat  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "basic_parts", "refstat", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "via_in_pad", "edge_margin", "gnd_islands", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "basic_parts", "refstat", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -657,6 +666,100 @@ def check_thermal_vias(CFG, NL, B):
         row("thermal_vias", "pass" if n >= need else "fail", f"thermal_vias:{ref}",
             f"{ref} pad {padnum} ({pad.GetNetname()}): {n} vias within {within:.2f} mm (min {need}), drills {drills}", value=n, limit=need, objects=[ref], finding="R2")
     COVERAGE.append(f"thermal_vias: {len(tv)} pads; vias on the pad's net within within_mm of the pad centre")
+
+
+def check_via_in_pad(CFG, NL, B):
+    c = CFG.get("via_in_pad")
+    if c is None:
+        NOT_CHECKED.append("via_in_pad: no via_in_pad block, so vias standing in SMD pads were not looked for")
+        return
+    allow = set(c.get("allow", [])) | {f"{r}.{d.get('pad', 'EP')}" for r, d in CFG.get("thermal_vias", {}).items()}
+    refs = {a.split(".")[0] for a in allow}
+    pads = [(f.GetReference(), q) for f in B.GetFootprints() for q in f.Pads() if q.GetAttribute() == pcbnew.PAD_ATTRIB_SMD]
+    vias = [t for t in B.GetTracks() if t.GetClass() == "PCB_VIA"]
+    bad = exempt = 0
+    for v in vias:
+        for ref, q in pads:
+            if not q.HitTest(v.GetPosition(), v.GetWidth(pcbnew.F_Cu) // 2):
+                continue
+            num = q.GetNumber()
+            if f"{ref}.{num}" in allow or (not num and ref in refs):   # unnumbered copper is an exposed pad's split
+                exempt += 1
+                continue
+            bad += 1
+            x, y = pcbnew.ToMM(v.GetPosition().x), pcbnew.ToMM(v.GetPosition().y)
+            row("via_in_pad", "fail", f"via_in_pad:{ref}.{num}:{x:.2f},{y:.2f}", f"{v.GetNetname()} via at ({x:.2f}, {y:.2f}) touches "
+                f"{ref}.{num}: move it off the pad on a short neck", objects=[ref], finding="SPIKE-6")
+    if not bad:
+        row("via_in_pad", "pass", "via_in_pad:all", f"{len(vias)} vias, none in an SMD pad; {exempt} in declared exposed pads", value=0, limit=0)
+    COVERAGE.append(f"via_in_pad: {len(vias)} vias against {len(pads)} SMD pads, {exempt} exempt in declared exposed pads")
+
+
+def check_edge_margin(CFG, NL, B):
+    c = CFG.get("edge_margin")
+    if c is None:
+        NOT_CHECKED.append("edge_margin: no edge_margin block, so copper and parts near the outline were not measured")
+        return
+    tr, vi, pa = float(c.get("tracks_mm", 1.0)), float(c.get("vias_mm", 1.0)), float(c.get("parts_mm", 1.0))
+    conn, skip = float(c.get("connector_mm", 1.5)), set(c.get("skip_refs", []))
+    bb = B.GetBoardEdgesBoundingBox()
+    x0, y0, x1, y1 = (pcbnew.ToMM(v) for v in (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
+    dist = lambda v: min(pcbnew.ToMM(v.x) - x0, x1 - pcbnew.ToMM(v.x), pcbnew.ToMM(v.y) - y0, y1 - pcbnew.ToMM(v.y))
+    conn_pads = {}
+    for f in B.GetFootprints():
+        if re.match(r"J\d", f.GetReference()):
+            for q in f.Pads():
+                conn_pads.setdefault(q.GetNetname(), []).append(q)
+    worst = {}
+    for t in B.GetTracks():
+        if t.GetClass() == "PCB_VIA":
+            d = dist(t.GetPosition()) - pcbnew.ToMM(t.GetWidth(pcbnew.F_Cu)) / 2
+            if d < vi:
+                worst[f"via {t.GetNetname()}"] = min(d, worst.get(f"via {t.GetNetname()}", 99))
+            continue
+        for pt in (t.GetStart(), t.GetEnd()):
+            d = dist(pt) - pcbnew.ToMM(t.GetWidth()) / 2
+            if d < tr and not any(q.HitTest(pt, pcbnew.FromMM(conn)) for q in conn_pads.get(t.GetNetname(), [])):
+                worst[f"track {t.GetNetname()}"] = min(d, worst.get(f"track {t.GetNetname()}", 99))
+    for f in B.GetFootprints():
+        ref = f.GetReference()
+        if ref in skip or re.match(r"(J|H|MH|FID)\d", ref):
+            continue
+        ds = [min(pcbnew.ToMM(b.GetLeft()) - x0, x1 - pcbnew.ToMM(b.GetRight()), pcbnew.ToMM(b.GetTop()) - y0, y1 - pcbnew.ToMM(b.GetBottom()))
+              for b in (q.GetBoundingBox() for q in f.Pads())]
+        if ds and min(ds) < pa:
+            worst[f"part {ref}"] = min(ds)
+    for k, d in sorted(worst.items(), key=lambda kv: kv[1]):
+        row("edge_margin", "fail", f"edge_margin:{k}", f"{k} {d:.2f} mm from the outline", value=round(d, 2), objects=k.split()[1:], finding="SPIKE-6")
+    if not worst:
+        row("edge_margin", "pass", "edge_margin:all", f"tracks {tr}, vias {vi}, parts {pa} mm off the outline")
+    COVERAGE.append(f"edge_margin: tracks {tr}, vias {vi}, parts {pa} mm off the outline bounding box, connector exits within {conn} mm exempt")
+
+
+def check_gnd_islands(CFG, NL, B, board_path):
+    c = CFG.get("gnd_islands")
+    if c is None:
+        NOT_CHECKED.append("gnd_islands: no gnd_islands block, so ground fill KiCad rips up was not looked for")
+        return
+    import shutil, tempfile
+    from pcblib.board import Board
+    gnd, warn, mx = c.get("ground", "GND"), float(c.get("warn_mm2", 0.5)), float(c.get("max_mm2", 2.0))
+    d = tempfile.mkdtemp(prefix="pcbcheck-isl-")
+    for ext in (".kicad_pcb", ".kicad_pro"):
+        src = os.path.splitext(board_path)[0] + ext
+        if os.path.exists(src):
+            shutil.copy(src, d)
+    isl = Board.load(os.path.join(d, os.path.basename(board_path))).fill_islands(gnd)
+    shutil.rmtree(d, ignore_errors=True)
+    big = [i for i in isl if i["area_mm2"] >= warn]
+    for i in sorted(big, key=lambda i: -i["area_mm2"]):
+        x0, y0, x1, y1 = i["bbox"]
+        row("gnd_islands", "fail" if i["area_mm2"] >= mx else "warn", f"gnd_islands:{i['layer']}:{(x0 + x1) / 2:.1f},{(y0 + y1) / 2:.1f}",
+            f"{i['area_mm2']} mm^2 of {gnd} on {i['layer']} around ({(x0 + x1) / 2:.1f}, {(y0 + y1) / 2:.1f}) has no ground copper: "
+            f"`pcb route ground-islands`, or move what cuts it off", value=i["area_mm2"], limit=mx, finding="SPIKE-6")
+    if not big:
+        row("gnd_islands", "pass", "gnd_islands:all", f"no {gnd} fill island over {warn} mm^2 ({len(isl)} slivers under it)", value=0)
+    COVERAGE.append(f"gnd_islands: {len(isl)} unfed pieces of {gnd} with island removal off, {len(big)} over {warn} mm^2")
 
 
 def check_feed_room(CFG, NL, B, board_path):
@@ -1303,7 +1406,9 @@ def main():
               ("test_points", lambda: check_test_points(CFG, NL, B, bringup)), ("silk", lambda: check_silk(CFG, NL, B, bringup)),
               ("margin", lambda: check_margin(CFG, NL, B)), ("policy", lambda: check_policy(CFG, NL, B)),
               ("fields", lambda: check_fields(CFG, NL, B)), ("currents", lambda: check_currents(CFG, NL, B)),
-              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("refplane", lambda: check_refplane(CFG, NL, B)),
+              ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("via_in_pad", lambda: check_via_in_pad(CFG, NL, B)),
+              ("edge_margin", lambda: check_edge_margin(CFG, NL, B)), ("gnd_islands", lambda: check_gnd_islands(CFG, NL, B, board)),
+              ("refplane", lambda: check_refplane(CFG, NL, B)),
               ("return_via", lambda: check_return_via(CFG, NL, B)), ("exposure", lambda: check_exposure(CFG, NL, B)),
               ("feed_room", lambda: check_feed_room(CFG, NL, B, board)),
               ("calcs", lambda: check_calcs(CFG, NL, B)), ("refstat", lambda: check_refstat(CFG, NL, B)),
