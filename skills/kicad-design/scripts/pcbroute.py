@@ -573,7 +573,8 @@ def c_auto(args):
             d = m.get("drc", {})
             rec = {"pass": "stitch", "actions": actions, "airwires": m["ratsnest"]["airwires"], "open": m["open"], "vias": m["vias"], "tracks": m["tracks"],
                    "length_mm": m["length_mm"], "min_width_mm": m["min_width_mm"], "plain_errors": d.get("plain_errors"), "packed_errors": d.get("packed_errors"),
-                   "new_errors": new_errors(d.get("plain_by_type", {}), inherited), "setup_changed": False}
+                   "new_errors": new_errors(d.get("plain_by_type", {}), inherited),
+                   "setup_changed": {k: (start["settings"][k], v) for k, v in m["settings"].items() if start["settings"].get(k) != v} or False}
             better = (rec["airwires"], sum(rec["new_errors"].values())) <= (last["airwires"], sum(last["new_errors"].values()))
             say("PCBROUTE stitch", len(actions), "actions", [a["action"] for a in actions], "-> airwires", rec["airwires"], "new", rec["new_errors"],
                 "kept" if better else "DISCARDED (worse)")
@@ -597,7 +598,8 @@ def c_auto(args):
             d = m.get("drc", {})
             rec = {"pass": "islands", "placed": got["placed"], "skipped": got["skipped"], "airwires": m["ratsnest"]["airwires"], "open": m["open"],
                    "vias": m["vias"], "tracks": m["tracks"], "length_mm": m["length_mm"], "min_width_mm": m["min_width_mm"], "plain_errors": d.get("plain_errors"),
-                   "packed_errors": d.get("packed_errors"), "new_errors": new_errors(d.get("plain_by_type", {}), inherited), "setup_changed": False}
+                   "packed_errors": d.get("packed_errors"), "new_errors": new_errors(d.get("plain_by_type", {}), inherited),
+                   "setup_changed": {k: (start["settings"][k], v) for k, v in m["settings"].items() if start["settings"].get(k) != v} or False}
             better = (rec["airwires"], sum(rec["new_errors"].values())) <= (last["airwires"], sum(last["new_errors"].values()))
             say("PCBROUTE islands", len(got["placed"]), "vias, airwires", rec["airwires"], "new", rec["new_errors"], "kept" if better else "DISCARDED (worse)")
             passes.append(rec if better else {**rec, "discarded": True})
