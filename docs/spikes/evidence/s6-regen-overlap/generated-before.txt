@@ -1,0 +1,29 @@
+PASS regen output equal
+PASS regen output ancestor
+PASS regen output nested
+PASS regen output symlink-nested
+PASS regen output symlink-project
+regen-check project: measuring the tree as handed in
+PASS regen output sibling
+regen-check project: measuring the tree as handed in
+PASS regen output default
+regen-check project: measuring the tree as handed in
+  pass 1: true
+FAIL regen generated absolute
+regen-check project: measuring the tree as handed in
+  pass 1: true
+FAIL regen generated traversal
+regen-check project: measuring the tree as handed in
+  pass 1: true
+FAIL regen generated symlink-parent
+regen-check project: measuring the tree as handed in
+FAIL regen generated root
+regen-check project: measuring the tree as handed in
+  pass 1: true
+PASS regen generated safe-file
+regen-check project: measuring the tree as handed in
+  pass 1: true
+PASS regen generated safe-dir
+regen-check project: measuring the tree as handed in
+  pass 1: true
+PASS regen generated missing

@@ -40,3 +40,18 @@ These are stale for the requested spike 6 baseline. Live Opus mailbox is
 `orca_session_id:claude_d28de4ef_3d84_421f_8677_a9a5ac2273ea` in the primary
 workspace; phase6-routing contains only completed structured chats.
 Do not freeze until Opus finishes regression and both pushes are verified.
+
+## Review extension: generated-path deletion escape
+
+Review message `msg_4c9dc05a4d04` identified a separate escape after fresh copy:
+absolute generated paths, parent traversal and a symlink into the original
+project can delete original source. Added whole-list validation before deleting
+any generated target; reject absolute paths, parent traversal, fresh root itself,
+and realpaths outside fresh. Four unsafe controls fail before and pass after;
+three positive controls allow fresh files, directories and missing artifacts.
+Every unsafe case also puts a valid artifact first and verifies it survives,
+proving that validation precedes the entire deletion pass. Original-source
+sentinels survive every fixed case. CAD and the regen subprocess remain mocked.
+Raw evidence is `generated-before.txt` and `generated-after.txt`.
+Filesystem-only verification again passes 19/19 at
+`/tmp/alexpcb-verify/run-20872`; 14 direct path controls now pass.

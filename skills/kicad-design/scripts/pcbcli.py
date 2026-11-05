@@ -755,6 +755,14 @@ def cmd_regen_check(a):
     res["ref"] = measure_tree(proj, cfg, os.path.join(out, "ref"))
     fresh = os.path.join(out, "fresh")
     shutil.copytree(proj, fresh, symlinks=True, ignore=shutil.ignore_patterns("regen-check", "regen-check.json", "review", ".git"))
+    # Preflight the whole list before deleting anything. Copied symlinks may still
+    # point at the original project, and absolute paths bypass os.path.join(fresh, ...).
+    fresh_real = os.path.realpath(fresh)
+    for g in cfg["generated"]:
+        target = os.path.realpath(os.path.join(fresh, g))
+        if (os.path.isabs(g) or ".." in g.split(os.sep) or target == fresh_real
+                or os.path.commonpath((fresh_real, target)) != fresh_real):
+            sys.exit(f"regen-check: generated path must stay inside the fresh project: {g!r}")
     removed = []
     for g in cfg["generated"]:
         p = os.path.join(fresh, g)

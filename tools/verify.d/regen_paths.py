@@ -43,4 +43,42 @@ for case in ('equal', 'ancestor', 'nested', 'symlink-nested', 'symlink-project',
         passed = sentinel.exists() and sentinel.read_text() == 'preserve me' and (measured if safe else rejected)
         print(('PASS' if passed else 'FAIL') + ' regen output ' + case)
         failed += not passed
+for case in ('absolute', 'traversal', 'symlink-parent', 'root', 'safe-file', 'safe-dir', 'missing'):
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        project = base / 'project'
+        project.mkdir()
+        sentinel = project / 'source.txt'
+        sentinel.write_text('preserve me')
+        (project / 'first.txt').write_text('validate all before deleting any')
+        (project / 'generated').mkdir()
+        (project / 'generated/artifact').write_text('generated')
+        (project / 'alias').symlink_to(project, target_is_directory=True)
+        target = {'absolute': str(sentinel), 'traversal': '../../project/source.txt',
+                  'symlink-parent': 'alias/source.txt', 'root': '.', 'safe-file': 'source.txt',
+                  'safe-dir': 'generated', 'missing': 'not-created'}[case]
+        out = base / 'output'
+        args = argparse.Namespace(project=str(project), out=str(out), cmd='true',
+                                  board='test.kicad_pcb', generated=['first.txt', target], timeout=1)
+        rejected = False
+        ran = False
+        with patch.object(cli, 'gui_pids', return_value=[]), \
+             patch.object(cli, 'measure_tree', return_value={}), \
+             patch.object(cli.subprocess, 'run', side_effect=RuntimeError('regen reached')):
+            try:
+                cli.cmd_regen_check(args)
+            except SystemExit as exc:
+                rejected = 'generated path must stay inside' in str(exc)
+            except RuntimeError:
+                ran = True
+            except OSError:
+                pass
+        safe = case in ('safe-file', 'safe-dir', 'missing')
+        preserved = sentinel.exists() and sentinel.read_text() == 'preserve me'
+        if safe:
+            passed = preserved and ran and not (out / 'fresh/first.txt').exists()
+        else:
+            passed = preserved and rejected and (out / 'fresh/first.txt').exists()
+        print(('PASS' if passed else 'FAIL') + ' regen generated ' + case)
+        failed += not passed
 sys.exit(bool(failed))
