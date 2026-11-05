@@ -127,7 +127,7 @@ raise recall without adding a false fail. `tools/verify_all.sh` runs the integra
 
 ## Requirements
 
-KiCad 10.0.1 at `/Applications/KiCad/KiCad.app` (kicad-cli and the bundled Python with `pcbnew`), Diode `pcb` 0.4.95
+KiCad 10.0.1 at `/Applications/KiCad/KiCad.app` (kicad-cli and the bundled Python with `pcbnew`), Diode `pcb` 0.4.97
 at `~/.local/bin/pcb` for the Zener front end, kicad-druid at `/tmp/pcb-ref/kicad-druid` (`KICAD_DRUID`) for the fab
 rule packs, python3. No pip dependencies for the tools; `.venv` holds SKiDL for the fallback path. `pcb route auto` needs
 KiCadRoutingTools under `/tmp/pcb-ref/` (the six-line install is in `tools/bench/README.md`). Only tested on macOS.

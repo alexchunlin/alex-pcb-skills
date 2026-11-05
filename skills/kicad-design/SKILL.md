@@ -81,7 +81,8 @@ baseline went to long single generations (18 min of 49, R1-S1-T1): work in small
      `route.json`: `clean`, `final.new_errors` (yours to fix: usually a starved thermal where a track took the spoke,
      add a GND via in the layout script), `start.inherited_by_type` (placement and pour errors it will not touch) and
      `passes[].setup_changed` and `final.setup_changed` (measured against the starting board minimums). Investigate
-     any `true` value before accepting the output; this compares the measured minimums, not every project setting.
+     any non-`false` value before accepting the output; changes are reported as old/new values for the measured
+     minimums, not every project setting.
      If connections remain open, inspect clearance and placement before changing the layout.
    - The three rung-2 designers placed the pours before routing; keep that order, the router treats them as obstacles
      and stitches to them (the `tracks` variant in P6-T3 was clean on both finished boards, the `all` variant needed
