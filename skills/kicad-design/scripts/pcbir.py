@@ -9,7 +9,7 @@ sink draws its current. Without --sink the sinks are the config's `feeds` rows o
 out (their feeds rows are ripple current, a capacitor draws no DC; the report lists what was left out). Copper weight
 from the config's `copper_oz` (outer 1.0, inner 0.5 by default), plating 25 um (JLC's minimum).
 
-Report (irdrop.json in --out, default /tmp/pcb-irdrop/<board>-<net>): drop at every sink in mV, the worst
+Report (irdrop.json in --out, default a unique pcb-irdrop-<board>-<net>-* temporary directory): drop at every sink in mV, the worst
 current-density cells outside the pads with coordinates (A/mm^2: a neck or a spoke shows up here long before a width
 rule does; inside a pad the density is set by the pad, 2.5 A into a 0.3 mm pad is ~240 A/mm^2), total I^2 R, and
 irdrop.svg, the current-density map per layer. `judge` (spike #3, C1): the solved current rated against the copper it
@@ -19,7 +19,7 @@ is that pad's own exit, status `pad`), every via and plated-hole barrel against 
 source does not reach (`unreached`). `pcb check` reads it as the `irdrop` row. Solver selftest: `uv run --with numpy --with scipy python3
 pcbir_solve.py --selftest` (a 10 x 1 mm strip against rho L / (w t)).
 """
-import base64, json, math, os, subprocess, sys, time, zlib
+import base64, fcntl, json, math, os, re, subprocess, sys, tempfile, time, zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -167,15 +167,48 @@ def extract(b, net, source, sinks, h, oz, rise_c=20.0):
             "pads": [{"pad": n, "minor_mm": pad_minor[n], "cells": sorted(c)} for n, c in pad_cells.items() if c]}
 
 
-def run(b, net, source, sinks, h, cfg, out):
+def new_output_dir(label):
+    """Retain each invocation's artifacts; labels are descriptive, never path components."""
+    label = re.sub(r"[^A-Za-z0-9_.-]", "_", label)[:80]
+    return tempfile.mkdtemp(prefix=f"pcb-irdrop-{label}-")
+
+
+def run(b, net, source, sinks, h, cfg, out=None, *, left_out=None):
+    """Solve in an isolated default directory, or exclusively use an explicit output directory."""
+    board = os.path.abspath(b.GetFileName())
+    out = os.path.abspath(out) if out else new_output_dir(f"{os.path.splitext(os.path.basename(board))[0]}-{net}")
+    os.makedirs(out, exist_ok=True)
+    # Keep the lock inode: unlinking it would let a later writer bypass a current holder.
+    with open(os.path.join(out, ".irdrop.lock"), "a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise RuntimeError(f"IR-drop output directory is in use: {out}") from None
+        # A failed rerun must not leave an old success report or SVG looking current.
+        for name in ("irdrop.json", "irdrop.svg"):
+            try:
+                os.unlink(os.path.join(out, name))
+            except FileNotFoundError:
+                pass
+        rep = _run(b, net, source, sinks, h, cfg, out)
+        rep.update(board=board, net=net, source=source, out=out,
+                   input=os.path.join(out, "irdrop-in.json"), report=os.path.join(out, "irdrop.json"))
+        if left_out is not None:
+            rep["left_out"] = left_out
+        with open(rep["report"], "w") as f:
+            json.dump(rep, f, indent=1)
+        return rep
+
+
+def _run(b, net, source, sinks, h, cfg, out):
     """Extract the net (KiCad's Python), solve it under uv (numpy + scipy), return the report; raises RuntimeError.
     pcbcheck's `irdrop` row calls this on the board it already has open."""
-    os.makedirs(out, exist_ok=True)
     t = time.time()
     d = extract(b, net, source, sinks, h, cfg.get("copper_oz", {}), float(cfg.get("rise_c", 20.0)))
     t_ex = time.time() - t
     inp = os.path.join(out, "irdrop-in.json")
-    json.dump(d, open(inp, "w"))
+    with open(inp, "w") as f:
+        json.dump(d, f)
     cmd = ["uv", "run", "--no-project", "--quiet", "--with", "numpy", "--with", "scipy", "python3",
            os.path.join(HERE, "pcbir_solve.py"), inp, "--svg", os.path.join(out, "irdrop.svg")]
     try:
@@ -216,10 +249,8 @@ def main():
                 pass
         if not sinks:
             sys.exit(f"pcb irdrop: no sinks: pass --sink REF.PAD=AMPS or a --config whose feeds rows name pads on {net}")
-    out = out or os.path.join("/tmp/pcb-irdrop", f"{os.path.splitext(os.path.basename(board))[0]}-{net}")
-    rep = run(b, net, source, sinks, h, cfg, out)
-    rep.update(board=board, left_out=[f"{n} {a} A (capacitor: ripple current, no DC)" for n, a in left_out])
-    json.dump(rep, open(os.path.join(out, "irdrop.json"), "w"), indent=1)
+    rep = run(b, net, source, sinks, h, cfg, out,
+              left_out=[f"{n} {a} A (capacitor: ripple current, no DC)" for n, a in left_out])
     if as_json:
         print(json.dumps(rep))
         return
@@ -239,7 +270,7 @@ def main():
         print(f"PCBIR barrel {v['status'].upper()} {v['what']} ({v['x']}, {v['y']}) {v['drill_mm']} mm: {v['I_A']} A against IPC {v['ipc_A']} A (x{v['ratio']})")
     for u in rep.get("unreached", []):
         print(f"PCBIR OPEN sink {u}: no copper path from the source")
-    print(f"PCBIR -> {os.path.join(out, 'irdrop.json')}, {rep['svg']}")
+    print(f"PCBIR -> {rep['report']}, {rep['svg']}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,87 @@
+/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py:178: ResourceWarning: unclosed file <_io.TextIOWrapper name='/private/var/folders/pk/dhj3j46938s88sqsb575fvxm0000gn/T/tmpmrj8zkhw/explicit/irdrop-in.json' mode='w' encoding='UTF-8'>
+  json.dump(d, open(inp, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py:222: ResourceWarning: unclosed file <_io.TextIOWrapper name='/private/var/folders/pk/dhj3j46938s88sqsb575fvxm0000gn/T/tmpmrj8zkhw/explicit/irdrop.json' mode='w' encoding='UTF-8'>
+  json.dump(rep, open(os.path.join(out, "irdrop.json"), "w"), indent=1)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.F/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py:178: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/pk/dhj3j46938s88sqsb575fvxm0000gn/T/tmptjo8i8s7/board-/VCC/irdrop-in.json' mode='w' encoding='UTF-8'>
+  json.dump(d, open(inp, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py:222: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/pk/dhj3j46938s88sqsb575fvxm0000gn/T/tmptjo8i8s7/board-/VCC/irdrop.json' mode='w' encoding='UTF-8'>
+  json.dump(rep, open(os.path.join(out, "irdrop.json"), "w"), indent=1)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+F/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py:178: ResourceWarning: unclosed file <_io.TextIOWrapper name='relative output/irdrop-in.json' mode='w' encoding='UTF-8'>
+  json.dump(d, open(inp, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+E/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py:178: ResourceWarning: unclosed file <_io.TextIOWrapper name='/private/var/folders/pk/dhj3j46938s88sqsb575fvxm0000gn/T/tmpqn5ejisj/failed/irdrop-in.json' mode='w' encoding='UTF-8'>
+  json.dump(d, open(inp, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py:222: ResourceWarning: unclosed file <_io.TextIOWrapper name='/private/var/folders/pk/dhj3j46938s88sqsb575fvxm0000gn/T/tmpqn5ejisj/failed/irdrop.json' mode='w' encoding='UTF-8'>
+  json.dump(rep, open(os.path.join(out, "irdrop.json"), "w"), indent=1)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.
+======================================================================
+ERROR: test_relative_output (__main__.Paths.test_relative_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py", line 182, in run
+    p = subprocess.run(cmd, capture_output=True, text=True, cwd=out)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 1247, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/tools/verify.d/irdrop_paths.py", line 46, in solve
+    data = json.loads(inp.read_text())
+                      ~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 787, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'relative output/relative output/irdrop-in.json'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/tools/verify.d/irdrop_paths.py", line 77, in test_relative_output
+    rep = self.cli('board.kicad_pcb', 'relative output')
+  File "/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/tools/verify.d/irdrop_paths.py", line 58, in cli
+    ir.main()
+    ~~~~~~~^^
+  File "/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py", line 220, in main
+    rep = run(b, net, source, sinks, h, cfg, out)
+  File "/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/skills/kicad-design/scripts/pcbir.py", line 184, in run
+    raise RuntimeError("`uv` not found; the solver needs it for numpy and scipy (brew install uv)")
+RuntimeError: `uv` not found; the solver needs it for numpy and scipy (brew install uv)
+
+======================================================================
+FAIL: test_concurrent_explicit_output_rejected (__main__.Paths.test_concurrent_explicit_output_rejected)
+----------------------------------------------------------------------
+RuntimeError: test timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/tools/verify.d/irdrop_paths.py", line 109, in test_concurrent_explicit_output_rejected
+    with self.assertRaisesRegex(RuntimeError, 'in use'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "in use" does not match "test timed out"
+
+======================================================================
+FAIL: test_default_two_same_stem_boards_keep_own_artifacts (__main__.Paths.test_default_two_same_stem_boards_keep_own_artifacts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/alxchunlin/orca/workspaces/alex-pcb-skills/overnight-irdrop-isolation/tools/verify.d/irdrop_paths.py", line 69, in test_default_two_same_stem_boards_keep_own_artifacts
+    self.assertNotEqual(a['svg'], b['svg'])
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: '/var/folders/pk/dhj3j46938s88sqsb575fvxm0000gn/T/tmptjo8i8s7/board-/VCC/irdrop.svg' == '/var/folders/pk/dhj3j46938s88sqsb575fvxm0000gn/T/tmptjo8i8s7/board-/VCC/irdrop.svg'
+
+----------------------------------------------------------------------
+Ran 5 tests in 5.027s
+
+FAILED (failures=2, errors=1)

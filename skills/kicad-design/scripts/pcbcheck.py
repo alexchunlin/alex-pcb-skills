@@ -1209,8 +1209,8 @@ def check_irdrop(CFG, NL, B):
                 sources[net] = ",".join(pads)
     h = float(ir.get("grid_mm", 0.1))
     rise = float(CFG.get("rise_c", 20.0))
-    bf = os.path.abspath(B.GetFileName())   # one scratch dir per board file: two boards share a stem (motor_channel)
-    base = ir.get("out") or os.path.join("/tmp/pcb-irdrop", f"check-{os.path.splitext(os.path.basename(bf))[0]}-{zlib.crc32(bf.encode()):08x}")
+    bf = os.path.abspath(B.GetFileName())
+    base = ir.get("out") or pcbir.new_output_dir(f"check-{os.path.splitext(os.path.basename(bf))[0]}")
     n = 0
     cur = {k: float(v) for k, v in CFG.get("currents", {}).items() if not str(k).startswith("_")}
     for net, feeds in by_net.items():

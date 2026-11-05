@@ -1,0 +1,7 @@
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.050s
+
+OK
+EVIDENCE default: two same-stem boards retained distinct artifacts
+EVIDENCE relative: child input and SVG resolve once from caller cwd
