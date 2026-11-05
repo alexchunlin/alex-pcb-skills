@@ -1,0 +1,9 @@
+PASS regen output equal
+PASS regen output ancestor
+PASS regen output nested
+PASS regen output symlink-nested
+PASS regen output symlink-project
+regen-check project: measuring the tree as handed in
+PASS regen output sibling
+regen-check project: measuring the tree as handed in
+PASS regen output default

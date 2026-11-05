@@ -1,0 +1,13 @@
+regen-check project: measuring the tree as handed in
+FAIL regen output equal
+regen-check project: measuring the tree as handed in
+FAIL regen output ancestor
+regen-check project: measuring the tree as handed in
+FAIL regen output nested
+regen-check project: measuring the tree as handed in
+FAIL regen output symlink-nested
+FAIL regen output symlink-project
+regen-check project: measuring the tree as handed in
+PASS regen output sibling
+regen-check project: measuring the tree as handed in
+PASS regen output default

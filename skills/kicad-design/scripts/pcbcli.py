@@ -741,6 +741,10 @@ def cmd_regen_check(a):
     # outside the project: a copy with its own pcb.toml inside the tree made the next `pcb layout` see a nested
     # workspace (R2-T4); the report is copied back as <project>/regen-check.json
     out = os.path.abspath(a.out or os.path.join(tempfile.gettempdir(), "pcb-regen", f"{os.path.basename(proj)}-{os.getpid()}"))
+    # Resolve symlinked parents too: lexical containment alone misses aliases of the project.
+    project_real, output_real = os.path.realpath(proj), os.path.realpath(out)
+    if os.path.commonpath((project_real, output_real)) in (project_real, output_real):
+        sys.exit("regen-check: output directory must not overlap the project; choose an external directory")
     if os.path.isdir(out):
         shutil.rmtree(out)
     os.makedirs(out)
