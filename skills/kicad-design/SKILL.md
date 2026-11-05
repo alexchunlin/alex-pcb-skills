@@ -80,8 +80,9 @@ baseline went to long single generations (18 min of 49, R1-S1-T1): work in small
      designers' vias, where the designers spent 16 to 30 min and wrote their own routers (R2-T2, P6-T3). Read its
      `route.json`: `clean`, `final.new_errors` (yours to fix: usually a starved thermal where a track took the spoke,
      add a GND via in the layout script), `start.inherited_by_type` (placement and pour errors it will not touch) and
-     `passes[].setup_changed` (always `false`; the tool never lowers the board setup). It leaves a connection open
-     only where no copper fits: move the part.
+     `passes[].setup_changed` and `final.setup_changed` (measured against the starting board minimums). Investigate
+     any `true` value before accepting the output; this compares the measured minimums, not every project setting.
+     If connections remain open, inspect clearance and placement before changing the layout.
    - The three rung-2 designers placed the pours before routing; keep that order, the router treats them as obstacles
      and stitches to them (the `tracks` variant in P6-T3 was clean on both finished boards, the `all` variant needed
      the second pass).

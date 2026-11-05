@@ -1,5 +1,8 @@
 # alex-pcb-skills
 
+**Pilot release: [v0.1.0-rc.1](docs/releases/v0.1.0-rc.1.md).** The completed tool changes are consolidated for
+reviewed pilot-board trials. No board from this design loop has been manufactured and validated yet.
+
 **Claude designs KiCad boards from code, routes them with a deterministic router, checks them the way an electrical
 reviewer would, and packages them for the fab. Every rule in the skills points at a measured finding.**
 
@@ -69,7 +72,7 @@ starved, and that one error is what the designer gets back. Pours are hidden in 
 
 Every row cites the finding that motivated it in [`docs/FINDINGS.md`](docs/FINDINGS.md). The replay bench
 (`tools/bench/`) holds 10 boards and 41 labelled findings, including MotorGo Plink's real fab bugs; a tool commit has to
-raise recall without adding a false fail. `tools/verify_all.sh` re-proves 177 checks in about 18 minutes.
+raise recall without adding a false fail. `tools/verify_all.sh` runs the integration and regression checks; see the release notes for the current validation result and prerequisites.
 
 <p align="center"><img src="docs/img/qwiic-iso.png" width="46%" alt="Rung-1 Qwiic IMU breakout"> <img src="docs/img/motor-iso.png" width="52%" alt="Rung-2 motor channel"></p>
 
@@ -78,7 +81,7 @@ raise recall without adding a false fail. `tools/verify_all.sh` re-proves 177 ch
 
 ## Where it is
 
-- A sensor breakout is orderable today. Both rung-1 attempts on the skill scored 9 on electrical with minors only. The
+- The sensor breakout received reviewer scores of 9 on electrical with minors only; it has not been physically validated. The
   named risk for a new part is sourcing: the one blocker in rung 2 was an LCSC part that did not match its footprint,
   and the row for that is next.
 - The motor channel works on paper and would be a rev A with errata: the reviewer's three majors are a header pin on
@@ -133,6 +136,7 @@ KiCadRoutingTools under `/tmp/pcb-ref/` (the six-line install is in `tools/bench
 
 ```sh
 git clone https://github.com/alexchunlin/alex-pcb-skills.git && cd alex-pcb-skills
+git checkout v0.1.0-rc.1
 mkdir -p ~/.claude/skills
 ln -s "$PWD/skills/kicad-design" ~/.claude/skills/kicad-design              # the designer skill
 ln -s "$PWD/skills/pcb-design-review" ~/.claude/skills/pcb-design-review    # the reviewer skill
