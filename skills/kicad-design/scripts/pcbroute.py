@@ -263,7 +263,12 @@ def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_a
         p = subprocess.run(cmd, cwd=out_dir, capture_output=True, text=True)
         if os.path.exists(ses):
             b = pcbnew.LoadBoard(board)
-            pcbnew.ImportSpecctraSES(b, ses)
+            if not pcbnew.ImportSpecctraSES(b, ses):
+                wall = round(time.time() - t, 1)
+                with open(log, "a") as f:
+                    f.write(f"$ {' '.join(cmd)}\nrc={p.returncode} wall={wall}s\n{p.stdout}\n{p.stderr}\n")
+                    f.write(f"ImportSpecctraSES failed for {ses}\n")
+                return None, wall, 1
             unfill_and_save(b, routed)   # new copper in stale fills gets re-netted on save (ROUTE-T4); refilled after
     else:
         sys.exit(f"pcbroute: unknown engine {engine}")
