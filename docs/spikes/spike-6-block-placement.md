@@ -1,6 +1,6 @@
 # Spike 6: block-by-block placement, and three copper rules
 
-Issue: to be linked. Branch `spike/6-block-placement` from `main` at df0f2d8. This file is committed before the first scored
+Issue: [#6](https://github.com/alexchunlin/alex-pcb-skills/issues/6). Branch `spike/6-block-placement` from `main` at df0f2d8. This file is committed before the first scored
 designer run, so the design below is fixed ahead of the results. Later changes go under "Design changes after the Method commit".
 
 ## Why
@@ -93,9 +93,88 @@ and what a person would still have to do.
 - **Tool bug fixed mid-run, both arms alike.** The island step of `pcb route auto` crashed with `UnboundLocalError` (`_sh`) on any board
   that reached 0 airwires without entering the stitch branch. Found by `verify_all` after the designers had started, fixed in the shared
   scripts, and all seven running designers were told. No judge or row changed.
+- **Reviewer replaced.** Board 6's blind reviewer stalled with no output for over 1.5 h and was stopped; a fresh Opus reviewer did the board from the same blind copy.
+- **Judge 1 command.** `pcb q ratsnest` and `pcb drc --pack jlcpcb` gave the finished verdict; `pcb route measure --drc` as written in the Method was not needed.
 - **Second mid-run fix.** `_via_spot` gained 0.02 mm of margin after a `ground-islands` via landed 0.199 mm from R6.2 on s6-a-1 (HitTest rounds).
   All three A designers and b-2 had finished; b-1, b-3 and the breakouts got it. No judge or row changed.
 
 ## Results
 
-Pending.
+### A/B: block order did not beat one pass
+
+| Judge | One pass (a-1, a-2, a-3) | Block order (b-1, b-2, b-3) | Better median |
+|---|---|---|---|
+| 1 Finished: 0 airwires, 0 packed DRC errors | 3 of 3 | 3 of 3 | tie |
+| 2 `pcb check` fails | 0, 0, 0 | 0, 0, 1 | tie at 0 |
+| 3 VIN loss, mW | 34.4, 31.1, 58.2 (34.4) | 44.4, 55.7, 71.9 (55.7) | one pass |
+| 3 `refplane` bucket 3 mm, `return_via` bad | 0, 0 | 0, 0 | tie |
+| 4 Blind layout score | 7, 7, 8 (7) | 7, 7, 7 (7) | tie |
+| Blind electrical, manufacturability | 8, 8, 8; 8, 8, 9 | 8, 8, 8; 8, 8, 8 | tie |
+| Majors | 3, 3, 2 (3) | 1, 3, 2 (2) | block order, by one |
+| 5 Cohesion | 0.56, 0.52, 0.66 (0.56) | 0.49, 0.61, 0.76 (0.61) | block order |
+| 5 Tokens, thousands | 271, 252, 262 (262) | 289, 249, 324 (289) | 1.10x |
+| 5 Minutes | 36.5, 35.4, 30.7 (35.4) | 43.0, 26.2, 54.2 (43.0) | one pass |
+
+![A/B judges](../img/spikes/6-ab-judges.png)
+
+**Verdict under the pre-registered rule: not met.** Block order finished as often and its median of judge 2 is no worse, and it is inside the token limit, but it improved neither judge 3 nor judge 4. `pcb block` stays opt-in. The null holds at n = 3: cohesion moved a little and nothing the judges care about moved with it.
+
+**What this does and does not say.** Three runs detect a large effect only, and block order showed none on this board. It does not refute Alex's practice: the arm tested the mechanical gate, not a person's judgement, and it was the weak version.
+
+- Gates ran without their `decoupling` and `feed_room` rows until a netlist existed, because `pcb block gate` skipped them silently. All three B designers hit this; b-3 lost about 8 min to rework when the rows first ran.
+- Parts moved after a gate on b-2 (7 parts) and b-3 (5), and the tool would not re-gate earlier blocks.
+- The boards' weak spots across both arms were not block problems: ground returns with no via (C2, C3, C5-C7, C17, D4), no heat copper on U3, and 3V3 and control nets arcing round the board. Every reviewer praised the buck core on every board.
+- One-pass designers already think in blocks. Earlier archived boards had 0.58-0.67, and the one-pass runs here landed at 0.52-0.66.
+
+### The three rules on fresh boards
+
+| Rule | Result |
+|---|---|
+| No via in pad | `via_in_pad` 0 fails on all 6 A/B boards at hand-in. Router vias in SMD pads 10-16 to 0-1 on archived boards |
+| Ground islands | Every A/B board hands in with `gnd_islands` 0 fails. b-3 keeps 6 warns under 2 mm² where no via fits; VL53L8CX keeps 4 |
+| Edge margin | 0 fails at hand-in, but the row measures pads: a reviewer found C17's courtyard 0.405 mm off the edge on s6-b-2 |
+
+Cost: the Qwiic board gets either an open net (INT2) or 2 `starved_thermal` errors, depending on the input. That is the one `verify_all` failure left on this branch (section 27, `route auto`, pinned to CLEAN), left in place on purpose until the rule is settled.
+
+**The rules are not why the router fails on small boards.** Same placements, tracks stripped, rules off and on:
+
+| Board | Airwires of 89 / 127, rules off | Rules on |
+|---|---|---|
+| VL53L8CX | 12 | 18 |
+| ESP32-S3 | 39 | 39 |
+
+These placements were made for hand routing, so this bounds the rules' cost and does not measure the router on a router-first placement.
+
+### Breakouts: five designs, five "order after small fixes", none ready as generated
+
+| Board | Elec / Manuf / Doc / Layout | Blockers, majors, minors | Minutes | k tokens | Router in regen |
+|---|---|---|---|---|---|
+| ADS131M04 ADC | 8 / 8 / 8 / 7 | 0, 4, 13 | 44 | 380 | no |
+| IM73D122 mic | 8 / 6 / 8 / 7 | 1, 2, 11 | 46 | 330 | yes |
+| INA745B power monitor | 8 / 7 / 8 / 7 | 0, 4, 12 | 59 | 466 | no |
+| VL53L8CX ToF | 8 / 6 / 8 / 6 | 1, 3, 14 | 111 | 835 | no |
+| ESP32-S3 bare chip | 6 / 5 / 7 / 5 | 1, 8, 20 | 139 | 730 | finishes after 35 GPIO nets by hand |
+
+![breakout scores](../img/spikes/6-breakouts.png)
+
+Run directories: `~/code-stuff/alex-pcb-runs/r3-*-a1`, each with `review/`. The reviewers were not blind and every design is unbuilt.
+
+**Are we at the point where breakouts can be made? For sensor breakouts, nearly, with a reviewer and a person at the JLC preview. For a bare-chip radio board, no.** The four sensor boards had a correct circuit and footprint by independent check, and their fixes need no re-layout. Tool checks read clean on all of them while a board-killing fault sat in the fab package, so the checks are not the gate yet.
+
+- **CPL rotation is the blocker.** Three of three boards examined have parts rotated wrongly for JLC (IM73D122 U1, U2; VL53L8CX U3, U4, U5; ESP32-S3 J3 and probably U1, U3). `pcb fab` writes KiCad rotations, and no row checks them. The evidence is footprint fitting and community tables; nobody has uploaded to JLC's preview. ADS131M04 and INA745B were not examined this way.
+- **Datasheet reading errors:** ESP32-S3 GPIO47 and GPIO48 swapped everywhere; ADS131M04 filter ignores sinc3; INA745B LDO reverse voltage 0.6 V against 0.3 V.
+- **A rule designers write around:** limits set from the layout (ESP32-S3 C11, C12; VL53L8CX C2) and courtyards trimmed to fit. On VL53L8CX the trim hid C6 touching U4.
+- **ESP32-S3 RF:** match 3.83 mm from the pin over a 65 ohm section, XIN 0.99 mm from the RF row. Impedances solve correctly on JLC04161H-7628, which the package does not name. No simulation, no measurement.
+
+### Tool list, ranked
+
+1. CPL rotation: try `kicad-jlcpcb-tools`' and `JLCKicadTools`' tables, plus a row against the EasyEDA footprint. One table disagreed with a per-part fit on U2, so test before trusting.
+2. `pcb route`: reads the project `.kicad_dru` (INA745B: CLEAN, then 46 DRC errors), keeps hand copper and pour vias (reported by a-2, a-3, b-3, ESP32-S3), stops adding stubs on poured nets (all six A/B runs needed a post-route script).
+3. `pcb block gate`: fail when the netlist is missing, re-gate from any block, honour `skip_refs`; append-only log (VL53L8CX cleared and re-gated).
+4. `edge_margin` on courtyards, and a decision on whether planes count. `feeds` counts dangling vias. New row for same-net pads overlapping across footprints (R3.1 on U1.8). Row for a GND pad with no nearby via.
+5. `pcb irdrop`: per-run default directory (shared `/tmp/pcb-irdrop` crossed boards twice, no scored number affected) and relative paths. `pcb fab`: split PTH and NPTH drills. `pcb regen-check --out` inside the project recurses.
+6. Open, not reproduced: `ground-islands` via in a pad, reported on s6-a-1 and ESP32-S3; `--return-vias` GND via shorted to 3V3 on s6-b-3.
+
+### Not worth our time
+
+More A/B runs of this gate on this board before item 3 above. A cohesion row as a failing check: Pace-core, a built board, scores like the LLM boards.
