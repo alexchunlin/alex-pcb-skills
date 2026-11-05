@@ -6,15 +6,20 @@ before the next goes on the board, the connections between blocks last.
   pcb block plan BOARD blocks.json             every part in one group, regions inside the outline and apart, parts fit,
                                                KRT check_groups' link matrix printed. Run before any block is placed
   pcb block gate BOARD blocks.json NAME [--config checks.json]
-                                               NAME must be the next block in `order`; its parts inside its region, later
+                                               NAME is the next block or an earlier passed block to re-gate; later
                                                blocks parked off the board (pcblib `park`), no courtyard overlap among the
                                                placed, parts 1 mm off the outline, placed-part `decoupling` and `feed_room`
-                                               rows pass. Appends to blocks-log.jsonl beside blocks.json; exit 1 on a fail
+                                               rows pass. Re-gating revokes NAME and later gates; park later blocks first.
+                                               Appends to blocks-log.jsonl beside blocks.json; exit 1 on a fail
   pcb block report BOARD blocks.json [--json]  cohesion (share of the 3 nearest parts in the same block, 0 = shuffled, 1 =
                                                all), intrusion, parts out of region, gates passed, moves after a gate.
-                                               Exit 1 when a part is out of its region or a gate is missing
+                                               Exit 1 when a part is missing, moved, out of its region, or a gate is missing.
+
+A gate is a scoped placement check, not proof of electrical, thermal or physical correctness.
+Without --config, decoupling/feed_room are not checked. History is append-only by this tool,
+not tamper-proof; externally deleting or editing the log is outside its guarantees.
 """
-import json, os, random, re, statistics, subprocess, sys, time
+import json, os, random, re, statistics, subprocess, sys, tempfile, time
 import pcbnew
 from pcbnew import ToMM
 
@@ -94,6 +99,80 @@ def write_log(path, rec):
         f.write(json.dumps({"t": time.strftime("%Y-%m-%dT%H:%M:%S"), **rec}) + "\n")
 
 
+def gate_state(log, order):
+    """Replay history: a plan resets gates; any gate attempt revokes its suffix."""
+    plan_ok, gates = False, {}
+    for entry in log:
+        if entry.get("cmd") == "plan":
+            plan_ok = entry.get("ok") is True
+            gates.clear()
+        elif entry.get("cmd") == "gate" and entry.get("block") in order:
+            name = entry["block"]
+            idx = order.index(name)
+            for later in order[idx:]:
+                gates.pop(later, None)
+            if plan_ok and entry.get("ok") is True and all(n in gates for n in order[:idx]):
+                gates[name] = entry
+    return plan_ok, gates
+
+
+def footprint_pose(f):
+    return [round(ToMM(f.GetPosition().x), 3), round(ToMM(f.GetPosition().y), 3),
+            round(f.GetOrientationDegrees(), 3), f.GetLayer()]
+
+
+def changed_pose(entry, footprints):
+    changed = []
+    for ref, old in entry.get("pose", {}).items():
+        if ref not in footprints:
+            changed.append(ref)
+            continue
+        current = footprint_pose(footprints[ref])
+        # Legacy records contain XY only; preserve their documented 0.5 mm tolerance.
+        if max(abs(current[i] - old[i]) for i in (0, 1)) > 0.5 or (len(old) > 2 and current[2:] != old[2:]):
+            changed.append(ref)
+    return changed
+
+
+def checker_failures(bp, cfg, path, placed, later):
+    """Only a fresh, structurally valid checker report can establish a result.
+
+    Exit 1 is normal for failed rows: defer only failures entirely on parked
+    later blocks. Global, unknown-object, and cross-block failures remain fatal.
+    """
+    try:
+        with tempfile.TemporaryDirectory(prefix="blocks-check-", dir=os.path.dirname(os.path.abspath(path))) as tmp:
+            out = os.path.join(tmp, "report.json")
+            result = subprocess.run([
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "pcb"),
+                "check", bp, cfg, "--only", "decoupling,feed_room", "--out", out,
+            ], capture_output=True, text=True)
+            detail = (result.stderr or result.stdout or "").strip()[-1000:]
+            if result.returncode not in (0, 1):
+                return [f"checker exited {result.returncode}: {detail}; fix `pcb check` and re-gate"]
+            if not os.path.isfile(out):
+                return [f"checker produced no fresh report (exit {result.returncode}): {detail}; run `pcb check` and fix its inputs/netlist"]
+            with open(out) as stream:
+                report = json.load(stream)
+            rows = report["rows"]
+            if not isinstance(rows, list):
+                raise ValueError("rows must be a list")
+            for row in rows:
+                if (not isinstance(row, dict) or row.get("status") not in ("pass", "fail", "warn", "accepted")
+                        or not isinstance(row.get("id"), str) or not isinstance(row.get("msg"), str)
+                        or not isinstance(row.get("objects", []), list)
+                        or not all(isinstance(obj, str) for obj in row.get("objects", []))):
+                    raise ValueError("invalid checker row")
+            failures = [row for row in rows if row["status"] == "fail"]
+            if report["summary"]["fails"] != len(failures) or result.returncode != bool(failures):
+                raise ValueError("exit status, summary and failure rows disagree")
+            pending = set(later) - set(placed)
+            return [f"{row['id']}: {row['msg'][:120]}" for row in failures
+                    if not row.get("objects") or not all(obj.split(".")[0] in pending for obj in row["objects"])]
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return [f"checker report unavailable or invalid: {exc}; run `pcb check` and re-gate"]
+
+
 def c_init(args):
     out = opt(args, "--out", "blocks.json")
     b = pcbnew.LoadBoard(args[0])
@@ -121,30 +200,36 @@ def c_plan(args):
                 fails.append(f"{r} is in {seen[r]} and {g['name']}")
             seen[r] = g["name"]
     fails += [f"{r} is in no group" for r in f if r not in seen and not MECH.match(r)]
-    if set(d["order"]) != set(d["by"]):
+    if len(d["groups"]) != len(d["by"]):
+        fails.append("group names must be unique")
+    if set(d["order"]) != set(d["by"]) or len(d["order"]) != len(d["by"]):
         fails.append(f"order {d['order']} does not name each group once")
     regs = [(g["name"], g.get("region")) for g in d["groups"]]
     for n, r in regs:
         if not r:
             fails.append(f"{n} has no region")
+        elif len(r) != 4 or r[0] >= r[2] or r[1] >= r[3]:
+            fails.append(f"{n} region must have positive width and height")
         elif r[0] < o[0] or r[1] < o[1] or r[2] > o[2] or r[3] > o[3]:
             fails.append(f"{n} region {r} leaves the outline {o}")
     for i, (n, r) in enumerate(regs):
         for m, q in regs[i + 1:]:
-            if r and q and r[0] < q[2] and q[0] < r[2] and r[1] < q[3] and q[1] < r[3]:
+            if r and q and len(r) == 4 and len(q) == 4 and r[0] < q[2] and q[0] < r[2] and r[1] < q[3] and q[1] < r[3]:
                 fails.append(f"regions {n} and {m} overlap")
     for g in d["groups"]:
         r = g.get("region")
-        if r:
-            need = 0.0
-            for x in g["refs"]:
-                if x in f:
-                    c = courtyard(f[x])
-                    need += c.Area() / 1e12 if c else 0
+        if r and len(r) == 4 and r[2] > r[0] and r[3] > r[1]:
+            by_layer = {}
+            for ref in g["refs"]:
+                if ref in f:
+                    c = courtyard(f[ref])
+                    layer = f[ref].GetLayer()
+                    by_layer[layer] = by_layer.get(layer, 0) + (c.Area() / 1e12 if c else 0)
             have = (r[2] - r[0]) * (r[3] - r[1])
-            print(f"  {g['name']}: {len(g['refs'])} parts, courtyards {need:.1f} mm^2 in a {have:.1f} mm^2 region ({100 * need / have:.0f} %)")
-            if need > have:
-                fails.append(f"{g['name']}: courtyards {need:.1f} mm^2 do not fit {have:.1f} mm^2")
+            for layer, need in sorted(by_layer.items()):
+                print(f"  {g['name']}: layer {layer}, courtyards {need:.1f} mm^2 in a {have:.1f} mm^2 region ({100 * need / have:.0f} %)")
+                if need > have:
+                    fails.append(f"{g['name']}: layer {layer} courtyards {need:.1f} mm^2 do not fit {have:.1f} mm^2")
     krt_py, krt = os.environ.get("KRT_PY", "/tmp/pcb-ref/KiCadRoutingTools/.venv/bin/python"), os.environ.get("KRT_DIR", "/tmp/pcb-ref/KiCadRoutingTools")
     if os.path.exists(krt_py):
         tmp = os.path.join(os.path.dirname(os.path.abspath(path)), "blocks-krt.json")   # KRT refuses keys it does not know
@@ -165,39 +250,50 @@ def c_gate(args):
     b, d = pcbnew.LoadBoard(bp), load(path)
     f, o, fails = fps(b), outline(b), []
     log = read_log(path)
-    if not any(e["cmd"] == "plan" and e["ok"] for e in log):
+    plan_ok, gates = gate_state(log, d["order"])
+    if not plan_ok:
         fails.append("no passing `pcb block plan` yet")
-    done = [e["block"] for e in log if e["cmd"] == "gate" and e["ok"]]
+    done = list(gates)
     nxt = next((n for n in d["order"] if n not in done), None)
     if name not in d["by"]:
         sys.exit(f"pcbblock: no block {name}")
-    if name != nxt and name not in done[-1:]:
+    if name != nxt and name not in done:
         fails.append(f"out of order: the next block is {nxt}")
     idx = d["order"].index(name)
     placed = [r for n in d["order"][:idx + 1] for r in d["by"][n]["refs"]]
     later = [r for n in d["order"][idx + 1:] for r in d["by"][n]["refs"]]
     fails += [f"{r} of a later block is on the board" for r in later if r in f and on_board(f[r], o)]
-    reg = d["by"][name]["region"]
-    fails += [f"{r} is outside region {reg}" for r in d["by"][name]["refs"] if r in f and not in_region(f[r], reg)]
+    fails += [f"{r} is missing from the board; restore it and re-plan" for r in placed if r not in f]
+    for block in d["order"][:idx + 1]:
+        reg = d["by"][block]["region"]
+        fails += [f"{ref} is outside region {reg}; re-gate from {block}"
+                  for ref in d["by"][block]["refs"] if ref in f and not in_region(f[ref], reg)]
+    for block in d["order"][:idx]:
+        if block in gates and changed_pose(gates[block], f):
+            fails.append(f"{block} moved after its gate; park later blocks and re-gate from {block}")
     fails += [f"{r} is not on the board" for r in placed if r in f and not on_board(f[r], o)]
-    onb = [r for r in placed if r in f and on_board(f[r], o)] + [r for r in f if MECH.match(r)]
+    onb = list(dict.fromkeys([r for r in placed if r in f and on_board(f[r], o)] + [r for r in f if MECH.match(r)]))
+    skip_edge = set()
+    if cfg:
+        try:
+            with open(cfg) as stream:
+                config = json.load(stream)
+            skip = config.get("edge_margin", {}).get("skip_refs", [])
+            if not isinstance(skip, list) or not all(isinstance(ref, str) for ref in skip):
+                raise ValueError("edge_margin.skip_refs must be a list of references")
+            skip_edge = set(skip)
+        except (OSError, ValueError, AttributeError, TypeError) as exc:
+            fails.append(f"cannot read gate config {cfg}: {exc}")
     for i, r in enumerate(onb):
         x0, x1, y0, y1 = box(f[r])
-        if not re.match(r"(J|H|MH|FID)\d", r) and min(x0 - o[0], o[2] - x1, y0 - o[1], o[3] - y1) < 1.0:
+        if r not in skip_edge and not re.match(r"(J|H|MH|FID)\d", r) and min(x0 - o[0], o[2] - x1, y0 - o[1], o[3] - y1) < 1.0:
             fails.append(f"{r} is within 1 mm of the outline")
         for q in onb[i + 1:]:
             if overlaps(f[r], f[q]):
                 fails.append(f"courtyards of {r} and {q} overlap")
     if cfg:
-        out = os.path.join(os.path.dirname(os.path.abspath(path)), "blocks-gate-check.json")
-        subprocess.run([os.path.join(os.path.dirname(os.path.abspath(__file__)), "pcb"), "check", bp, cfg, "--only", "decoupling,feed_room", "--out", out], capture_output=True)
-        if os.path.exists(out):
-            ok = set(placed) | {r for r in f if MECH.match(r)}
-            for r in json.load(open(out))["rows"]:
-                objs = [x.split(".")[0] for x in r.get("objects") or []]
-                if r["status"] == "fail" and objs and all(x in ok for x in objs):
-                    fails.append(f"{r['id']}: {r['msg'][:120]}")
-    pose = {r: (round(ToMM(f[r].GetPosition().x), 3), round(ToMM(f[r].GetPosition().y), 3)) for r in d["by"][name]["refs"] if r in f}
+        fails.extend(checker_failures(bp, cfg, path, placed, later))
+    pose = {r: footprint_pose(f[r]) for r in d["by"][name]["refs"] if r in f}
     write_log(path, {"cmd": "gate", "block": name, "ok": not fails, "fails": fails, "pose": pose})
     print(f"PCBBLOCK gate {name}: {'PASS' if not fails else 'FAIL'} ({len(placed)} parts on the board, {len(later)} parked)")
     for x in fails:
@@ -234,14 +330,19 @@ def c_report(args):
     for g in d["groups"]:
         if g.get("region"):
             outside += [r for r in g["refs"] if r in f and not in_region(f[r], g["region"])]
-    done = [e["block"] for e in log if e["cmd"] == "gate" and e["ok"]]
-    pose = {r: v for e in log if e["cmd"] == "gate" and e["ok"] for r, v in e.get("pose", {}).items()}
-    moved = [r for r, v in pose.items() if r in f and max(abs(ToMM(f[r].GetPosition().x) - v[0]), abs(ToMM(f[r].GetPosition().y) - v[1])) > 0.5]
+    _, gates = gate_state(log, d["order"])
+    done = list(gates)
+    moved = sorted({ref for entry in gates.values() for ref in changed_pose(entry, f)})
+    for idx, name in enumerate(d["order"]):
+        if name in gates and changed_pose(gates[name], f):
+            done = [n for n in done if n in d["order"][:idx]]
+            break
+    missing = [r for g in d["groups"] for r in g["refs"] if r not in f]
     pur, norm = cohesion(pts) if len({p[2] for p in pts}) > 1 else (None, None)
     r = {"cohesion": norm, "purity": pur, "outside_region": outside, "gates_passed": [n for n in d["order"] if n in done], "gates_missing": [n for n in d["order"] if n not in done],
-         "moved_after_gate": moved, "gate_fails": sum(1 for e in log if e["cmd"] == "gate" and not e["ok"])}
+         "moved_after_gate": moved, "missing_footprints": missing, "gate_fails": sum(1 for e in log if e["cmd"] == "gate" and not e["ok"])}
     print(json.dumps(r) if as_json else "PCBBLOCK report " + json.dumps(r))
-    sys.exit(1 if outside or r["gates_missing"] else 0)
+    sys.exit(1 if outside or moved or missing or r["gates_missing"] else 0)
 
 
 def main():
