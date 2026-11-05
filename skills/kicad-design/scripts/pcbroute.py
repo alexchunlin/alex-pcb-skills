@@ -226,6 +226,8 @@ def outer_only_args(board):
 def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_args=(), timeout=None):
     """Route `board` (a .kicad_pcb with its .kicad_pro beside it) into out_dir; returns (routed path, wall s, rc)."""
     import shutil, time
+    board = os.path.abspath(board)
+    out_dir = os.path.abspath(out_dir)
     os.makedirs(out_dir, exist_ok=True)
     for ext in (".kicad_pro", ".kicad_prl"):
         src = os.path.splitext(board)[0] + ext
