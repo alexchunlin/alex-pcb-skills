@@ -2,7 +2,7 @@
 """One contact sheet per board for a PR or issue: 3D top and bottom, then each copper layer.
   uv run --with matplotlib --with pillow python3 -I tools/spikes/spike6/gallery.py NAME BOARD.kicad_pcb OUT.png [TITLE]
 """
-import os, subprocess, sys, tempfile
+import os, re, subprocess, sys, tempfile
 sys.path.insert(0, "/Users/alxchunlin/code-stuff/alex-style-guide/matplotlib")
 import matplotlib
 matplotlib.use("Agg")
@@ -23,9 +23,14 @@ def main():
     title = sys.argv[4] if len(sys.argv) > 4 else name
     d = tempfile.mkdtemp(prefix="gallery-")
     panels = []
+    # the renderer fits a square view, so a long board needs a smaller zoom or its ends are cut off
+    pts = re.findall(r'\(gr_(?:line|rect|arc)\s+\(start ([-\d.]+) ([-\d.]+)\)(?:\s+\(mid [-\d.]+ [-\d.]+\))?\s+\(end ([-\d.]+) ([-\d.]+)\)[\s\S]{0,160}?Edge\.Cuts', open(board, errors="ignore").read())
+    xs = [float(v) for p in pts for v in (p[0], p[2])]; ys = [float(v) for p in pts for v in (p[1], p[3])]
+    aspect = (max(xs) - min(xs)) / max(max(ys) - min(ys), 1) if xs else 1.5
+    zoom = "1.45" if aspect < 1.45 else "1.15" if aspect < 1.9 else "0.9"
     for side in ("top", "bottom"):
         f = os.path.join(d, side + ".png")
-        sh(CLI, "pcb", "render", "--side", side, "--width", "1100", "--height", "900", "--zoom", "1.45", "--quality", "high", "--background", "opaque", "-o", f, board)
+        sh(CLI, "pcb", "render", "--side", side, "--width", "1100", "--height", "900", "--zoom", zoom, "--quality", "high", "--background", "opaque", "-o", f, board)
         panels.append((side.upper(), f))
     text = open(board, errors="ignore").read(6000)
     n = "In2.Cu" in text
