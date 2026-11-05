@@ -1,0 +1,591 @@
+{
+ "_about": "ADS131M04 breakout intent; every row traces to DESIGN_LOG.md. Written at the plan checkpoint.",
+ "project": "r3-ads131m04-a1",
+ "policy": {
+  "clearance_mm": 0.2,
+  "track_mm": 0.2,
+  "via_drill_mm": 0.3,
+  "via_dia_mm": 0.6,
+  "hole_clearance_mm": 0.3,
+  "silk_text_mm": 1.0
+ },
+ "rails": {
+  "VIN": {
+   "v": 5.0,
+   "source": "J2 pin 1, 3.3 to 5 V"
+  },
+  "3V3": {
+   "v": 3.3,
+   "source": "U2 TPS7A2033"
+  },
+  "AVDD": {
+   "v": 3.3,
+   "source": "3V3 through FB1"
+  },
+  "CAP": {
+   "v": 1.8,
+   "source": "U1 internal LDO"
+  },
+  "GND": {}
+ },
+ "decoupling_max_mm": 2.0,
+ "decoupling": [
+  {
+   "ic": "U1",
+   "pin": "1",
+   "cap": "C1",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U1",
+   "pin": "20",
+   "cap": "C2",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U1",
+   "pin": "18",
+   "cap": "C3",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U2",
+   "pin": "1",
+   "cap": "C4",
+   "max_mm": 3.0
+  },
+  {
+   "ic": "U2",
+   "pin": "5",
+   "cap": "C5",
+   "max_mm": 3.0
+  },
+  {
+   "ic": "Y1",
+   "pin": "4",
+   "cap": "C6",
+   "max_mm": 2.5
+  }
+ ],
+ "buses": {},
+ "connectors": {
+  "J1": {
+   "1": "AIN0P_IN",
+   "2": "AIN0N_IN",
+   "3": "GND",
+   "4": "AIN1N_IN",
+   "5": "AIN1P_IN",
+   "6": "GND",
+   "7": "AIN2P_IN",
+   "8": "AIN2N_IN",
+   "9": "GND",
+   "10": "AIN3N_IN",
+   "11": "AIN3P_IN"
+  },
+  "J2": {
+   "1": "VIN",
+   "2": "3V3",
+   "3": "GND",
+   "4": "DIN",
+   "5": "DOUT",
+   "6": "SCLK",
+   "7": "DRDY",
+   "8": "CS",
+   "9": "SYNC",
+   "10": "GND"
+  }
+ },
+ "pinmaps": {
+  "U1": {
+   "1": "AVDD",
+   "2": "GND",
+   "3": "AIN0P",
+   "4": "AIN0N",
+   "5": "AIN1N",
+   "6": "AIN1P",
+   "7": "AIN2P",
+   "8": "AIN2N",
+   "9": "AIN3N",
+   "10": "AIN3P",
+   "11": "SYNC_R",
+   "12": "CS_R",
+   "13": "DRDY_R",
+   "14": "SCLK_R",
+   "15": "DOUT_R",
+   "16": "DIN_R",
+   "17": "CLKIN",
+   "18": "CAP",
+   "19": "GND",
+   "20": "3V3"
+  },
+  "U2": {
+   "1": "VIN",
+   "2": "GND",
+   "3": "VIN",
+   "5": "3V3"
+  },
+  "Y1": {
+   "1": "3V3",
+   "2": "GND",
+   "3": "CLK_OSC",
+   "4": "3V3"
+  }
+ },
+ "jumpers": {
+  "JP1": {
+   "pads": {
+    "1": "3V3",
+    "2": "LED_EN"
+   },
+   "default": "1-2"
+  }
+ },
+ "test_points": {
+  "TP1": "GND",
+  "TP2": "3V3",
+  "TP3": "AVDD"
+ },
+ "margin": {
+  "pack": "jlcpcb",
+  "default_ratio": 1.0,
+  "min_ratio": {
+   "track_width": 2.0,
+   "clearance": 2.0,
+   "via_drill": 1.5
+  }
+ },
+ "accepted_warns": [
+  {
+   "check": "test_points",
+   "match": "rail VIN",
+   "reason": "VIN is J2 pin 1, a through-hole pad a probe sits on"
+  },
+  {
+   "check": "test_points",
+   "match": "rail CAP",
+   "reason": "a test pad on CAP would add a stub to the ADC's internal 1.8 V regulator output; probe U1 pin 18 or C3"
+  },
+  {
+   "check": "exposure",
+   "match": "DRDY_R",
+   "reason": "digital neighbour of SCLK_R in the SPI fan; no AIN net is exposed"
+  },
+  {
+   "check": "exposure",
+   "match": "DOUT_R",
+   "reason": "digital neighbour of SCLK_R in the SPI fan; no AIN net is exposed"
+  },
+  {
+   "check": "exposure",
+   "match": "CS_R",
+   "reason": "digital neighbour of SCLK_R in the SPI fan; no AIN net is exposed"
+  },
+  {
+   "check": "exposure",
+   "match": "DIN_R",
+   "reason": "digital neighbour of SCLK_R in the SPI fan and of CLKIN at pin 16; no AIN net is exposed"
+  }
+ ],
+ "currents": {
+  "VIN": 0.15,
+  "3V3": 0.12,
+  "AVDD": 0.01
+ },
+ "copper_oz": {
+  "outer": 1.0,
+  "inner": 0.5
+ },
+ "rise_c": 20,
+ "thermal_vias": {},
+ "via_in_pad": {},
+ "edge_margin": {
+  "tracks_mm": 1.0,
+  "vias_mm": 1.0,
+  "parts_mm": 1.0,
+  "connector_mm": 1.5,
+  "skip_refs": []
+ },
+ "gnd_islands": {
+  "ground": "GND",
+  "warn_mm2": 0.5,
+  "max_mm2": 2.0
+ },
+ "refplane": {
+  "ground": "GND",
+  "step_mm": 0.25,
+  "max_gap_mm": 0,
+  "mid_max_mm": 5,
+  "skip_nets": []
+ },
+ "return_via": {
+  "ground": "GND"
+ },
+ "exposure": {
+  "aggressors": [
+   "SCLK",
+   "SCLK_R",
+   "CLK_OSC",
+   "CLKIN"
+  ],
+  "within_mm": 1.0,
+  "victim_weight": 3,
+  "max_mm": 0,
+  "_why": "brief: separation of analog inputs from the SPI clock and the oscillator, every AIN net must read 0 mm"
+ },
+ "signals": {
+  "DIN": {
+   "driver": "host GPIO/SPI on J2 -> R series -> U1",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS host pin, no series R at the host",
+   "slowed_by": [],
+   "victim": false
+  },
+  "DIN_R": {
+   "driver": "host via 47 ohm series R into U1 input, 5 pF assumed",
+   "t_rise_ns": 3,
+   "source": "assumption: 47 ohm x 5 pF adds 0.5 ns, ignored",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SCLK": {
+   "driver": "host GPIO/SPI on J2 -> R series -> U1",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS host pin, no series R at the host",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SCLK_R": {
+   "driver": "host via 47 ohm series R into U1 input, 5 pF assumed",
+   "t_rise_ns": 3,
+   "source": "assumption: 47 ohm x 5 pF adds 0.5 ns, ignored",
+   "slowed_by": [],
+   "victim": false
+  },
+  "CS": {
+   "driver": "host GPIO/SPI on J2 -> R series -> U1",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS host pin, no series R at the host",
+   "slowed_by": [],
+   "victim": false
+  },
+  "CS_R": {
+   "driver": "host via 47 ohm series R into U1 input, 5 pF assumed",
+   "t_rise_ns": 3,
+   "source": "assumption: 47 ohm x 5 pF adds 0.5 ns, ignored",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SYNC": {
+   "driver": "host GPIO/SPI on J2 -> R series -> U1",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS host pin, no series R at the host",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SYNC_R": {
+   "driver": "host via 47 ohm series R into U1 input, 5 pF assumed",
+   "t_rise_ns": 3,
+   "source": "assumption: 47 ohm x 5 pF adds 0.5 ns, ignored",
+   "slowed_by": [],
+   "victim": false
+  },
+  "DOUT_R": {
+   "driver": "U1 output",
+   "t_rise_ns": 5,
+   "source": "assumption: ADS131M04 output edge, not in SBAS890D; DOUT load 20 pF in 6.6",
+   "slowed_by": [],
+   "victim": false
+  },
+  "DOUT": {
+   "driver": "U1 output through 47 ohm",
+   "t_rise_ns": 5,
+   "source": "same driver, after the series R",
+   "slowed_by": [
+    "47 ohm"
+   ],
+   "victim": false
+  },
+  "DRDY_R": {
+   "driver": "U1 output",
+   "t_rise_ns": 5,
+   "source": "assumption: ADS131M04 output edge, not in SBAS890D; DOUT load 20 pF in 6.6",
+   "slowed_by": [],
+   "victim": false
+  },
+  "DRDY": {
+   "driver": "U1 output through 47 ohm",
+   "t_rise_ns": 5,
+   "source": "same driver, after the series R",
+   "slowed_by": [
+    "47 ohm"
+   ],
+   "victim": false
+  },
+  "CLK_OSC": {
+   "driver": "Y1 OUT",
+   "t_rise_ns": 4,
+   "source": "YXC YSO110TR page 1: rise/fall 4 ns max (faster parts assumed no worse than 1 ns in the exposure reasoning)",
+   "slowed_by": [],
+   "victim": false
+  },
+  "CLKIN": {
+   "driver": "Y1 OUT through R14 47 ohm",
+   "t_rise_ns": 4,
+   "source": "same",
+   "slowed_by": [
+    "R14 47 ohm"
+   ],
+   "victim": false
+  },
+  "AIN0P": {
+   "driver": "R 1k + C 10 nF filter",
+   "t_rise_ns": 44000,
+   "source": "2.2 x 2 k x 10 nF",
+   "slowed_by": [
+    "1 k + 10 nF"
+   ],
+   "victim": true
+  },
+  "AIN0P_IN": {
+   "driver": "external sensor on J1",
+   "t_rise_ns": null,
+   "source": "analog input, source unknown",
+   "slowed_by": [],
+   "victim": true
+  },
+  "AIN0N": {
+   "driver": "R 1k + C 10 nF filter",
+   "t_rise_ns": 44000,
+   "source": "2.2 x 2 k x 10 nF",
+   "slowed_by": [
+    "1 k + 10 nF"
+   ],
+   "victim": true
+  },
+  "AIN0N_IN": {
+   "driver": "external sensor on J1",
+   "t_rise_ns": null,
+   "source": "analog input, source unknown",
+   "slowed_by": [],
+   "victim": true
+  },
+  "AIN1P": {
+   "driver": "R 1k + C 10 nF filter",
+   "t_rise_ns": 44000,
+   "source": "2.2 x 2 k x 10 nF",
+   "slowed_by": [
+    "1 k + 10 nF"
+   ],
+   "victim": true
+  },
+  "AIN1P_IN": {
+   "driver": "external sensor on J1",
+   "t_rise_ns": null,
+   "source": "analog input, source unknown",
+   "slowed_by": [],
+   "victim": true
+  },
+  "AIN1N": {
+   "driver": "R 1k + C 10 nF filter",
+   "t_rise_ns": 44000,
+   "source": "2.2 x 2 k x 10 nF",
+   "slowed_by": [
+    "1 k + 10 nF"
+   ],
+   "victim": true
+  },
+  "AIN1N_IN": {
+   "driver": "external sensor on J1",
+   "t_rise_ns": null,
+   "source": "analog input, source unknown",
+   "slowed_by": [],
+   "victim": true
+  },
+  "AIN2P": {
+   "driver": "R 1k + C 10 nF filter",
+   "t_rise_ns": 44000,
+   "source": "2.2 x 2 k x 10 nF",
+   "slowed_by": [
+    "1 k + 10 nF"
+   ],
+   "victim": true
+  },
+  "AIN2P_IN": {
+   "driver": "external sensor on J1",
+   "t_rise_ns": null,
+   "source": "analog input, source unknown",
+   "slowed_by": [],
+   "victim": true
+  },
+  "AIN2N": {
+   "driver": "R 1k + C 10 nF filter",
+   "t_rise_ns": 44000,
+   "source": "2.2 x 2 k x 10 nF",
+   "slowed_by": [
+    "1 k + 10 nF"
+   ],
+   "victim": true
+  },
+  "AIN2N_IN": {
+   "driver": "external sensor on J1",
+   "t_rise_ns": null,
+   "source": "analog input, source unknown",
+   "slowed_by": [],
+   "victim": true
+  },
+  "AIN3P": {
+   "driver": "R 1k + C 10 nF filter",
+   "t_rise_ns": 44000,
+   "source": "2.2 x 2 k x 10 nF",
+   "slowed_by": [
+    "1 k + 10 nF"
+   ],
+   "victim": true
+  },
+  "AIN3P_IN": {
+   "driver": "external sensor on J1",
+   "t_rise_ns": null,
+   "source": "analog input, source unknown",
+   "slowed_by": [],
+   "victim": true
+  },
+  "AIN3N": {
+   "driver": "R 1k + C 10 nF filter",
+   "t_rise_ns": 44000,
+   "source": "2.2 x 2 k x 10 nF",
+   "slowed_by": [
+    "1 k + 10 nF"
+   ],
+   "victim": true
+  },
+  "AIN3N_IN": {
+   "driver": "external sensor on J1",
+   "t_rise_ns": null,
+   "source": "analog input, source unknown",
+   "slowed_by": [],
+   "victim": true
+  },
+  "LED_EN": {
+   "driver": "DC",
+   "t_rise_ns": null,
+   "source": "LED, DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "LED_R": {
+   "driver": "DC",
+   "t_rise_ns": null,
+   "source": "LED, DC",
+   "slowed_by": [],
+   "victim": false
+  }
+ },
+ "calcs": [
+  {
+   "id": "fc_hz",
+   "expr": "1 / (2 * 3.14159265 * (R('R1') + R('R2')) * C('C7'))",
+   "unit": "Hz",
+   "min": 7000,
+   "max": 9000,
+   "note": "differential RC corner, SBAS890D Figure 9-1 values"
+  },
+  {
+   "id": "fc_over_nyquist_16k",
+   "expr": "fc_hz / 8000",
+   "min": 0.9,
+   "max": 1.1,
+   "note": "design data rate 16 kSPS, OSR 256, Nyquist 8 kHz"
+  },
+  {
+   "id": "atten_fmod_db",
+   "expr": "10 * log10(1 + (4096000 / fc_hz) ** 2)",
+   "unit": "dB",
+   "min": 50,
+   "note": "single pole at fMOD = 4.096 MHz, the band the digital filter cannot reject"
+  },
+  {
+   "id": "atten_32k_db",
+   "expr": "10 * log10(1 + (32000 / fc_hz) ** 2)",
+   "unit": "dB",
+   "max": 13,
+   "note": "signal loss at Nyquist if run at 64 kSPS with the stock 10 nF"
+  },
+  {
+   "id": "fc_wide_hz",
+   "expr": "1 / (2 * 3.14159265 * 2000 * 2.2e-9)",
+   "unit": "Hz",
+   "min": 32000,
+   "note": "option: swap C7-C10 to 2.2 nF C0G C33353 for 64 kSPS"
+  },
+  {
+   "id": "gain_err_pct",
+   "expr": "100 * (R('R1') + R('R2')) / 330e3",
+   "unit": "%",
+   "max": 1.0,
+   "note": "series R against Zin 330 k at fMOD 4.096 MHz, Equation 4, gain 1 to 4"
+  },
+  {
+   "id": "r_noise_uv",
+   "expr": "1e6 * sqrt(4 * 1.38e-23 * 300 * 2000 * 1.57 * fc_hz)",
+   "unit": "uVrms",
+   "max": 1.0,
+   "note": "thermal noise of 2 k over the filter noise bandwidth"
+  },
+  {
+   "id": "ldo_noise_rti_nv",
+   "expr": "1000 * 10 * 10 ** (-75 / 20)",
+   "unit": "nVrms",
+   "max": 5,
+   "note": "TPS7A20 10 uVrms at 1 mA, 10 Hz-100 kHz, through AVDD PSRR 75 dB at dc"
+  },
+  {
+   "id": "ldo_margin_vs_adc",
+   "expr": "420 / ldo_noise_rti_nv",
+   "min": 100,
+   "note": "lowest ADC noise in Table 7-1, 0.42 uVrms, over the LDO term"
+  },
+  {
+   "id": "i_3v3_ma",
+   "expr": "4.0 + 0.5 + 5.0 + (3.3 - 2.0) / R('R13') * 1000 + 2 * 3.3 / R('R17') * 1000",
+   "unit": "mA",
+   "max": 20,
+   "note": "IAVDD + IDVDD max, YSO110TR 5 mA max, LED, both pull-ups held low"
+  },
+  {
+   "id": "p_ldo_mw",
+   "expr": "(5.0 - 3.3) * i_3v3_ma",
+   "unit": "mW",
+   "max": 100
+  },
+  {
+   "id": "tj_ldo",
+   "expr": "85 + p_ldo_mw / 1000 * 200",
+   "unit": "degC",
+   "max": 125,
+   "note": "RthJA DBV 199.6 or 201.4 K/W, table uses 200"
+  },
+  {
+   "id": "fb_drop_mv",
+   "expr": "4.0 * 0.45",
+   "unit": "mV",
+   "max": 5,
+   "note": "IAVDD 4 mA through 450 mohm DCR"
+  },
+  {
+   "id": "sclk_min_mhz_64k",
+   "expr": "6 * 24 * 64000 / 1e6",
+   "unit": "MHz",
+   "max": 25,
+   "note": "six 24-bit words per frame at 64 kSPS, tc(SC) 40 ns = 25 MHz limit"
+  },
+  {
+   "id": "led_ma",
+   "expr": "(3.3 - 2.0) / R('R13') * 1000",
+   "unit": "mA",
+   "min": 0.5,
+   "max": 3
+  }
+ ],
+ "feeds": [],
+ "bringup": "../../BRINGUP.md"
+}

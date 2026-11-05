@@ -1,0 +1,837 @@
+{
+ "project": "r3-esp32s3-a1",
+ "policy": {
+  "clearance_mm": 0.2,
+  "track_mm": 0.2,
+  "via_drill_mm": 0.3,
+  "via_dia_mm": 0.6,
+  "hole_clearance_mm": 0.3,
+  "silk_text_mm": 1.0
+ },
+ "rails": {
+  "VBUS": {
+   "v": 5.0,
+   "source": "J3 USB-C"
+  },
+  "5V": {
+   "v": 4.6,
+   "source": "D1 from VBUS, or J2.1"
+  },
+  "3V3": {
+   "v": 3.3,
+   "source": "U2"
+  },
+  "VDD3P3": {
+   "v": 3.3,
+   "source": "L1 from 3V3"
+  },
+  "VDD_SPI": {
+   "v": 3.3,
+   "source": "U1 pin 29 output via RSPI"
+  },
+  "GND": {}
+ },
+ "decoupling_max_mm": 4.6,
+ "decoupling": [
+  {
+   "ic": "U1",
+   "pin": "2",
+   "cap": "C7",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U1",
+   "pin": "3",
+   "cap": "C7",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U1",
+   "pin": "55",
+   "cap": "C10",
+   "max_mm": 2.5
+  },
+  {
+   "ic": "U1",
+   "pin": "56",
+   "cap": "C9",
+   "max_mm": 2.5
+  },
+  {
+   "ic": "U1",
+   "pin": "46",
+   "cap": "C11",
+   "max_mm": 3.3
+  },
+  {
+   "ic": "U1",
+   "pin": "20",
+   "cap": "C12",
+   "max_mm": 4.6
+  },
+  {
+   "ic": "U1",
+   "pin": "29",
+   "cap": "C13",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U1",
+   "pin": "29",
+   "cap": "C14",
+   "max_mm": 3.0
+  },
+  {
+   "ic": "U2",
+   "pin": "3",
+   "cap": "C2",
+   "max_mm": 4.0
+  },
+  {
+   "ic": "U2",
+   "pin": "2",
+   "cap": "C3",
+   "max_mm": 7.0
+  },
+  {
+   "ic": "U3",
+   "pin": "5",
+   "cap": "C1",
+   "max_mm": 4.0
+  }
+ ],
+ "buses": {
+  "I2C": {
+   "sda": "GPIO17",
+   "scl": "GPIO18",
+   "rail": "3V3",
+   "max_sink_ma": 3.0,
+   "chain_boards": 1,
+   "devices": {}
+  }
+ },
+ "pinmaps": {
+  "U1": {
+   "1": "LNA_IN",
+   "4": "EN",
+   "5": "GPIO0",
+   "25": "USB_DN_MCU",
+   "26": "USB_DP_MCU",
+   "53": "XTAL_N",
+   "54": "XTAL_P",
+   "29": "VDD_SPI",
+   "2": "VDD3P3",
+   "3": "VDD3P3"
+  },
+  "U2": {
+   "1": "GND",
+   "2": "3V3",
+   "3": "5V"
+  },
+  "D1": {
+   "1": "5V",
+   "2": "VBUS"
+  }
+ },
+ "connectors": {
+  "J1": {
+   "1": "3V3",
+   "2": "GPIO18",
+   "3": "GPIO17",
+   "4": "GPIO16",
+   "5": "GPIO15",
+   "6": "GPIO14",
+   "7": "GPIO13",
+   "8": "GPIO12",
+   "9": "GPIO11",
+   "10": "GPIO10",
+   "11": "GPIO8",
+   "12": "GPIO7",
+   "13": "GPIO6",
+   "14": "GPIO5",
+   "15": "GPIO4",
+   "16": "GPIO3",
+   "17": "GPIO2",
+   "18": "GPIO1",
+   "19": "GPIO0",
+   "20": "EN"
+  },
+  "J2": {
+   "1": "5V",
+   "2": "GND",
+   "3": "GPIO21",
+   "4": "GPIO47",
+   "5": "GPIO48",
+   "6": "GPIO33",
+   "7": "GPIO34",
+   "8": "GPIO35",
+   "9": "GPIO36",
+   "10": "GPIO37",
+   "11": "GPIO38",
+   "12": "GPIO39",
+   "13": "GPIO40",
+   "14": "GPIO41",
+   "15": "GPIO42",
+   "16": "GPIO43",
+   "17": "GPIO44",
+   "18": "GPIO45",
+   "19": "GPIO46",
+   "20": "GND"
+  },
+  "J3": {
+   "A1": "GND",
+   "A12": "GND",
+   "B1": "GND",
+   "B12": "GND",
+   "A4": "VBUS",
+   "A9": "VBUS",
+   "B4": "VBUS",
+   "B9": "VBUS",
+   "A5": "CC1",
+   "B5": "CC2",
+   "A6": "USB_DP",
+   "B6": "USB_DP",
+   "A7": "USB_DN",
+   "B7": "USB_DN"
+  },
+  "J4": {
+   "1": "GND",
+   "2": "3V3",
+   "3": "GPIO17",
+   "4": "GPIO18"
+  },
+  "J5": {
+   "1": "GND",
+   "2": "GND",
+   "3": "GND",
+   "4": "RF2"
+  }
+ },
+ "jumpers": {
+  "JP1": {
+   "pads": {
+    "1": "3V3",
+    "2": "PLED_R"
+   },
+   "default": "1-2"
+  },
+  "JP2": {
+   "pads": {
+    "1": "PU_SDA",
+    "2": "3V3",
+    "3": "PU_SCL"
+   },
+   "default": "1-2-3"
+  }
+ },
+ "test_points": {
+  "TP1": "5V",
+  "TP2": "3V3",
+  "TP3": "GND",
+  "TP4": "VBUS"
+ },
+ "currents": {
+  "VBUS": 0.65,
+  "5V": 0.65,
+  "3V3": 0.6,
+  "VDD3P3": 0.35
+ },
+ "copper_oz": {
+  "outer": 1.0,
+  "inner": 0.5
+ },
+ "rise_c": 20,
+ "thermal_vias": {
+  "U1": {
+   "pad": "57",
+   "min": 9,
+   "within_mm": 2.8
+  }
+ },
+ "via_in_pad": {
+  "allow": []
+ },
+ "edge_margin": {
+  "tracks_mm": 1.0,
+  "vias_mm": 1.0,
+  "parts_mm": 1.0,
+  "connector_mm": 1.5,
+  "skip_refs": [
+   "J5"
+  ]
+ },
+ "gnd_islands": {
+  "ground": "GND",
+  "warn_mm2": 0.5,
+  "max_mm2": 2.0
+ },
+ "feeds": [
+  {
+   "pad": "U2.3",
+   "amps": 0.6,
+   "within_mm": 2.0
+  },
+  {
+   "pad": "U2.2",
+   "amps": 0.6,
+   "within_mm": 3.5
+  },
+  {
+   "pad": "L1.2",
+   "amps": 0.35,
+   "within_mm": 2.0
+  }
+ ],
+ "refplane": {
+  "ground": "GND",
+  "step_mm": 0.25,
+  "max_gap_mm": 0,
+  "mid_max_mm": 5,
+  "skip_nets": [
+   "RF2"
+  ],
+  "_skip_why": "RF2 ends at the antenna land inside the keepout: last 0.7 mm has no plane by the antenna datasheet and the brief"
+ },
+ "return_via": {
+  "ground": "GND"
+ },
+ "exposure": {
+  "within_mm": 1.0,
+  "victim_weight": 3
+ },
+ "signals": {
+  "GPIO18": {
+   "driver": "I2C open drain",
+   "t_rise_ns": 300,
+   "source": "I2C fast mode t_r limit 300 ns",
+   "slowed_by": [
+    "R10 10k"
+   ],
+   "victim": false
+  },
+  "GPIO17": {
+   "driver": "I2C open drain",
+   "t_rise_ns": 300,
+   "source": "I2C fast mode t_r limit 300 ns",
+   "slowed_by": [
+    "R9 10k"
+   ],
+   "victim": false
+  },
+  "GPIO16": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO15": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO14": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO13": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO12": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO11": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO10": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO8": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO7": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO6": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO5": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO4": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO3": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO2": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO1": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO0": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO21": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO47": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO48": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO33": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO34": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO35": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO36": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO37": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO38": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO39": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO40": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO41": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO42": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO43": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [
+    "R4 499 ohm"
+   ],
+   "victim": false
+  },
+  "GPIO44": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO45": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO46": {
+   "driver": "ESP32-S3 GPIO to header",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO at the default drive, no series R; datasheet gives no edge rate",
+   "slowed_by": [],
+   "victim": false
+  },
+  "GPIO9": {
+   "driver": "ESP32-S3 GPIO to R11",
+   "t_rise_ns": 3,
+   "source": "assumption as the header GPIOs",
+   "slowed_by": [],
+   "victim": false
+  },
+  "U0TXD": {
+   "driver": "ESP32-S3 U0TXD to R4",
+   "t_rise_ns": 3,
+   "source": "assumption as the header GPIOs",
+   "slowed_by": [],
+   "victim": false
+  },
+  "EN": {
+   "driver": "R2 10k + C17 1 uF, SW1",
+   "t_rise_ns": 22000000,
+   "source": "RC 10 ms, 2.2 RC",
+   "slowed_by": [
+    "R2",
+    "C17"
+   ],
+   "victim": true
+  },
+  "USB_DP": {
+   "driver": "USB FS",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 FS tr min 4 ns",
+   "slowed_by": [],
+   "victim": false
+  },
+  "USB_DN": {
+   "driver": "USB FS",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 FS tr min 4 ns",
+   "slowed_by": [],
+   "victim": false
+  },
+  "USB_DP_MCU": {
+   "driver": "USB FS",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 FS tr min 4 ns",
+   "slowed_by": [],
+   "victim": false
+  },
+  "USB_DN_MCU": {
+   "driver": "USB FS",
+   "t_rise_ns": 4,
+   "source": "USB 2.0 FS tr min 4 ns",
+   "slowed_by": [],
+   "victim": false
+  },
+  "LNA_IN": {
+   "driver": "2.4 GHz RF",
+   "t_rise_ns": 0.1,
+   "source": "2.45 GHz carrier, 0.35/f",
+   "slowed_by": [],
+   "victim": true
+  },
+  "RF1": {
+   "driver": "2.4 GHz RF",
+   "t_rise_ns": 0.1,
+   "source": "2.45 GHz carrier, 0.35/f",
+   "slowed_by": [],
+   "victim": true
+  },
+  "RF2": {
+   "driver": "2.4 GHz RF",
+   "t_rise_ns": 0.1,
+   "source": "2.45 GHz carrier, 0.35/f",
+   "slowed_by": [],
+   "victim": true
+  },
+  "XTAL_P": {
+   "driver": "40 MHz crystal",
+   "t_rise_ns": 8,
+   "source": "sine at 40 MHz, 0.35/f",
+   "slowed_by": [
+    "L2 24 nH"
+   ],
+   "victim": true
+  },
+  "XTAL_N": {
+   "driver": "40 MHz crystal",
+   "t_rise_ns": 8,
+   "source": "sine at 40 MHz, 0.35/f",
+   "slowed_by": [],
+   "victim": true
+  },
+  "XIN": {
+   "driver": "40 MHz crystal",
+   "t_rise_ns": 8,
+   "source": "sine at 40 MHz, 0.35/f",
+   "slowed_by": [],
+   "victim": true
+  },
+  "CC1": {
+   "driver": "USB CC, DC",
+   "t_rise_ns": null,
+   "source": "DC pull-down",
+   "slowed_by": [],
+   "victim": false
+  },
+  "CC2": {
+   "driver": "USB CC, DC",
+   "t_rise_ns": null,
+   "source": "DC pull-down",
+   "slowed_by": [],
+   "victim": false
+  },
+  "PU_SDA": {
+   "driver": "pull-up, DC",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "PU_SCL": {
+   "driver": "pull-up, DC",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "PLED_A": {
+   "driver": "LED, DC",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "PLED_R": {
+   "driver": "LED, DC",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "ULED_A": {
+   "driver": "LED through R11",
+   "t_rise_ns": 100,
+   "source": "LED load, slow by duty",
+   "slowed_by": [
+    "R11"
+   ],
+   "victim": false
+  }
+ },
+ "margin": {
+  "pack": "jlcpcb",
+  "default_ratio": 1.0,
+  "min_ratio": {
+   "track_width": 2.0,
+   "clearance": 2.0,
+   "via_drill": 2.0
+  }
+ },
+ "calcs": [
+  {
+   "id": "i_3v3_peak_a",
+   "expr": "0.340+0.1+0.003+0.003+0.05",
+   "unit": "A",
+   "max": 0.8,
+   "note": "S3 340 mA (DS table 5-7), Qwiic 100 mA, LEDs, 50 mA margin; regulator limit 0.8 A"
+  },
+  {
+   "id": "v_d1_drop",
+   "expr": "0.5",
+   "unit": "V",
+   "max": 0.6,
+   "note": "B5819W VF 0.6 V max at 1 A"
+  },
+  {
+   "id": "vin_ldo_min",
+   "expr": "4.75-0.05-v_d1_drop",
+   "unit": "V",
+   "min": 3.75,
+   "note": "USB 4.75 V min, 50 mV cable+trace, D1"
+  },
+  {
+   "id": "headroom_min",
+   "expr": "vin_ldo_min-3.3",
+   "unit": "V",
+   "min": 0.28,
+   "note": "against the 0.28 V max dropout at 500 mA, DS table"
+  },
+  {
+   "id": "p_ldo_burst",
+   "expr": "(5.25-0.35-3.3)*0.6",
+   "unit": "W",
+   "max": 1.2,
+   "note": "USB 5.25 V max, D1 0.35 V, 600 mA"
+  },
+  {
+   "id": "tj_ldo_burst",
+   "expr": "40+p_ldo_burst*56",
+   "unit": "degC",
+   "max": 125,
+   "note": "theta_ja TO-252-2 56 K/W SGM2212 DS; SOT-223 at 117 K/W would read 152"
+  },
+  {
+   "id": "tj_sot223_rejected",
+   "expr": "40+p_ldo_burst*117",
+   "unit": "degC",
+   "note": "why not SOT-223"
+  },
+  {
+   "id": "xtal_cl",
+   "expr": "C('C15')*C('C16')/(C('C15')+C('C16'))*1e12+2.5",
+   "unit": "pF",
+   "min": 8.0,
+   "max": 10.0,
+   "note": "CL 9 pF target, Cstray 2.5 pF estimate, HDG 1.3.5"
+  },
+  {
+   "id": "en_tau_ms",
+   "expr": "R('R2')*C('C17')*1e3",
+   "unit": "ms",
+   "min": 1.0,
+   "max": 20,
+   "note": "tSTBL 50 us min; HDG 1.3.3 asks 10k + 1 uF"
+  },
+  {
+   "id": "ipullup_ma",
+   "expr": "3.3/R('R9')*1e3",
+   "unit": "mA",
+   "max": 3.0
+  },
+  {
+   "id": "pled_ma",
+   "expr": "(3.3-2.0)/R('R1')*1e3",
+   "unit": "mA",
+   "min": 0.5,
+   "max": 5.0
+  },
+  {
+   "id": "uled_ma",
+   "expr": "(3.3-2.1)/R('R11')*1e3",
+   "unit": "mA",
+   "min": 0.5,
+   "max": 5.0
+  },
+  {
+   "id": "cc_pulldown_k",
+   "expr": "R('R7')/1e3",
+   "unit": "kohm",
+   "min": 4.8,
+   "max": 5.4
+  },
+  {
+   "id": "z_rf_ohm",
+   "expr": "49.7",
+   "unit": "ohm",
+   "min": 45,
+   "max": 55,
+   "note": "CPWG w 0.32, gap 0.25, h 0.2104, er 4.4, tools/z0.py"
+  },
+  {
+   "id": "z_usb_ohm",
+   "expr": "91.2",
+   "unit": "ohm",
+   "min": 81,
+   "max": 99,
+   "note": "w 0.28 s 0.20 microstrip, tools/z0.py"
+  }
+ ],
+ "accepted_warns": [
+  {
+   "check": "gnd_islands",
+   "match": "mm^2",
+   "reason": "slivers between header pads: 0.84 mm between 1.7 mm pads holds no 0.6 via with 0.2 clearance, or a pocket closed by the header bands; KiCad removes the fill"
+  },
+  {
+   "check": "test_points",
+   "match": "rail VDD3P3",
+   "reason": "probe C7 pad 1; a TP on the RF-filtered node adds stub"
+  },
+  {
+   "check": "test_points",
+   "match": "rail VDD_SPI",
+   "reason": "probe C13 pad 1, it is an output of U1"
+  }
+ ]
+}

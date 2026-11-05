@@ -28,6 +28,7 @@
 #                                                                  items fail; `pcb check` alone prints the config keys
 #   pcb q        x.kicad_pcb <cmd ...>                             one measurement over pcbnew (`pcb q` alone lists them)
 #   pcb route    strip|export-dsn|import-ses|fill|measure ...       autorouting primitives and copper measurements (P6-T1)
+#   pcb cpl      x.kicad_pcb [--json F] [--offline]                 CPL rotation of each LCSC part against JLC's footprint (spike #6)
 #   pcb block    init|plan|gate|report ...                          block-by-block placement with gates (spike #6)
 #   pcb signals  checks.json [--netlist x.xml] [--md|--json]           signal classes by knee frequency from the `signals` block (SIG-1)
 #   pcb irdrop   x.kicad_pcb --net N --source P [--sink P=A] [--config checks.json]  DC drop and current density on real copper (IRDROP-1)
@@ -78,6 +79,7 @@ case "$cmd" in
      guard; kpy "$HERE/pcbroute.py" "$@" ;;
   signals) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbsig.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
      exec python3 -I "$HERE/pcbsig.py" "$@" ;;
+  cpl) exec python3 -I "$HERE/pcbcpl.py" "$@" ;;
   block) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbblock.py" | sed '1s/^"""//;$d'; exit 0 ;; esac
     kpy "$HERE/pcbblock.py" "$@" ;;
   irdrop) case "${1:-}" in ""|-h|--help|help) sed -n '/^"""/,/^"""/p' "$HERE/pcbir.py" | sed '1s/^"""//;$d'; exit 0 ;; esac

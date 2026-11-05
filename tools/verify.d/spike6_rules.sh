@@ -1,7 +1,8 @@
 # Spike #6 copper rules and block gates on a scratch copy of the attempt-2 board: `via_in_pad` flags a planted via and honours
 # an exposed-pad exemption, `edge_margin` flags a planted track, `ground-islands` grounds the fill, `pcb block` enforces order.
-# Sourced by tools/verify_all.sh. About 40 s.
-# watch: skills/kicad-design/scripts/pcbblock.py skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcblib/board.py skills/kicad-design/scripts/pcbroute.py
+# `pcb cpl` turns the ADS131M04's U1 and U2 for JLC from cached EasyEDA pads, `pin1_mark` fails when the mark is gone, `edge_margin` reads pours.
+# Sourced by tools/verify_all.sh. About 60 s.
+# watch: skills/kicad-design/scripts/pcbblock.py skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcblib/board.py skills/kicad-design/scripts/pcbroute.py skills/kicad-design/scripts/pcbcpl.py skills/kicad-design/scripts/pcbcli.py
 T6="$V/spike6"; mkdir -p "$T6"
 cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.xml "$T6/" 2>/dev/null
 cat > "$T6/plant.py" <<'P'
@@ -58,3 +59,34 @@ d['order'] = ['LDO', 'BUCK', 'CONN', 'DRV', 'PWR']
 json.dump(d, open('blocks.json', 'w'))" ; "$PCB" block plan motor1.kicad_pcb blocks.json > plan.txt 2>&1
   "$PCB" py gate.py > gate0.txt 2>&1; "$PCB" block gate motor1.kicad_pcb blocks.json BUCK > gate1.txt 2>&1 )
 grep -q "out of order: the next block is LDO" "$T6/gate1.txt" && ok "spike 6: pcb block gate refuses a block out of order" || bad "spike 6 gate: $(tail -3 "$T6/gate1.txt")"
+python3 -I "$ROOT/skills/kicad-design/scripts/pcbcpl.py" "$ROOT/examples/rung3-ads131m04-a1/board/ads131m04_breakout.kicad_pcb" --offline --cache "$ROOT/tools/spikes/spike6/fixtures" --json "$T6/cpl.json" > "$T6/cpl.txt" 2>&1
+python3 -I -c "
+import json
+r = {x['ref']: x for x in json.load(open('$T6/cpl.json'))}
+assert (r['U1']['status'], r['U1']['correction']) == ('ok', 270), r['U1']
+assert (r['U2']['status'], r['U2']['correction']) == ('ok', 180), r['U2']
+print('ok')" > "$T6/cpl-ok.txt" 2>&1 && ok "spike 6: pcb cpl gives TSSOP-20 -BL +270 and SOT-23-5 -BR +180 from cached EasyEDA pads, the package names' own pin-1 tokens" || bad "spike 6 cpl: $(tail -2 "$T6/cpl-ok.txt")"
+mkdir -p "$T6/p1"; cp "$ROOT"/examples/rung3-ads131m04-a1/board/ads131m04_breakout.kicad_p* "$ROOT"/examples/rung3-ads131m04-a1/board/ads131m04_breakout.kicad_sch "$T6/p1/"
+cat > "$T6/p1/strip.py" <<'P'
+import json, sys, pcbnew
+b = pcbnew.LoadBoard("ads131m04_breakout.kicad_pcb")
+f = [f for f in b.GetFootprints() if f.GetReference() == "U2"][0]
+for g in list(f.GraphicalItems()):
+    if g.GetLayer() == pcbnew.F_SilkS:
+        f.Remove(g)
+for d in list(b.GetDrawings()):
+    if d.GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS):
+        b.Remove(d)
+for z in list(b.Zones()):
+    if z.IsOnLayer(pcbnew.In1_Cu):
+        z.SetIsFilled(True)
+b.Save("ads131m04_breakout.kicad_pcb")
+json.dump({"pin1_mark": {"refs": "^U2$"}, "edge_margin": {}}, open("c.json", "w"))
+P
+( cd "$T6/p1" && "$PCB" py strip.py > strip.txt 2>&1; "$PCB" check ads131m04_breakout.kicad_pcb c.json --only pin1_mark,edge_margin --out j.json > check.txt 2>&1 )
+python3 -I -c "
+import json
+r = json.load(open('$T6/p1/j.json'))['rows']
+assert any(x['id'] == 'pin1_mark:U2' and x['status'] == 'fail' for x in r), r
+assert any(x['id'] == 'edge_margin:zone GND In1.Cu' and x['status'] == 'fail' for x in r), r
+print('ok')" > "$T6/p1-ok.txt" 2>&1 && ok "spike 6: pin1_mark fails U2 with its silk removed, edge_margin reads an inner plane 0.55 mm off the outline" || bad "spike 6 pin1/plane: $(tail -2 "$T6/p1-ok.txt")"

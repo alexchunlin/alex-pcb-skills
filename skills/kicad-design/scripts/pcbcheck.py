@@ -37,9 +37,13 @@ Checks (v0):
   via_in_pad   no via touches an SMD pad of any net (Alex, spike #6): the via's copper must clear the pad, so a mask web
                keeps solder on the pad. Exposed pads named in `thermal_vias` are exempt, and any pad in {"allow": ["U2.21"]}
                with the footprint's unnumbered copper. Opt-in: {} or {"allow": [...]}, on in the template
-  edge_margin  tracks, vias and parts stay off the outline (Alex, spike #6): {"tracks_mm": 1.0, "vias_mm": 1.0, "parts_mm": 1.0,
-               "connector_mm": 1.5, "skip_refs": []}; connectors (J*) and holes (H*, MH*) are exempt as parts and a track
+  edge_margin  tracks, vias, parts and every pour stay off the outline (Alex, spike #6): {"tracks_mm": 1.0, "vias_mm": 1.0, "parts_mm": 1.0,
+               "zones_mm": 1.0, "connector_mm": 1.5, "skip_refs": [], "skip_zones": []}; parts by courtyard, pads where there is
+               none; inner planes count like any pour; connectors (J*) and holes (H*, MH*) are exempt as parts and a track
                end within connector_mm of a pad on its own net on a J* footprint is the connector's exit. Opt-in, on in the template
+  pin1_mark    every IC, transistor, diode, LED and crystal has a silk mark by pin 1, silk with no twin through the part's centre: JLC's
+               engineers align polarized parts to it, so it is what saves a wrong CPL rotation (Alex, spike #6).
+               Opt-in: {"refs": "^(U|Q|D|LED|Y)[0-9]", "within_mm": 1.5, "skip_refs": []}, on in the template
   gnd_islands  the ground fill refilled with island removal off, on a copy: every piece with no ground copper over
                warn_mm2 (0.5) warns, over max_mm2 (2.0) fails (Alex, spike #6: tie islands to ground with a via, `pcb route
                ground-islands`, which `pcb route auto` runs). Opt-in: {"ground": "GND"}, on in the template
@@ -92,7 +96,7 @@ import pcbrefstat  # noqa: E402
 
 KICAD_CLI = os.environ.get("KICAD_CLI", "/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")
 KICAD_DRUID = os.environ.get("KICAD_DRUID", "/tmp/pcb-ref/kicad-druid")
-KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "via_in_pad", "edge_margin", "gnd_islands", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "basic_parts", "refstat", "accepted_warns",
+KNOWN = {"rails", "decoupling", "buses", "connectors", "pinmaps", "jumpers", "test_points", "bringup", "margin", "policy", "fields", "currents", "copper_oz", "rise_c", "thermal_vias", "via_in_pad", "edge_margin", "pin1_mark", "gnd_islands", "refplane", "feed_room", "return_via", "exposure", "calcs", "feeds", "signals", "irdrop", "basic_parts", "refstat", "accepted_warns",
          "decoupling_max_mm", "gnd_via_max_mm", "project"}
 ROWS, COVERAGE, NOT_CHECKED, CONFIG_WARNS = [], [], [], []
 
@@ -701,7 +705,7 @@ def check_edge_margin(CFG, NL, B):
         NOT_CHECKED.append("edge_margin: no edge_margin block, so copper and parts near the outline were not measured")
         return
     tr, vi, pa = float(c.get("tracks_mm", 1.0)), float(c.get("vias_mm", 1.0)), float(c.get("parts_mm", 1.0))
-    conn, skip = float(c.get("connector_mm", 1.5)), set(c.get("skip_refs", []))
+    zo, conn, skip = float(c.get("zones_mm", 1.0)), float(c.get("connector_mm", 1.5)), set(c.get("skip_refs", []))
     bb = B.GetBoardEdgesBoundingBox()
     x0, y0, x1, y1 = (pcbnew.ToMM(v) for v in (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
     dist = lambda v: min(pcbnew.ToMM(v.x) - x0, x1 - pcbnew.ToMM(v.x), pcbnew.ToMM(v.y) - y0, y1 - pcbnew.ToMM(v.y))
@@ -725,15 +729,62 @@ def check_edge_margin(CFG, NL, B):
         ref = f.GetReference()
         if ref in skip or re.match(r"(J|H|MH|FID)\d", ref):
             continue
-        ds = [min(pcbnew.ToMM(b.GetLeft()) - x0, x1 - pcbnew.ToMM(b.GetRight()), pcbnew.ToMM(b.GetTop()) - y0, y1 - pcbnew.ToMM(b.GetBottom()))
-              for b in (q.GetBoundingBox() for q in f.Pads())]
+        f.BuildCourtyardCaches()
+        cy = f.GetCourtyard(pcbnew.F_CrtYd if f.GetLayer() == pcbnew.F_Cu else pcbnew.B_CrtYd)
+        boxes = [cy.BBox()] if cy.OutlineCount() else [q.GetBoundingBox() for q in f.Pads()]   # review board3: pads passed a body 0.4 mm off
+        ds = [min(pcbnew.ToMM(b.GetLeft()) - x0, x1 - pcbnew.ToMM(b.GetRight()), pcbnew.ToMM(b.GetTop()) - y0, y1 - pcbnew.ToMM(b.GetBottom())) for b in boxes]
         if ds and min(ds) < pa:
             worst[f"part {ref}"] = min(ds)
+    for z in B.Zones():
+        if z.GetIsRuleArea() or z.GetZoneName() in c.get("skip_zones", []):
+            continue
+        for L in z.GetLayerSet().CuStack():
+            if z.HasFilledPolysForLayer(L) and z.GetFilledPolysList(L).OutlineCount():
+                b = z.GetFilledPolysList(L).BBox()
+                d = min(pcbnew.ToMM(b.GetLeft()) - x0, x1 - pcbnew.ToMM(b.GetRight()), pcbnew.ToMM(b.GetTop()) - y0, y1 - pcbnew.ToMM(b.GetBottom()))
+                k = f"zone {z.GetNetname()} {B.GetLayerName(L)}"
+                if d < zo - 0.005:
+                    worst[k] = min(d, worst.get(k, 99))
     for k, d in sorted(worst.items(), key=lambda kv: kv[1]):
         row("edge_margin", "fail", f"edge_margin:{k}", f"{k} {d:.2f} mm from the outline", value=round(d, 2), objects=k.split()[1:], finding="SPIKE-6")
     if not worst:
-        row("edge_margin", "pass", "edge_margin:all", f"tracks {tr}, vias {vi}, parts {pa} mm off the outline")
-    COVERAGE.append(f"edge_margin: tracks {tr}, vias {vi}, parts {pa} mm off the outline bounding box, connector exits within {conn} mm exempt")
+        row("edge_margin", "pass", "edge_margin:all", f"tracks {tr}, vias {vi}, parts {pa}, pours {zo} mm off the outline")
+    COVERAGE.append(f"edge_margin: tracks {tr}, vias {vi}, part courtyards {pa}, pours on every layer {zo} mm off the outline bounding box, connector exits within {conn} mm exempt")
+
+
+def check_pin1_mark(CFG, NL, B):
+    c = CFG.get("pin1_mark")
+    if c is None:
+        NOT_CHECKED.append("pin1_mark: no pin1_mark block, so silk marks by pin 1 were not looked for")
+        return
+    want, within, skip = re.compile(c.get("refs", r"^(U|Q|D|LED|Y)[0-9]")), float(c.get("within_mm", 1.5)), set(c.get("skip_refs", []))
+    layers = (pcbnew.F_SilkS, pcbnew.B_SilkS)
+    def pts_of(d):
+        bb = d.GetBoundingBox()
+        out = [(bb.GetLeft(), bb.GetTop()), (bb.GetRight(), bb.GetTop()), (bb.GetLeft(), bb.GetBottom()), (bb.GetRight(), bb.GetBottom()), (bb.Centre().x, bb.Centre().y)]
+        if hasattr(d, "GetStart"):
+            out += [(d.GetStart().x, d.GetStart().y), (d.GetEnd().x, d.GetEnd().y)]
+        return out
+    board_pts = [p for d in B.GetDrawings() if d.GetLayer() in layers for p in pts_of(d)]
+    n = 0
+    for f in B.GetFootprints():
+        ref = f.GetReference()
+        pads = [q for q in f.Pads() if q.GetNumber()]
+        if not want.match(ref) or ref in skip or len(pads) < 2:
+            continue
+        n += 1
+        one = next((q for q in pads if q.GetNumber() in ("1", "A1")), None)
+        if one is None:
+            row("pin1_mark", "warn", f"pin1_mark:{ref}", f"{ref} has no pad 1 to mark", objects=[ref]); continue
+        # the part's own silk outline is usually point-symmetric, so a mark is silk near pin 1 with no twin through the pad centre
+        cx = sum(q.GetPosition().x for q in pads) / len(pads); cy = sum(q.GetPosition().y for q in pads) / len(pads)
+        pts = board_pts + [p for g in f.GraphicalItems() if g.GetLayer() in layers for p in pts_of(g)]
+        ox, oy = one.GetPosition().x, one.GetPosition().y
+        near = [p for p in pts if pcbnew.ToMM(math.hypot(p[0] - ox, p[1] - oy)) <= within]
+        marks = [p for p in near if min((pcbnew.ToMM(math.hypot(q[0] - (2 * cx - p[0]), q[1] - (2 * cy - p[1]))) for q in pts), default=99) > 0.15]
+        row("pin1_mark", "pass" if marks else "fail", f"pin1_mark:{ref}", f"{ref}: {len(marks)} asymmetric silk points within {within} mm of pin 1"
+            + ("" if marks else ": add a mark JLC's engineers can read"), value=len(marks), objects=[ref], finding="SPIKE-6")
+    COVERAGE.append(f"pin1_mark: {n} polarized parts, silk within {within} mm of pin 1 with no twin through the part's centre")
 
 
 def check_gnd_islands(CFG, NL, B, board_path):
@@ -1407,7 +1458,7 @@ def main():
               ("margin", lambda: check_margin(CFG, NL, B)), ("policy", lambda: check_policy(CFG, NL, B)),
               ("fields", lambda: check_fields(CFG, NL, B)), ("currents", lambda: check_currents(CFG, NL, B)),
               ("thermal_vias", lambda: check_thermal_vias(CFG, NL, B)), ("via_in_pad", lambda: check_via_in_pad(CFG, NL, B)),
-              ("edge_margin", lambda: check_edge_margin(CFG, NL, B)), ("gnd_islands", lambda: check_gnd_islands(CFG, NL, B, board)),
+              ("edge_margin", lambda: check_edge_margin(CFG, NL, B)), ("pin1_mark", lambda: check_pin1_mark(CFG, NL, B)), ("gnd_islands", lambda: check_gnd_islands(CFG, NL, B, board)),
               ("refplane", lambda: check_refplane(CFG, NL, B)),
               ("return_via", lambda: check_return_via(CFG, NL, B)), ("exposure", lambda: check_exposure(CFG, NL, B)),
               ("feed_room", lambda: check_feed_room(CFG, NL, B, board)),

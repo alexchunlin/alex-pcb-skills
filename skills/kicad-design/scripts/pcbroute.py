@@ -208,7 +208,7 @@ KRT_PASSES = [["--no-fix-drc-settings", "--escalation", "off"], ["--no-fix-drc-s
 # Spike #6, Alex's rules: no via in a pad (KRT allows it unless told otherwise; mask web between via and pad) and copper
 # 1 mm off the outline, not at the setup's floor. PCB_ROUTE_RULES=0 routes as before, other values replace the arguments
 # (the before/after measurement).
-ROUTE_RULES = ["--same-net-pad-clearance", "0.15", "--board-edge-clearance", "1.0"]
+ROUTE_RULES = ["--same-net-pad-clearance", "0.10", "--board-edge-clearance", "1.0"]   # 0.15 starved two ground pads on the Qwiic board
 FR_ARGS = ["-mt", "4", "-da", "--gui.enabled=false", "--logging.file.enabled=false"]
 
 

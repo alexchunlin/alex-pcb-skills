@@ -1,0 +1,1854 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="E">
+  <design>
+    <source>/Users/alxchunlin/code-stuff/alex-pcb-runs/r3-ads131m04-a1/layout/ads131m04_breakout/ads131m04_breakout.kicad_sch</source>
+    <date>2026-11-04T19:22:55</date>
+    <tool>Eeschema 10.0.1</tool>
+    <textvar name="PCB_GIT_HASH">d10d3c0</textvar>
+    <textvar name="PCB_NAME">ads131m04_breakout</textvar>
+    <textvar name="PCB_VERSION">v0.0.0</textvar>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>ads131m04_breakout.kicad_sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+        <comment number="5" value=""/>
+        <comment number="6" value=""/>
+        <comment number="7" value=""/>
+        <comment number="8" value=""/>
+        <comment number="9" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="C1">
+      <value>1uF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf</datasheet>
+      <description>1uF</description>
+      <fields>
+        <field name="Path">ADC.C1.C</field>
+        <field name="MPN">CL10A105KB8NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C15849</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf</field>
+        <field name="Description">1uF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="ADC.C1.C"/>
+      <property name="MPN" value="CL10A105KB8NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C15849"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>16c0c8dd-c6dd-5190-a917-371ba4f9be4b</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C2">
+      <value>1uF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf</datasheet>
+      <description>1uF</description>
+      <fields>
+        <field name="Path">ADC.C2.C</field>
+        <field name="MPN">CL10A105KB8NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C15849</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf</field>
+        <field name="Description">1uF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="ADC.C2.C"/>
+      <property name="MPN" value="CL10A105KB8NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C15849"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>39bd6ea9-4c34-55d7-b0a4-ac8b877ab860</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C3">
+      <value>220nF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10B224KA8NNNC_C21120.pdf</datasheet>
+      <description>220nF</description>
+      <fields>
+        <field name="Path">ADC.C3.C</field>
+        <field name="MPN">CL10B224KA8NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C21120</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10B224KA8NNNC_C21120.pdf</field>
+        <field name="Description">220nF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="ADC.C3.C"/>
+      <property name="MPN" value="CL10B224KA8NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C21120"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2819aedb-6aae-5554-a004-e2d2d06f9628</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C4">
+      <value>1uF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf</datasheet>
+      <description>1uF</description>
+      <fields>
+        <field name="Path">POWER.C4.C</field>
+        <field name="MPN">CL10A105KB8NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C15849</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A105KB8NNNC_C15849.pdf</field>
+        <field name="Description">1uF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="POWER.C4.C"/>
+      <property name="MPN" value="CL10A105KB8NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C15849"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b57c9a9a-9829-5759-9ffb-0d43d5e80ef5</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C5">
+      <value>10uF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C19702.pdf</datasheet>
+      <description>10uF</description>
+      <fields>
+        <field name="Path">POWER.C5.C</field>
+        <field name="MPN">CL10A106KP8NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C19702</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C19702.pdf</field>
+        <field name="Description">10uF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="POWER.C5.C"/>
+      <property name="MPN" value="CL10A106KP8NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C19702"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>420e6778-1f85-523b-90b4-b60ad2723188</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C6">
+      <value>100nF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf</datasheet>
+      <description>100nF</description>
+      <fields>
+        <field name="Path">CLOCK.C6.C</field>
+        <field name="MPN">CC0603KRX7R9BB104</field>
+        <field name="Manufacturer">YAGEO</field>
+        <field name="LCSC">C14663</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf</field>
+        <field name="Description">100nF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="CLOCK.C6.C"/>
+      <property name="MPN" value="CC0603KRX7R9BB104"/>
+      <property name="Manufacturer" value="YAGEO"/>
+      <property name="LCSC" value="C14663"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b1a89128-a830-50c6-8a79-6b0a1b26c454</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C7">
+      <value>10nF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Murata-Electronics-GRM1885C1H103JA01D_C85973.pdf</datasheet>
+      <description>10nF</description>
+      <fields>
+        <field name="Path">INPUTS.CH0.CD.C</field>
+        <field name="MPN">GRM1885C1H103JA01D</field>
+        <field name="Manufacturer">Murata Electronics</field>
+        <field name="LCSC">C85973</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Murata-Electronics-GRM1885C1H103JA01D_C85973.pdf</field>
+        <field name="Description">10nF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="INPUTS.CH0.CD.C"/>
+      <property name="MPN" value="GRM1885C1H103JA01D"/>
+      <property name="Manufacturer" value="Murata Electronics"/>
+      <property name="LCSC" value="C85973"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>effe0bee-b2b7-5ec5-bc97-bf4933830f65</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C8">
+      <value>10nF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Murata-Electronics-GRM1885C1H103JA01D_C85973.pdf</datasheet>
+      <description>10nF</description>
+      <fields>
+        <field name="Path">INPUTS.CH1.CD.C</field>
+        <field name="MPN">GRM1885C1H103JA01D</field>
+        <field name="Manufacturer">Murata Electronics</field>
+        <field name="LCSC">C85973</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Murata-Electronics-GRM1885C1H103JA01D_C85973.pdf</field>
+        <field name="Description">10nF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="INPUTS.CH1.CD.C"/>
+      <property name="MPN" value="GRM1885C1H103JA01D"/>
+      <property name="Manufacturer" value="Murata Electronics"/>
+      <property name="LCSC" value="C85973"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b703d6d2-c6b2-5ce0-bb05-6b8bacc4919c</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C9">
+      <value>10nF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Murata-Electronics-GRM1885C1H103JA01D_C85973.pdf</datasheet>
+      <description>10nF</description>
+      <fields>
+        <field name="Path">INPUTS.CH2.CD.C</field>
+        <field name="MPN">GRM1885C1H103JA01D</field>
+        <field name="Manufacturer">Murata Electronics</field>
+        <field name="LCSC">C85973</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Murata-Electronics-GRM1885C1H103JA01D_C85973.pdf</field>
+        <field name="Description">10nF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="INPUTS.CH2.CD.C"/>
+      <property name="MPN" value="GRM1885C1H103JA01D"/>
+      <property name="Manufacturer" value="Murata Electronics"/>
+      <property name="LCSC" value="C85973"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>cf8ac3cd-3603-5bc6-9f87-a0a44f8bed5e</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C10">
+      <value>10nF</value>
+      <footprint>stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Murata-Electronics-GRM1885C1H103JA01D_C85973.pdf</datasheet>
+      <description>10nF</description>
+      <fields>
+        <field name="Path">INPUTS.CH3.CD.C</field>
+        <field name="MPN">GRM1885C1H103JA01D</field>
+        <field name="Manufacturer">Murata Electronics</field>
+        <field name="LCSC">C85973</field>
+        <field name="Footprint">stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Murata-Electronics-GRM1885C1H103JA01D_C85973.pdf</field>
+        <field name="Description">10nF</field>
+      </fields>
+      <libsource lib="" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="Path" value="INPUTS.CH3.CD.C"/>
+      <property name="MPN" value="GRM1885C1H103JA01D"/>
+      <property name="Manufacturer" value="Murata Electronics"/>
+      <property name="LCSC" value="C85973"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>22478238-d5a8-51e7-b715-89273003ffbd</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="D1">
+      <value>Red</value>
+      <footprint>workspace_parts_footprints:LED_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_1810231112_Hubei-KENTO-Elec-KT-0603R_C2286.pdf</datasheet>
+      <description>Light emitting diode, small symbol</description>
+      <fields>
+        <field name="Path">POWER.D1.D</field>
+        <field name="MPN">KT-0603R</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2286</field>
+        <field name="Footprint">workspace_parts_footprints:LED_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_1810231112_Hubei-KENTO-Elec-KT-0603R_C2286.pdf</field>
+        <field name="Description">Light emitting diode, small symbol</field>
+      </fields>
+      <libsource lib="" part="LED_Small" description="Light emitting diode, small symbol"/>
+      <property name="Path" value="POWER.D1.D"/>
+      <property name="MPN" value="KT-0603R"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2286"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="LED diode light-emitting-diode"/>
+      <property name="ki_fp_filters" value="LED* LED_SMD:* LED_THT:*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9066e73a-6ca0-5587-aa7b-1df0e16f2e16</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="FB1">
+      <value>600R@100MHz</value>
+      <footprint>stdlib_kicad-footprints_Inductor_SMD:L_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2310301640_Sunlord-GZ1608D601TF_C1002.pdf</datasheet>
+      <description>Ferrite bead, small symbol</description>
+      <fields>
+        <field name="Path">POWER.FB1.FB</field>
+        <field name="MPN">GZ1608D601TF</field>
+        <field name="Manufacturer">Sunlord</field>
+        <field name="LCSC">C1002</field>
+        <field name="Footprint">stdlib_kicad-footprints_Inductor_SMD:L_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2310301640_Sunlord-GZ1608D601TF_C1002.pdf</field>
+        <field name="Description">Ferrite bead, small symbol</field>
+      </fields>
+      <libsource lib="" part="FerriteBead_Small" description="Ferrite bead, small symbol"/>
+      <property name="Path" value="POWER.FB1.FB"/>
+      <property name="MPN" value="GZ1608D601TF"/>
+      <property name="Manufacturer" value="Sunlord"/>
+      <property name="LCSC" value="C1002"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="L ferrite bead inductor filter"/>
+      <property name="ki_fp_filters" value="Inductor_* L_* *Ferrite*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5445550c-8614-53fe-ae5a-3a6bde227bcc</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="H1">
+      <value>M2.5</value>
+      <footprint>workspace_parts_footprints:MountingHole_2.7mm_M2.5</footprint>
+      <description>Mounting Hole without connection</description>
+      <fields>
+        <field name="Path">H1.H</field>
+        <field name="Footprint">workspace_parts_footprints:MountingHole_2.7mm_M2.5</field>
+        <field name="Datasheet"/>
+        <field name="Description">Mounting Hole without connection</field>
+      </fields>
+      <libsource lib="" part="MountingHole" description="Mounting Hole without connection"/>
+      <property name="Path" value="H1.H"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="mounting hole"/>
+      <property name="ki_fp_filters" value="MountingHole*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a4d358a8-c73a-5871-b54b-fe19e68d1ab5</tstamps>
+      <units>
+        <unit name="A">
+          <pins/>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="H2">
+      <value>M2.5</value>
+      <footprint>workspace_parts_footprints:MountingHole_2.7mm_M2.5</footprint>
+      <description>Mounting Hole without connection</description>
+      <fields>
+        <field name="Path">H2.H</field>
+        <field name="Footprint">workspace_parts_footprints:MountingHole_2.7mm_M2.5</field>
+        <field name="Datasheet"/>
+        <field name="Description">Mounting Hole without connection</field>
+      </fields>
+      <libsource lib="" part="MountingHole" description="Mounting Hole without connection"/>
+      <property name="Path" value="H2.H"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="mounting hole"/>
+      <property name="ki_fp_filters" value="MountingHole*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c9fc28c0-9ae7-5ed4-8064-b94093db7250</tstamps>
+      <units>
+        <unit name="A">
+          <pins/>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="J1">
+      <value>Header 1x11 2.54mm</value>
+      <footprint>workspace_parts_footprints:PinHeader_1x11_P2.54mm_Vertical</footprint>
+      <datasheet>https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2202132000_XFCN-PZ254V-11-11P_C2840011.pdf</datasheet>
+      <description>Header 1x11 2.54mm</description>
+      <fields>
+        <field name="Path">INPUTS.J1.J</field>
+        <field name="MPN">PZ254V-11-11P</field>
+        <field name="Manufacturer">XFCN</field>
+        <field name="LCSC">C2840011</field>
+        <field name="Footprint">workspace_parts_footprints:PinHeader_1x11_P2.54mm_Vertical</field>
+        <field name="Datasheet">https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2202132000_XFCN-PZ254V-11-11P_C2840011.pdf</field>
+        <field name="Description">Header 1x11 2.54mm</field>
+      </fields>
+      <libsource lib="" part="Conn_01x11" description="Generic connector, single row, 01x11, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Path" value="INPUTS.J1.J"/>
+      <property name="MPN" value="PZ254V-11-11P"/>
+      <property name="Manufacturer" value="XFCN"/>
+      <property name="LCSC" value="C2840011"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="dnp"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9aeb46f0-c726-5937-b655-42269b7384ca</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+            <pin num="6"/>
+            <pin num="7"/>
+            <pin num="8"/>
+            <pin num="9"/>
+            <pin num="10"/>
+            <pin num="11"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="J2">
+      <value>Header 1x10 2.54mm</value>
+      <footprint>workspace_parts_footprints:PinHeader_1x10_P2.54mm_Vertical</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2003191006_XFCN-PZ254V-11-10P_C492409.pdf</datasheet>
+      <description>Header 1x10 2.54mm</description>
+      <fields>
+        <field name="Path">DIGITAL.J2.J</field>
+        <field name="MPN">PZ254V-11-10P</field>
+        <field name="Manufacturer">XFCN</field>
+        <field name="LCSC">C492409</field>
+        <field name="Footprint">workspace_parts_footprints:PinHeader_1x10_P2.54mm_Vertical</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2003191006_XFCN-PZ254V-11-10P_C492409.pdf</field>
+        <field name="Description">Header 1x10 2.54mm</field>
+      </fields>
+      <libsource lib="" part="Conn_01x10" description="Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Path" value="DIGITAL.J2.J"/>
+      <property name="MPN" value="PZ254V-11-10P"/>
+      <property name="Manufacturer" value="XFCN"/>
+      <property name="LCSC" value="C492409"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="dnp"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4309b354-b4e7-5600-9d9a-5b4b5d1cebd4</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+            <pin num="6"/>
+            <pin num="7"/>
+            <pin num="8"/>
+            <pin num="9"/>
+            <pin num="10"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="JP1">
+      <value>SolderJumper_2_Bridged</value>
+      <footprint>workspace_parts_footprints:SolderJumper-2_P1.3mm_Bridged12_Pad1.0x1.5mm</footprint>
+      <description>Solder Jumper, 2-pole, closed/bridged</description>
+      <fields>
+        <field name="Path">POWER.JP1.JP</field>
+        <field name="Footprint">workspace_parts_footprints:SolderJumper-2_P1.3mm_Bridged12_Pad1.0x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">Solder Jumper, 2-pole, closed/bridged</field>
+      </fields>
+      <libsource lib="" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="Path" value="POWER.JP1.JP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
+      <property name="ki_fp_filters" value="SolderJumper*Bridged*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>65ec55a3-3369-5e26-85da-56992bcd20a5</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R1">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">INPUTS.CH0.RN.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="INPUTS.CH0.RN.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>05c82d31-f1ee-5d9d-9036-02bfe65d99e5</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R2">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">INPUTS.CH0.RP.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="INPUTS.CH0.RP.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d224c1c3-8d51-5e60-9cc9-e0084f1b2e5e</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R3">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">INPUTS.CH1.RN.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="INPUTS.CH1.RN.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>59bd2404-a31d-5661-b560-5464276cebdc</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R4">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">INPUTS.CH1.RP.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="INPUTS.CH1.RP.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8b03e2de-4d41-5fdf-a1a7-da656372810c</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R5">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">INPUTS.CH2.RN.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="INPUTS.CH2.RN.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0ad2367a-12ee-590b-97f3-b003c7abf512</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R6">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">INPUTS.CH2.RP.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="INPUTS.CH2.RP.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>16226bb2-0e29-5af9-94c2-69c8f220d461</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R7">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">INPUTS.CH3.RN.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="INPUTS.CH3.RN.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>baee0b2f-09e5-5cac-9846-b61f8e7f8867</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R8">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">INPUTS.CH3.RP.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="INPUTS.CH3.RP.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>71902063-c394-5f06-9dba-06b94861353d</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R9">
+      <value>47</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</datasheet>
+      <description>47</description>
+      <fields>
+        <field name="Path">DIGITAL.R9.R</field>
+        <field name="MPN">0603WAF470JT5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C23182</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</field>
+        <field name="Description">47</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="DIGITAL.R9.R"/>
+      <property name="MPN" value="0603WAF470JT5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C23182"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b9277103-4915-5082-8067-73bb1678b80e</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R10">
+      <value>47</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</datasheet>
+      <description>47</description>
+      <fields>
+        <field name="Path">DIGITAL.R10.R</field>
+        <field name="MPN">0603WAF470JT5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C23182</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</field>
+        <field name="Description">47</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="DIGITAL.R10.R"/>
+      <property name="MPN" value="0603WAF470JT5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C23182"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ce8ef8c8-8f72-5ca2-8693-de8b77ebc891</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R11">
+      <value>47</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</datasheet>
+      <description>47</description>
+      <fields>
+        <field name="Path">DIGITAL.R11.R</field>
+        <field name="MPN">0603WAF470JT5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C23182</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</field>
+        <field name="Description">47</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="DIGITAL.R11.R"/>
+      <property name="MPN" value="0603WAF470JT5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C23182"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ddebfc1d-2cba-58ba-bc0c-f26b242693fa</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R12">
+      <value>47</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</datasheet>
+      <description>47</description>
+      <fields>
+        <field name="Path">DIGITAL.R12.R</field>
+        <field name="MPN">0603WAF470JT5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C23182</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</field>
+        <field name="Description">47</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="DIGITAL.R12.R"/>
+      <property name="MPN" value="0603WAF470JT5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C23182"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6d41cd4a-bf0b-5f9b-8582-4ffa3d57f501</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R13">
+      <value>1k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">POWER.R13.R</field>
+        <field name="MPN">0603WAF1001T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C21190</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010130_UNI-ROYAL-Uniroyal-Elec-0603WAF1001T5E_C21190.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="POWER.R13.R"/>
+      <property name="MPN" value="0603WAF1001T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C21190"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d2ca405f-8e27-5365-be92-9773a8271953</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R14">
+      <value>47</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</datasheet>
+      <description>47</description>
+      <fields>
+        <field name="Path">CLOCK.R14.R</field>
+        <field name="MPN">0603WAF470JT5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C23182</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</field>
+        <field name="Description">47</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="CLOCK.R14.R"/>
+      <property name="MPN" value="0603WAF470JT5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C23182"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>79f5b289-1afc-55ed-a31f-b19e04533068</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R15">
+      <value>47</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</datasheet>
+      <description>47</description>
+      <fields>
+        <field name="Path">DIGITAL.R15.R</field>
+        <field name="MPN">0603WAF470JT5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C23182</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</field>
+        <field name="Description">47</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="DIGITAL.R15.R"/>
+      <property name="MPN" value="0603WAF470JT5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C23182"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f898cdec-7a2a-54ce-9523-f9dac83f3537</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R16">
+      <value>47</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</datasheet>
+      <description>47</description>
+      <fields>
+        <field name="Path">DIGITAL.R16.R</field>
+        <field name="MPN">0603WAF470JT5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C23182</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010116_UNI-ROYAL-Uniroyal-Elec-0603WAF470JT5E_C23182.pdf</field>
+        <field name="Description">47</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="DIGITAL.R16.R"/>
+      <property name="MPN" value="0603WAF470JT5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C23182"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>27edc995-1b0d-5afe-9fa1-61760e7975b8</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R17">
+      <value>10k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf</datasheet>
+      <description>10k</description>
+      <fields>
+        <field name="Path">DIGITAL.R17.R</field>
+        <field name="MPN">0603WAF1002T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25804</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf</field>
+        <field name="Description">10k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="DIGITAL.R17.R"/>
+      <property name="MPN" value="0603WAF1002T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25804"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f6d08794-8233-5d5f-969b-3e1928aca1cb</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R18">
+      <value>10k</value>
+      <footprint>stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf</datasheet>
+      <description>10k</description>
+      <fields>
+        <field name="Path">DIGITAL.R18.R</field>
+        <field name="MPN">0603WAF1002T5E</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25804</field>
+        <field name="Footprint">stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf</field>
+        <field name="Description">10k</field>
+      </fields>
+      <libsource lib="" part="R_Small" description="Resistor, small symbol"/>
+      <property name="Path" value="DIGITAL.R18.R"/>
+      <property name="MPN" value="0603WAF1002T5E"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25804"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="R resistor"/>
+      <property name="ki_fp_filters" value="R_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e8d91fd2-92ac-55db-84c0-77e506c25510</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="TP1">
+      <value>TP 1.5mm</value>
+      <footprint>workspace_parts_footprints:TestPoint_Pad_D1.5mm_Ring1.0</footprint>
+      <description>test point</description>
+      <fields>
+        <field name="Path">POWER.TP1.TP</field>
+        <field name="Footprint">workspace_parts_footprints:TestPoint_Pad_D1.5mm_Ring1.0</field>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <libsource lib="" part="TestPoint" description="test point"/>
+      <property name="Path" value="POWER.TP1.TP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="test point tp"/>
+      <property name="ki_fp_filters" value="Pin* Test*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>42a99d42-e4fe-590a-b943-45048d1facdd</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="TP2">
+      <value>TP 1.5mm</value>
+      <footprint>workspace_parts_footprints:TestPoint_Pad_D1.5mm_Ring1.0</footprint>
+      <description>test point</description>
+      <fields>
+        <field name="Path">POWER.TP2.TP</field>
+        <field name="Footprint">workspace_parts_footprints:TestPoint_Pad_D1.5mm_Ring1.0</field>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <libsource lib="" part="TestPoint" description="test point"/>
+      <property name="Path" value="POWER.TP2.TP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="test point tp"/>
+      <property name="ki_fp_filters" value="Pin* Test*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>eb098ef9-bd90-5589-a800-a7c9a371389a</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="TP3">
+      <value>TP 1.5mm</value>
+      <footprint>workspace_parts_footprints:TestPoint_Pad_D1.5mm_Ring1.0</footprint>
+      <description>test point</description>
+      <fields>
+        <field name="Path">POWER.TP3.TP</field>
+        <field name="Footprint">workspace_parts_footprints:TestPoint_Pad_D1.5mm_Ring1.0</field>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <libsource lib="" part="TestPoint" description="test point"/>
+      <property name="Path" value="POWER.TP3.TP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="test point tp"/>
+      <property name="ki_fp_filters" value="Pin* Test*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>14d27438-f862-5b87-a6d0-b6fe25339fd0</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="U1">
+      <value>ADS131M04IPWR</value>
+      <footprint>workspace_parts_footprints:Texas_PW0020A_TSSOP-20_4.4x6.5mm_P0.65mm</footprint>
+      <datasheet>https://www.ti.com/lit/ds/symlink/ads131m04.pdf</datasheet>
+      <description>ADS131M04IPWR</description>
+      <fields>
+        <field name="Path">ADC.U1.U</field>
+        <field name="MPN">ADS131M04IPWR</field>
+        <field name="Manufacturer">Texas Instruments</field>
+        <field name="LCSC">C2862562</field>
+        <field name="Footprint">workspace_parts_footprints:Texas_PW0020A_TSSOP-20_4.4x6.5mm_P0.65mm</field>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/ads131m04.pdf</field>
+        <field name="Description">ADS131M04IPWR</field>
+      </fields>
+      <libsource lib="" part="ADS131M04" description=""/>
+      <property name="Path" value="ADC.U1.U"/>
+      <property name="MPN" value="ADS131M04IPWR"/>
+      <property name="Manufacturer" value="Texas Instruments"/>
+      <property name="LCSC" value="C2862562"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>18bbdfe6-8e3d-52aa-988a-2e4e0aef1e4a</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+            <pin num="6"/>
+            <pin num="7"/>
+            <pin num="8"/>
+            <pin num="9"/>
+            <pin num="10"/>
+            <pin num="20"/>
+            <pin num="19"/>
+            <pin num="18"/>
+            <pin num="17"/>
+            <pin num="16"/>
+            <pin num="15"/>
+            <pin num="14"/>
+            <pin num="13"/>
+            <pin num="12"/>
+            <pin num="11"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="U2">
+      <value>TPS7A2033</value>
+      <footprint>workspace_parts_footprints:SOT-23-5</footprint>
+      <datasheet>https://www.ti.com/lit/ds/symlink/tps7a20.pdf</datasheet>
+      <description>TPS7A2033</description>
+      <fields>
+        <field name="Path">POWER.U2.U</field>
+        <field name="MPN">TPS7A2033PDBVR</field>
+        <field name="Manufacturer">Texas Instruments</field>
+        <field name="LCSC">C2862740</field>
+        <field name="Footprint">workspace_parts_footprints:SOT-23-5</field>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/tps7a20.pdf</field>
+        <field name="Description">TPS7A2033</field>
+      </fields>
+      <libsource lib="" part="TPS7A20_SOT23-5" description=""/>
+      <property name="Path" value="POWER.U2.U"/>
+      <property name="MPN" value="TPS7A2033PDBVR"/>
+      <property name="Manufacturer" value="Texas Instruments"/>
+      <property name="LCSC" value="C2862740"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b9816437-c654-5c64-8f34-66af76172bc5</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="3"/>
+            <pin num="2"/>
+            <pin num="5"/>
+            <pin num="4"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="Y1">
+      <value>8.192MHz</value>
+      <footprint>workspace_parts_footprints:Oscillator_YXC_YSO110TR_3225</footprint>
+      <datasheet>https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2307181127_YXC-Crystal-Oscillators-OT2JI-111-8-192M_C7425393.pdf</datasheet>
+      <description>8.192MHz</description>
+      <fields>
+        <field name="Path">CLOCK.Y1.Y</field>
+        <field name="MPN">OT2JI-111-8.192M</field>
+        <field name="Manufacturer">YXC Crystal Oscillators</field>
+        <field name="LCSC">C7425393</field>
+        <field name="Footprint">workspace_parts_footprints:Oscillator_YXC_YSO110TR_3225</field>
+        <field name="Datasheet">https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2307181127_YXC-Crystal-Oscillators-OT2JI-111-8-192M_C7425393.pdf</field>
+        <field name="Description">8.192MHz</field>
+      </fields>
+      <libsource lib="" part="YSO110TR" description=""/>
+      <property name="Path" value="CLOCK.Y1.Y"/>
+      <property name="MPN" value="OT2JI-111-8.192M"/>
+      <property name="Manufacturer" value="YXC Crystal Oscillators"/>
+      <property name="LCSC" value="C7425393"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ads131m04_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2cf099cc-19a0-5a8e-95ee-3d8b3a1021ab</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="4"/>
+            <pin num="3"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="" part="ADS131M04">
+      <docs>https://www.ti.com/lit/ds/symlink/ads131m04.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">ADS131M04</field>
+        <field name="Footprint">Package_SO:Texas_PW0020A_TSSOP-20_4.4x6.5mm_P0.65mm</field>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/ads131m04.pdf</field>
+        <field name="Description"/>
+      </fields>
+      <pins>
+        <pin num="1" name="AVDD" type="power_in"/>
+        <pin num="2" name="AGND" type="power_in"/>
+        <pin num="3" name="AIN0P" type="input"/>
+        <pin num="4" name="AIN0N" type="input"/>
+        <pin num="5" name="AIN1N" type="input"/>
+        <pin num="6" name="AIN1P" type="input"/>
+        <pin num="7" name="AIN2P" type="input"/>
+        <pin num="8" name="AIN2N" type="input"/>
+        <pin num="9" name="AIN3N" type="input"/>
+        <pin num="10" name="AIN3P" type="input"/>
+        <pin num="11" name="SYNC/~{RESET}" type="input"/>
+        <pin num="12" name="~{CS}" type="input"/>
+        <pin num="13" name="~{DRDY}" type="output"/>
+        <pin num="14" name="SCLK" type="input"/>
+        <pin num="15" name="DOUT" type="output"/>
+        <pin num="16" name="DIN" type="input"/>
+        <pin num="17" name="CLKIN" type="input"/>
+        <pin num="18" name="CAP" type="power_out"/>
+        <pin num="19" name="DGND" type="power_in"/>
+        <pin num="20" name="DVDD" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="C_Small">
+      <description>Unpolarized capacitor, small symbol</description>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="Conn_01x10">
+      <description>Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x10</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Generic connector, single row, 01x10, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="Conn_01x11">
+      <description>Generic connector, single row, 01x11, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x11</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Generic connector, single row, 01x11, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+        <pin num="11" name="Pin_11" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="FerriteBead_Small">
+      <description>Ferrite bead, small symbol</description>
+      <footprints>
+        <fp>Inductor_*</fp>
+        <fp>L_*</fp>
+        <fp>*Ferrite*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">FB</field>
+        <field name="Value">FerriteBead_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Ferrite bead, small symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="LED_Small">
+      <description>Light emitting diode, small symbol</description>
+      <footprints>
+        <fp>LED*</fp>
+        <fp>LED_SMD:*</fp>
+        <fp>LED_THT:*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">LED_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Light emitting diode, small symbol</field>
+        <field name="Sim.Pins">1=K 2=A</field>
+      </fields>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="MountingHole">
+      <description>Mounting Hole without connection</description>
+      <footprints>
+        <fp>MountingHole*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">H</field>
+        <field name="Value">MountingHole</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Mounting Hole without connection</field>
+      </fields>
+    </libpart>
+    <libpart lib="" part="R_Small">
+      <description>Resistor, small symbol</description>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Resistor, small symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="SolderJumper_2_Bridged">
+      <description>Solder Jumper, 2-pole, closed/bridged</description>
+      <footprints>
+        <fp>SolderJumper*Bridged*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">SolderJumper_2_Bridged</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Solder Jumper, 2-pole, closed/bridged</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="TPS7A20_SOT23-5">
+      <docs>https://www.ti.com/lit/ds/symlink/tps7a20.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">TPS7A20_SOT23-5</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23-5</field>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/tps7a20.pdf</field>
+        <field name="Description"/>
+      </fields>
+      <pins>
+        <pin num="1" name="IN" type="power_in"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="EN" type="input"/>
+        <pin num="4" name="NC" type="no_connect"/>
+        <pin num="5" name="OUT" type="power_out"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="TestPoint">
+      <description>test point</description>
+      <footprints>
+        <fp>Pin*</fp>
+        <fp>Test*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">TP</field>
+        <field name="Value">TestPoint</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="YSO110TR">
+      <docs>https://www.yxc.hk</docs>
+      <fields>
+        <field name="Reference">Y</field>
+        <field name="Value">YSO110TR</field>
+        <field name="Footprint">Oscillator_YXC_YSO110TR_3225</field>
+        <field name="Datasheet">https://www.yxc.hk</field>
+        <field name="Description"/>
+      </fields>
+      <pins>
+        <pin num="1" name="ST" type="input"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="OUT" type="output"/>
+        <pin num="4" name="VDD" type="power_in"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries/>
+  <nets>
+    <net code="1" name="3V3" class="Default">
+      <node ref="C2" pin="1" pintype="passive"/>
+      <node ref="C5" pin="1" pintype="passive"/>
+      <node ref="C6" pin="1" pintype="passive"/>
+      <node ref="FB1" pin="1" pintype="passive"/>
+      <node ref="J2" pin="2" pinfunction="Pin_2_2" pintype="passive"/>
+      <node ref="JP1" pin="1" pinfunction="A_1" pintype="passive"/>
+      <node ref="R17" pin="1" pintype="passive"/>
+      <node ref="R18" pin="1" pintype="passive"/>
+      <node ref="TP2" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="U1" pin="20" pinfunction="DVDD_20" pintype="power_in"/>
+      <node ref="U2" pin="5" pinfunction="OUT_5" pintype="power_out"/>
+      <node ref="Y1" pin="1" pinfunction="ST_1" pintype="input"/>
+      <node ref="Y1" pin="4" pinfunction="VDD_4" pintype="power_in"/>
+    </net>
+    <net code="2" name="AIN0N" class="Default">
+      <node ref="C7" pin="2" pintype="passive"/>
+      <node ref="R1" pin="2" pintype="passive"/>
+      <node ref="U1" pin="4" pinfunction="AIN0N_4" pintype="input"/>
+    </net>
+    <net code="3" name="AIN0N_IN" class="Default">
+      <node ref="J1" pin="2" pinfunction="Pin_2_2" pintype="passive"/>
+      <node ref="R1" pin="1" pintype="passive"/>
+    </net>
+    <net code="4" name="AIN0P" class="Default">
+      <node ref="C7" pin="1" pintype="passive"/>
+      <node ref="R2" pin="2" pintype="passive"/>
+      <node ref="U1" pin="3" pinfunction="AIN0P_3" pintype="input"/>
+    </net>
+    <net code="5" name="AIN0P_IN" class="Default">
+      <node ref="J1" pin="1" pinfunction="Pin_1_1" pintype="passive"/>
+      <node ref="R2" pin="1" pintype="passive"/>
+    </net>
+    <net code="6" name="AIN1N" class="Default">
+      <node ref="C8" pin="2" pintype="passive"/>
+      <node ref="R3" pin="2" pintype="passive"/>
+      <node ref="U1" pin="5" pinfunction="AIN1N_5" pintype="input"/>
+    </net>
+    <net code="7" name="AIN1N_IN" class="Default">
+      <node ref="J1" pin="4" pinfunction="Pin_4_4" pintype="passive"/>
+      <node ref="R3" pin="1" pintype="passive"/>
+    </net>
+    <net code="8" name="AIN1P" class="Default">
+      <node ref="C8" pin="1" pintype="passive"/>
+      <node ref="R4" pin="2" pintype="passive"/>
+      <node ref="U1" pin="6" pinfunction="AIN1P_6" pintype="input"/>
+    </net>
+    <net code="9" name="AIN1P_IN" class="Default">
+      <node ref="J1" pin="5" pinfunction="Pin_5_5" pintype="passive"/>
+      <node ref="R4" pin="1" pintype="passive"/>
+    </net>
+    <net code="10" name="AIN2N" class="Default">
+      <node ref="C9" pin="2" pintype="passive"/>
+      <node ref="R5" pin="2" pintype="passive"/>
+      <node ref="U1" pin="8" pinfunction="AIN2N_8" pintype="input"/>
+    </net>
+    <net code="11" name="AIN2N_IN" class="Default">
+      <node ref="J1" pin="8" pinfunction="Pin_8_8" pintype="passive"/>
+      <node ref="R5" pin="1" pintype="passive"/>
+    </net>
+    <net code="12" name="AIN2P" class="Default">
+      <node ref="C9" pin="1" pintype="passive"/>
+      <node ref="R6" pin="2" pintype="passive"/>
+      <node ref="U1" pin="7" pinfunction="AIN2P_7" pintype="input"/>
+    </net>
+    <net code="13" name="AIN2P_IN" class="Default">
+      <node ref="J1" pin="7" pinfunction="Pin_7_7" pintype="passive"/>
+      <node ref="R6" pin="1" pintype="passive"/>
+    </net>
+    <net code="14" name="AIN3N" class="Default">
+      <node ref="C10" pin="2" pintype="passive"/>
+      <node ref="R7" pin="2" pintype="passive"/>
+      <node ref="U1" pin="9" pinfunction="AIN3N_9" pintype="input"/>
+    </net>
+    <net code="15" name="AIN3N_IN" class="Default">
+      <node ref="J1" pin="10" pinfunction="Pin_10_10" pintype="passive"/>
+      <node ref="R7" pin="1" pintype="passive"/>
+    </net>
+    <net code="16" name="AIN3P" class="Default">
+      <node ref="C10" pin="1" pintype="passive"/>
+      <node ref="R8" pin="2" pintype="passive"/>
+      <node ref="U1" pin="10" pinfunction="AIN3P_10" pintype="input"/>
+    </net>
+    <net code="17" name="AIN3P_IN" class="Default">
+      <node ref="J1" pin="11" pinfunction="Pin_11_11" pintype="passive"/>
+      <node ref="R8" pin="1" pintype="passive"/>
+    </net>
+    <net code="18" name="AVDD" class="Default">
+      <node ref="C1" pin="1" pintype="passive"/>
+      <node ref="FB1" pin="2" pintype="passive"/>
+      <node ref="TP3" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="U1" pin="1" pinfunction="AVDD_1" pintype="power_in"/>
+    </net>
+    <net code="19" name="CAP" class="Default">
+      <node ref="C3" pin="1" pintype="passive"/>
+      <node ref="U1" pin="18" pinfunction="CAP_18" pintype="power_out"/>
+    </net>
+    <net code="20" name="CLKIN" class="Default">
+      <node ref="R14" pin="2" pintype="passive"/>
+      <node ref="U1" pin="17" pinfunction="CLKIN_17" pintype="input"/>
+    </net>
+    <net code="21" name="CLK_OSC" class="Default">
+      <node ref="R14" pin="1" pintype="passive"/>
+      <node ref="Y1" pin="3" pinfunction="OUT_3" pintype="output"/>
+    </net>
+    <net code="22" name="CS" class="Default">
+      <node ref="J2" pin="8" pinfunction="Pin_8_8" pintype="passive"/>
+      <node ref="R15" pin="1" pintype="passive"/>
+    </net>
+    <net code="23" name="CS_R" class="Default">
+      <node ref="R15" pin="2" pintype="passive"/>
+      <node ref="R17" pin="2" pintype="passive"/>
+      <node ref="U1" pin="12" pinfunction="~{CS}_12" pintype="input"/>
+    </net>
+    <net code="24" name="DIN" class="Default">
+      <node ref="J2" pin="4" pinfunction="Pin_4_4" pintype="passive"/>
+      <node ref="R9" pin="1" pintype="passive"/>
+    </net>
+    <net code="25" name="DIN_R" class="Default">
+      <node ref="R9" pin="2" pintype="passive"/>
+      <node ref="U1" pin="16" pinfunction="DIN_16" pintype="input"/>
+    </net>
+    <net code="26" name="DOUT" class="Default">
+      <node ref="J2" pin="5" pinfunction="Pin_5_5" pintype="passive"/>
+      <node ref="R10" pin="1" pintype="passive"/>
+    </net>
+    <net code="27" name="DOUT_R" class="Default">
+      <node ref="R10" pin="2" pintype="passive"/>
+      <node ref="U1" pin="15" pinfunction="DOUT_15" pintype="output"/>
+    </net>
+    <net code="28" name="DRDY" class="Default">
+      <node ref="J2" pin="7" pinfunction="Pin_7_7" pintype="passive"/>
+      <node ref="R12" pin="1" pintype="passive"/>
+    </net>
+    <net code="29" name="DRDY_R" class="Default">
+      <node ref="R12" pin="2" pintype="passive"/>
+      <node ref="U1" pin="13" pinfunction="~{DRDY}_13" pintype="output"/>
+    </net>
+    <net code="30" name="GND" class="Default">
+      <node ref="C1" pin="2" pintype="passive"/>
+      <node ref="C2" pin="2" pintype="passive"/>
+      <node ref="C3" pin="2" pintype="passive"/>
+      <node ref="C4" pin="2" pintype="passive"/>
+      <node ref="C5" pin="2" pintype="passive"/>
+      <node ref="C6" pin="2" pintype="passive"/>
+      <node ref="D1" pin="1" pinfunction="K_1" pintype="passive"/>
+      <node ref="J1" pin="3" pinfunction="Pin_3_3" pintype="passive"/>
+      <node ref="J1" pin="6" pinfunction="Pin_6_6" pintype="passive"/>
+      <node ref="J1" pin="9" pinfunction="Pin_9_9" pintype="passive"/>
+      <node ref="J2" pin="10" pinfunction="Pin_10_10" pintype="passive"/>
+      <node ref="J2" pin="3" pinfunction="Pin_3_3" pintype="passive"/>
+      <node ref="TP1" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="U1" pin="19" pinfunction="DGND_19" pintype="power_in"/>
+      <node ref="U1" pin="2" pinfunction="AGND_2" pintype="power_in"/>
+      <node ref="U2" pin="2" pinfunction="GND_2" pintype="power_in"/>
+      <node ref="Y1" pin="2" pinfunction="GND_2" pintype="power_in"/>
+    </net>
+    <net code="31" name="LED_EN" class="Default">
+      <node ref="JP1" pin="2" pinfunction="B_2" pintype="passive"/>
+      <node ref="R13" pin="1" pintype="passive"/>
+    </net>
+    <net code="32" name="LED_R" class="Default">
+      <node ref="D1" pin="2" pinfunction="A_2" pintype="passive"/>
+      <node ref="R13" pin="2" pintype="passive"/>
+    </net>
+    <net code="33" name="SCLK" class="Default">
+      <node ref="J2" pin="6" pinfunction="Pin_6_6" pintype="passive"/>
+      <node ref="R11" pin="1" pintype="passive"/>
+    </net>
+    <net code="34" name="SCLK_R" class="Default">
+      <node ref="R11" pin="2" pintype="passive"/>
+      <node ref="U1" pin="14" pinfunction="SCLK_14" pintype="input"/>
+    </net>
+    <net code="35" name="SYNC" class="Default">
+      <node ref="J2" pin="9" pinfunction="Pin_9_9" pintype="passive"/>
+      <node ref="R16" pin="1" pintype="passive"/>
+    </net>
+    <net code="36" name="SYNC_R" class="Default">
+      <node ref="R16" pin="2" pintype="passive"/>
+      <node ref="R18" pin="2" pintype="passive"/>
+      <node ref="U1" pin="11" pinfunction="SYNC/~{RESET}_11" pintype="input"/>
+    </net>
+    <net code="37" name="VIN" class="Default">
+      <node ref="C4" pin="1" pintype="passive"/>
+      <node ref="J2" pin="1" pinfunction="Pin_1_1" pintype="passive"/>
+      <node ref="U2" pin="1" pinfunction="IN_1" pintype="power_in"/>
+      <node ref="U2" pin="3" pinfunction="EN_3" pintype="input"/>
+    </net>
+    <net code="38" name="unconnected-(U2-NC-Pad4)" class="Default">
+      <node ref="U2" pin="4" pinfunction="NC_4" pintype="no_connect"/>
+    </net>
+  </nets>
+</export>

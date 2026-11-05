@@ -712,7 +712,7 @@ class Board:
         self.arc((x1 + r, y2), (x1 + k, y2 - k), (x1, y2 - r)); self.arc((x1, y1 + r), (x1 + k, y1 + k), (x1 + r, y1))
         return self
 
-    def zone(self, net, layer, outline=None, inset=0.5, clearance=0.25, min_width=0.25, thermal=True,
+    def zone(self, net, layer, outline=None, inset=1.0, clearance=0.25, min_width=0.25, thermal=True,
              relief_gap=0.3, spoke=0.3, priority=0, name=None):
         """Copper zone. outline: list of (x, y); default the outline_rect frame inset by `inset` mm."""
         z = pcbnew.ZONE(self.b)

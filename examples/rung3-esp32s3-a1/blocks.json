@@ -1,0 +1,273 @@
+{
+ "schema": 1,
+ "order": [
+  "hdr_n",
+  "hdr_s",
+  "usb",
+  "qwiic",
+  "power",
+  "ant",
+  "rf",
+  "rfpwr",
+  "dec46",
+  "vdda",
+  "mcu",
+  "xtal",
+  "ui"
+ ],
+ "groups": [
+  {
+   "name": "hdr_n",
+   "role": "",
+   "refs": [
+    "J1"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "north header row, fixed by the 0.9 inch rule",
+   "region": [
+    102.3,
+    100.0,
+    155.6,
+    103.1
+   ]
+  },
+  {
+   "name": "hdr_s",
+   "role": "",
+   "refs": [
+    "J2"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "south header row",
+   "region": [
+    102.3,
+    123.4,
+    155.6,
+    126.0
+   ]
+  },
+  {
+   "name": "usb",
+   "role": "",
+   "refs": [
+    "J3",
+    "U3",
+    "C1",
+    "R7",
+    "R8"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "USB-C on the west edge, ESD at the connector",
+   "region": [
+    100.0,
+    110.45,
+    115.5,
+    123.39
+   ]
+  },
+  {
+   "name": "qwiic",
+   "role": "",
+   "refs": [
+    "J4",
+    "R9",
+    "R10",
+    "JP2"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "Qwiic face on the west edge, north of USB",
+   "region": [
+    100.0,
+    103.11,
+    114.0,
+    110.4
+   ]
+  },
+  {
+   "name": "power",
+   "role": "",
+   "refs": [
+    "D1",
+    "U2",
+    "C2",
+    "C3",
+    "D2",
+    "JP1",
+    "R1",
+    "LED1",
+    "TP1",
+    "TP2",
+    "TP3",
+    "TP4",
+    "C18",
+    "C19"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "between the USB entry and the chip",
+   "region": [
+    115.55,
+    106.0,
+    133.4,
+    123.39
+   ]
+  },
+  {
+   "name": "mcu",
+   "role": "",
+   "refs": [
+    "U1",
+    "C12",
+    "C13",
+    "C14",
+    "R5",
+    "R6"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "chip east of centre so the feed stays short",
+   "region": [
+    133.45,
+    103.3,
+    145.89,
+    118.25
+   ]
+  },
+  {
+   "name": "xtal",
+   "role": "",
+   "refs": [
+    "Y1",
+    "L2",
+    "C15",
+    "C16",
+    "R4"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "SE of the chip, on the side of the XTAL pins",
+   "region": [
+    141.2,
+    119.89,
+    153.6,
+    123.39
+   ]
+  },
+  {
+   "name": "rfpwr",
+   "role": "",
+   "refs": [
+    "C4",
+    "C5",
+    "C6",
+    "L1",
+    "C7",
+    "C17"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "VDD3P3 LC next to pins 2 and 3",
+   "region": [
+    146.1,
+    111.0,
+    154.2,
+    117.31
+   ]
+  },
+  {
+   "name": "rf",
+   "role": "",
+   "refs": [
+    "C20",
+    "L3",
+    "C21",
+    "C22",
+    "R12",
+    "C23"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "feed row",
+   "region": [
+    146.0,
+    117.32,
+    158.4,
+    119.8
+   ]
+  },
+  {
+   "name": "ant",
+   "role": "",
+   "refs": [
+    "J5"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "antenna at the east edge",
+   "region": [
+    156.0,
+    110.9,
+    160.0,
+    115.1
+   ]
+  },
+  {
+   "name": "ui",
+   "role": "",
+   "refs": [
+    "SW1",
+    "SW2",
+    "R2",
+    "R3",
+    "R11",
+    "LED2"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "buttons NE, EN RC near pin 4",
+   "region": [
+    145.9,
+    103.3,
+    158.4,
+    110.84
+   ]
+  },
+  {
+   "name": "dec46",
+   "role": "",
+   "refs": [
+    "C11"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "CPU pin 46 cap between the fan-out columns",
+   "region": [
+    138.0,
+    118.26,
+    141.15,
+    123.39
+   ]
+  },
+  {
+   "name": "vdda",
+   "role": "",
+   "refs": [
+    "C9",
+    "C10"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "VDDA caps at pins 55, 56",
+   "region": [
+    143.9,
+    118.26,
+    146.0,
+    119.88
+   ]
+  }
+ ]
+}

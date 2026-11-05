@@ -1,0 +1,133 @@
+[
+ {
+  "ref": "C1",
+  "lcsc": "C52923",
+  "kicad_rot": 180.0,
+  "side": "top",
+  "package": "C0402",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C2",
+  "lcsc": "C1525",
+  "kicad_rot": 180.0,
+  "side": "top",
+  "package": "C0402",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C3",
+  "lcsc": "C52923",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "C0402",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C4",
+  "lcsc": "C52923",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "C0402",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "D1",
+  "lcsc": "C2286",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "LED-SMD_L1.6-W0.8-R-RD",
+  "correction": 180,
+  "fit_mm": 0.037,
+  "paired": 2,
+  "offset_mm": [
+   0.0,
+   0.0
+  ],
+  "status": "check",
+  "why": "polar two-pad part: pad numbers do not prove polarity, look at the preview"
+ },
+ {
+  "ref": "J1",
+  "lcsc": "C32713272",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "HDR-TH_6P-P2.54-V-M",
+  "correction": 270,
+  "fit_mm": 0.0,
+  "paired": 6,
+  "offset_mm": [
+   -6.35,
+   -0.0
+  ],
+  "status": "ok"
+ },
+ {
+  "ref": "R1",
+  "lcsc": "C11702",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0402",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R2",
+  "lcsc": "C25105",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0402",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R3",
+  "lcsc": "C25076",
+  "kicad_rot": 180.0,
+  "side": "top",
+  "package": "R0402",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "U1",
+  "lcsc": "C5563886",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "MIC-SMD_5P-L4.0-W3.0-P0.70-TR_IM69D130V01",
+  "correction": 180,
+  "fit_mm": 0.162,
+  "paired": 5,
+  "offset_mm": [
+   -0.193,
+   0.074
+  ],
+  "status": "ok"
+ },
+ {
+  "ref": "U2",
+  "lcsc": "C2862740",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "SOT-23-5_L2.9-W1.6-P0.95-LS2.8-BR",
+  "correction": 180,
+  "fit_mm": 0.037,
+  "paired": 5,
+  "offset_mm": [
+   -0.008,
+   0.0
+  ],
+  "status": "ok"
+ }
+]

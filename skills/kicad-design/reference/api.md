@@ -19,7 +19,7 @@ layout scripts do not.
 | `b.orient_pads(ref, lambda P: ...)` | the rotation (0/90/180/270) under which the predicate on `P(padnum) -> (x, y)` holds | |
 | `b.route(net, pts, layer="F.Cu", width=None)` | tracks through `(x, y)` mm or `"REF.PAD"` points; width from the net class | |
 | `b.via(x, y, net, size=None, layers=("F.Cu", "B.Cu"))` | through via | |
-| `b.zone(net, layer, outline=None, inset=0.5, clearance, min_width, thermal, relief_gap, spoke, priority, name)` | copper zone; default outline is the `outline_rect` frame inset | |
+| `b.zone(net, layer, outline=None, inset=1.0, clearance, min_width, thermal, relief_gap, spoke, priority, name)` | copper zone; default outline is the `outline_rect` frame inset | |
 | `b.outline_rect(x0, y0, w, h, r)` | rounded rectangle on Edge.Cuts | |
 | `b.line`, `b.arc`, `b.text(s, x, y, layer, size, thick, rot, mirror=None)`, `b.arrow(a, b)` | drawings; `B.*` text is mirrored unless told otherwise | |
 | `b.fields(ref, {name: value})`, `b.field(ref, name)` | hidden fields on F.Fab; upper-cases `Lcsc`/`Mpn`; case-insensitive read | no `GetFieldByName` in 10.0.1 (R1-S1-T5) |

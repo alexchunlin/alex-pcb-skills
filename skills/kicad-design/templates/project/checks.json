@@ -88,5 +88,6 @@
   "feeds": [],
   "via_in_pad": {},
   "edge_margin": {},
-  "gnd_islands": {}
+  "gnd_islands": {},
+  "pin1_mark": {}
 }

@@ -1,0 +1,1963 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="E">
+  <design>
+    <source>/Users/alxchunlin/code-stuff/alex-pcb-runs/r3-vl53l8cx-a1/layout/vl53l8cx_breakout/vl53l8cx_breakout.kicad_sch</source>
+    <date>2026-11-04T20:36:43</date>
+    <tool>Eeschema 10.0.1</tool>
+    <textvar name="PCB_GIT_HASH">d10d3c0</textvar>
+    <textvar name="PCB_NAME">vl53l8cx_breakout</textvar>
+    <textvar name="PCB_VERSION">v0.0.0</textvar>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>vl53l8cx_breakout.kicad_sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+        <comment number="5" value=""/>
+        <comment number="6" value=""/>
+        <comment number="7" value=""/>
+        <comment number="8" value=""/>
+        <comment number="9" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="C1">
+      <value>1uF</value>
+      <footprint>workspace_parts_footprints:C_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05A105KA5NQNC_C52923.pdf</datasheet>
+      <description>1uF</description>
+      <fields>
+        <field name="Path">POWER.C1.C</field>
+        <field name="MPN">CL05A105KA5NQNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C52923</field>
+        <field name="Footprint">workspace_parts_footprints:C_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05A105KA5NQNC_C52923.pdf</field>
+        <field name="Description">1uF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="POWER.C1.C"/>
+      <property name="MPN" value="CL05A105KA5NQNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C52923"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>72406e2c-e432-533d-b77c-cc250d7a5e4e</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C2">
+      <value>1uF</value>
+      <footprint>workspace_parts_footprints:C_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05A105KA5NQNC_C52923.pdf</datasheet>
+      <description>1uF</description>
+      <fields>
+        <field name="Path">POWER.C2.C</field>
+        <field name="MPN">CL05A105KA5NQNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C52923</field>
+        <field name="Footprint">workspace_parts_footprints:C_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05A105KA5NQNC_C52923.pdf</field>
+        <field name="Description">1uF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="POWER.C2.C"/>
+      <property name="MPN" value="CL05A105KA5NQNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C52923"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>dadc7a6a-3da3-5426-9991-42ecce0af2b8</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C3">
+      <value>4.7uF</value>
+      <footprint>workspace_parts_footprints:C_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A475KO8NNNC_C19666.pdf</datasheet>
+      <description>4.7uF</description>
+      <fields>
+        <field name="Path">SENSOR.C3.C</field>
+        <field name="MPN">CL10A475KO8NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C19666</field>
+        <field name="Footprint">workspace_parts_footprints:C_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A475KO8NNNC_C19666.pdf</field>
+        <field name="Description">4.7uF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="SENSOR.C3.C"/>
+      <property name="MPN" value="CL10A475KO8NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C19666"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>cf3ba78a-5bfd-557b-88be-f6c4d395dda8</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C4">
+      <value>100nF</value>
+      <footprint>workspace_parts_footprints:C_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf</datasheet>
+      <description>100nF</description>
+      <fields>
+        <field name="Path">SENSOR.C4.C</field>
+        <field name="MPN">CL05B104KO5NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C1525</field>
+        <field name="Footprint">workspace_parts_footprints:C_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf</field>
+        <field name="Description">100nF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="SENSOR.C4.C"/>
+      <property name="MPN" value="CL05B104KO5NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C1525"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>86dd598d-882f-5eea-a8e2-0d0429594da3</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C5">
+      <value>100nF</value>
+      <footprint>workspace_parts_footprints:C_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf</datasheet>
+      <description>100nF</description>
+      <fields>
+        <field name="Path">SENSOR.C5.C</field>
+        <field name="MPN">CL05B104KO5NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C1525</field>
+        <field name="Footprint">workspace_parts_footprints:C_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf</field>
+        <field name="Description">100nF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="SENSOR.C5.C"/>
+      <property name="MPN" value="CL05B104KO5NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C1525"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>3701ea82-8e3f-57cd-a4e3-b11e24c7bddb</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C6">
+      <value>1uF</value>
+      <footprint>workspace_parts_footprints:C_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05A105KA5NQNC_C52923.pdf</datasheet>
+      <description>1uF</description>
+      <fields>
+        <field name="Path">POWER.C6.C</field>
+        <field name="MPN">CL05A105KA5NQNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C52923</field>
+        <field name="Footprint">workspace_parts_footprints:C_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05A105KA5NQNC_C52923.pdf</field>
+        <field name="Description">1uF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="POWER.C6.C"/>
+      <property name="MPN" value="CL05A105KA5NQNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C52923"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6ddd48c5-31e4-5b65-baa1-cc78b2a1352f</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C7">
+      <value>1uF</value>
+      <footprint>workspace_parts_footprints:C_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05A105KA5NQNC_C52923.pdf</datasheet>
+      <description>1uF</description>
+      <fields>
+        <field name="Path">POWER.C7.C</field>
+        <field name="MPN">CL05A105KA5NQNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C52923</field>
+        <field name="Footprint">workspace_parts_footprints:C_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05A105KA5NQNC_C52923.pdf</field>
+        <field name="Description">1uF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="POWER.C7.C"/>
+      <property name="MPN" value="CL05A105KA5NQNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C52923"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>238acd37-6a24-5f4f-a979-3e7736df6faa</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C8">
+      <value>100nF</value>
+      <footprint>workspace_parts_footprints:C_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf</datasheet>
+      <description>100nF</description>
+      <fields>
+        <field name="Path">POWER.C8.C</field>
+        <field name="MPN">CL05B104KO5NNNC</field>
+        <field name="Manufacturer">Samsung Electro-Mechanics</field>
+        <field name="LCSC">C1525</field>
+        <field name="Footprint">workspace_parts_footprints:C_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf</field>
+        <field name="Description">100nF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="POWER.C8.C"/>
+      <property name="MPN" value="CL05B104KO5NNNC"/>
+      <property name="Manufacturer" value="Samsung Electro-Mechanics"/>
+      <property name="LCSC" value="C1525"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f694d447-be4a-5b48-97a8-e1ccdf700181</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="C9">
+      <value>100pF</value>
+      <footprint>workspace_parts_footprints:C_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0402CG101J500NT_C1546.pdf</datasheet>
+      <description>100pF</description>
+      <fields>
+        <field name="Path">SHIFTER.C9.C</field>
+        <field name="MPN">0402CG101J500NT</field>
+        <field name="Manufacturer">FH (Guangdong Fenghua Advanced Tech)</field>
+        <field name="LCSC">C1546</field>
+        <field name="Footprint">workspace_parts_footprints:C_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0402CG101J500NT_C1546.pdf</field>
+        <field name="Description">100pF</field>
+      </fields>
+      <libsource lib="" part="C" description="C"/>
+      <property name="Path" value="SHIFTER.C9.C"/>
+      <property name="MPN" value="0402CG101J500NT"/>
+      <property name="Manufacturer" value="FH (Guangdong Fenghua Advanced Tech)"/>
+      <property name="LCSC" value="C1546"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5a45e154-ab01-54d9-9ae3-cbcaa15665ae</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="D1">
+      <value>KT-0603R</value>
+      <footprint>workspace_parts_footprints:LED_0603_1608Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_1810231112_Hubei-KENTO-Elec-KT-0603R_C2286.pdf</datasheet>
+      <description>LED</description>
+      <fields>
+        <field name="Path">POWER.D1.D</field>
+        <field name="MPN">KT-0603R</field>
+        <field name="Manufacturer">Hubei KENTO Elec</field>
+        <field name="LCSC">C2286</field>
+        <field name="Footprint">workspace_parts_footprints:LED_0603_1608Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_1810231112_Hubei-KENTO-Elec-KT-0603R_C2286.pdf</field>
+        <field name="Description">LED</field>
+      </fields>
+      <libsource lib="" part="LED" description="LED"/>
+      <property name="Path" value="POWER.D1.D"/>
+      <property name="MPN" value="KT-0603R"/>
+      <property name="Manufacturer" value="Hubei KENTO Elec"/>
+      <property name="LCSC" value="C2286"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9066e73a-6ca0-5587-aa7b-1df0e16f2e16</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="H1">
+      <value>M2.5</value>
+      <footprint>workspace_parts_footprints:MountingHole_2.7mm_M2.5</footprint>
+      <description>Mounting Hole without connection</description>
+      <fields>
+        <field name="Path">IO.H1.H</field>
+        <field name="Footprint">workspace_parts_footprints:MountingHole_2.7mm_M2.5</field>
+        <field name="Datasheet"/>
+        <field name="Description">Mounting Hole without connection</field>
+      </fields>
+      <libsource lib="" part="MountingHole" description="Mounting Hole without connection"/>
+      <property name="Path" value="IO.H1.H"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="mounting hole"/>
+      <property name="ki_fp_filters" value="MountingHole*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>fd334dfd-8f4b-5204-9c92-200a4e8ec8eb</tstamps>
+      <units>
+        <unit name="A">
+          <pins/>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="H2">
+      <value>M2.5</value>
+      <footprint>workspace_parts_footprints:MountingHole_2.7mm_M2.5</footprint>
+      <description>Mounting Hole without connection</description>
+      <fields>
+        <field name="Path">IO.H2.H</field>
+        <field name="Footprint">workspace_parts_footprints:MountingHole_2.7mm_M2.5</field>
+        <field name="Datasheet"/>
+        <field name="Description">Mounting Hole without connection</field>
+      </fields>
+      <libsource lib="" part="MountingHole" description="Mounting Hole without connection"/>
+      <property name="Path" value="IO.H2.H"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="mounting hole"/>
+      <property name="ki_fp_filters" value="MountingHole*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>99b75129-a0ba-5fbf-aa31-2fdb4804dc3a</tstamps>
+      <units>
+        <unit name="A">
+          <pins/>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="J1">
+      <value>Qwiic JST-SH 4p</value>
+      <footprint>workspace_parts_footprints:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal</footprint>
+      <datasheet>https://www.jst.com/wp-content/uploads/2021/01/eSH.pdf</datasheet>
+      <description>Qwiic JST-SH 4p</description>
+      <fields>
+        <field name="Path">IO.J1.J</field>
+        <field name="MPN">SM04B-SRSS-TB(LF)(SN)</field>
+        <field name="Manufacturer">JST</field>
+        <field name="LCSC">C160404</field>
+        <field name="Footprint">workspace_parts_footprints:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal</field>
+        <field name="Datasheet">https://www.jst.com/wp-content/uploads/2021/01/eSH.pdf</field>
+        <field name="Description">Qwiic JST-SH 4p</field>
+      </fields>
+      <libsource lib="" part="Conn_01x04_MountingPin" description="Generic connectable mounting pin connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Path" value="IO.J1.J"/>
+      <property name="MPN" value="SM04B-SRSS-TB(LF)(SN)"/>
+      <property name="Manufacturer" value="JST"/>
+      <property name="LCSC" value="C160404"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??-1MP*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>02919101-d75a-5d82-b30d-d566261dbde5</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="MP"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="J2">
+      <value>Qwiic JST-SH 4p</value>
+      <footprint>workspace_parts_footprints:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal</footprint>
+      <datasheet>https://www.jst.com/wp-content/uploads/2021/01/eSH.pdf</datasheet>
+      <description>Qwiic JST-SH 4p</description>
+      <fields>
+        <field name="Path">IO.J2.J</field>
+        <field name="MPN">SM04B-SRSS-TB(LF)(SN)</field>
+        <field name="Manufacturer">JST</field>
+        <field name="LCSC">C160404</field>
+        <field name="Footprint">workspace_parts_footprints:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal</field>
+        <field name="Datasheet">https://www.jst.com/wp-content/uploads/2021/01/eSH.pdf</field>
+        <field name="Description">Qwiic JST-SH 4p</field>
+      </fields>
+      <libsource lib="" part="Conn_01x04_MountingPin" description="Generic connectable mounting pin connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Path" value="IO.J2.J"/>
+      <property name="MPN" value="SM04B-SRSS-TB(LF)(SN)"/>
+      <property name="Manufacturer" value="JST"/>
+      <property name="LCSC" value="C160404"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="ki_keywords" value="connector"/>
+      <property name="ki_fp_filters" value="Connector*:*_1x??-1MP*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1cf3260b-8c3f-5b5e-bd8a-0154036bbc7c</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="MP"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="J3">
+      <value>PZ254V-11-10P</value>
+      <footprint>workspace_parts_footprints:PinHeader_1x10_P2.54mm_Vertical</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2003191006_XFCN-PZ254V-11-10P_C492409.pdf</datasheet>
+      <description>PZ254V-11-10P</description>
+      <fields>
+        <field name="Path">IO.J3.J</field>
+        <field name="MPN">PZ254V-11-10P</field>
+        <field name="Manufacturer">XFCN</field>
+        <field name="LCSC">C492409</field>
+        <field name="Footprint">workspace_parts_footprints:PinHeader_1x10_P2.54mm_Vertical</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2003191006_XFCN-PZ254V-11-10P_C492409.pdf</field>
+        <field name="Description">PZ254V-11-10P</field>
+      </fields>
+      <libsource lib="" part="Conn_01x10" description="Conn_01x10"/>
+      <property name="Path" value="IO.J3.J"/>
+      <property name="MPN" value="PZ254V-11-10P"/>
+      <property name="Manufacturer" value="XFCN"/>
+      <property name="LCSC" value="C492409"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="dnp"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>42744afa-4554-5aa6-acfc-d9166b41180e</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+            <pin num="6"/>
+            <pin num="7"/>
+            <pin num="8"/>
+            <pin num="9"/>
+            <pin num="10"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="JP1">
+      <value>SolderJumper_2_Bridged</value>
+      <footprint>workspace_parts_footprints:SolderJumper-2_P1.3mm_Bridged12_Pad1.0x1.5mm</footprint>
+      <description>Solder Jumper, 2-pole, closed/bridged</description>
+      <fields>
+        <field name="Path">SHIFTER.JP1.JP</field>
+        <field name="Footprint">workspace_parts_footprints:SolderJumper-2_P1.3mm_Bridged12_Pad1.0x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">Solder Jumper, 2-pole, closed/bridged</field>
+      </fields>
+      <libsource lib="" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="Path" value="SHIFTER.JP1.JP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
+      <property name="ki_fp_filters" value="SolderJumper*Bridged*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>cb15472d-eb0e-50bc-9c3b-d06c62769fe0</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="JP2">
+      <value>SolderJumper_2_Bridged</value>
+      <footprint>workspace_parts_footprints:SolderJumper-2_P1.3mm_Bridged12_Pad1.0x1.5mm</footprint>
+      <description>Solder Jumper, 2-pole, closed/bridged</description>
+      <fields>
+        <field name="Path">POWER.JP2.JP</field>
+        <field name="Footprint">workspace_parts_footprints:SolderJumper-2_P1.3mm_Bridged12_Pad1.0x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">Solder Jumper, 2-pole, closed/bridged</field>
+      </fields>
+      <libsource lib="" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
+      <property name="Path" value="POWER.JP2.JP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
+      <property name="ki_fp_filters" value="SolderJumper*Bridged*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1366c4d2-c079-5b66-bd7b-38069f0e004c</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="JP3">
+      <value>SolderJumper_3_Bridged12</value>
+      <footprint>workspace_parts_footprints:SolderJumper-3_P1.3mm_Bridged12_Pad1.0x1.5mm</footprint>
+      <description>3-pole Solder Jumper, pins 1+2 closed/bridged</description>
+      <fields>
+        <field name="Path">SENSOR.JP3.JP</field>
+        <field name="Footprint">workspace_parts_footprints:SolderJumper-3_P1.3mm_Bridged12_Pad1.0x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">3-pole Solder Jumper, pins 1+2 closed/bridged</field>
+      </fields>
+      <libsource lib="" part="SolderJumper_3_Bridged12" description="3-pole Solder Jumper, pins 1+2 closed/bridged"/>
+      <property name="Path" value="SENSOR.JP3.JP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
+      <property name="ki_fp_filters" value="SolderJumper*Bridged12*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>95abf33d-6ffb-5bac-87ea-252bd1d4739d</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="JP4">
+      <value>SolderJumper_3_Bridged12</value>
+      <footprint>workspace_parts_footprints:SolderJumper-3_P1.3mm_Bridged12_Pad1.0x1.5mm</footprint>
+      <description>3-pole Solder Jumper, pins 1+2 closed/bridged</description>
+      <fields>
+        <field name="Path">SENSOR.JP4.JP</field>
+        <field name="Footprint">workspace_parts_footprints:SolderJumper-3_P1.3mm_Bridged12_Pad1.0x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">3-pole Solder Jumper, pins 1+2 closed/bridged</field>
+      </fields>
+      <libsource lib="" part="SolderJumper_3_Bridged12" description="3-pole Solder Jumper, pins 1+2 closed/bridged"/>
+      <property name="Path" value="SENSOR.JP4.JP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="Solder Jumper SPDT"/>
+      <property name="ki_fp_filters" value="SolderJumper*Bridged12*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9a03f9ce-d402-597b-9c66-78df93de0a6b</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="3"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="JP5">
+      <value>SolderJumper_2_Open</value>
+      <footprint>workspace_parts_footprints:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm</footprint>
+      <description>Solder Jumper, 2-pole, open</description>
+      <fields>
+        <field name="Path">SENSOR.JP5.JP</field>
+        <field name="Footprint">workspace_parts_footprints:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">Solder Jumper, 2-pole, open</field>
+      </fields>
+      <libsource lib="" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
+      <property name="Path" value="SENSOR.JP5.JP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="solder jumper SPST"/>
+      <property name="ki_fp_filters" value="SolderJumper*Open*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5d40d971-ed89-577d-b98d-d8f9bfd28087</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R1">
+      <value>100k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF1003TCE_C25741.pdf</datasheet>
+      <description>100k</description>
+      <fields>
+        <field name="Path">POWER.R1.R</field>
+        <field name="MPN">0402WGF1003TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25741</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF1003TCE_C25741.pdf</field>
+        <field name="Description">100k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="POWER.R1.R"/>
+      <property name="MPN" value="0402WGF1003TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25741"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>567c8550-690c-58ad-9a69-4b179d3aef58</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R2">
+      <value>1k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010216_UNI-ROYAL-Uniroyal-Elec-0402WGF1001TCE_C11702.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">POWER.R2.R</field>
+        <field name="MPN">0402WGF1001TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C11702</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010216_UNI-ROYAL-Uniroyal-Elec-0402WGF1001TCE_C11702.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="POWER.R2.R"/>
+      <property name="MPN" value="0402WGF1001TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C11702"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9432d343-4b3d-5bcb-9e21-825332bdfcb8</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R3">
+      <value>2.2k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0402WGF2201TCE_C25879.pdf</datasheet>
+      <description>2.2k</description>
+      <fields>
+        <field name="Path">SENSOR.R3.R</field>
+        <field name="MPN">0402WGF2201TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25879</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0402WGF2201TCE_C25879.pdf</field>
+        <field name="Description">2.2k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SENSOR.R3.R"/>
+      <property name="MPN" value="0402WGF2201TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25879"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>cec251f9-a781-5b75-b732-019b3fbe054e</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R4">
+      <value>2.2k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0402WGF2201TCE_C25879.pdf</datasheet>
+      <description>2.2k</description>
+      <fields>
+        <field name="Path">SENSOR.R4.R</field>
+        <field name="MPN">0402WGF2201TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25879</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0402WGF2201TCE_C25879.pdf</field>
+        <field name="Description">2.2k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SENSOR.R4.R"/>
+      <property name="MPN" value="0402WGF2201TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25879"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ae2b8077-5a09-5055-b627-42daaa5e40ab</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R5">
+      <value>47k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</datasheet>
+      <description>47k</description>
+      <fields>
+        <field name="Path">SENSOR.R5.R</field>
+        <field name="MPN">0402WGF4702TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25792</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</field>
+        <field name="Description">47k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SENSOR.R5.R"/>
+      <property name="MPN" value="0402WGF4702TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25792"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9b2b93ac-b401-59d4-8085-76b6104eaedc</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R6">
+      <value>47k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</datasheet>
+      <description>47k</description>
+      <fields>
+        <field name="Path">SENSOR.R6.R</field>
+        <field name="MPN">0402WGF4702TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25792</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</field>
+        <field name="Description">47k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SENSOR.R6.R"/>
+      <property name="MPN" value="0402WGF4702TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25792"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0aea4ac5-a524-524c-891a-4e694a9736df</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R7">
+      <value>47k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</datasheet>
+      <description>47k</description>
+      <fields>
+        <field name="Path">SENSOR.R7.R</field>
+        <field name="MPN">0402WGF4702TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25792</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</field>
+        <field name="Description">47k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SENSOR.R7.R"/>
+      <property name="MPN" value="0402WGF4702TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25792"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a645d935-2959-5913-8d82-bb5d02524f48</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R8">
+      <value>47k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</datasheet>
+      <description>47k</description>
+      <fields>
+        <field name="Path">SENSOR.R8.R</field>
+        <field name="MPN">0402WGF4702TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25792</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</field>
+        <field name="Description">47k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SENSOR.R8.R"/>
+      <property name="MPN" value="0402WGF4702TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25792"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8bd5ff69-691f-5420-9bfc-c6e43c679d8e</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R9">
+      <value>47k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</datasheet>
+      <description>47k</description>
+      <fields>
+        <field name="Path">SENSOR.R9.R</field>
+        <field name="MPN">0402WGF4702TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25792</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</field>
+        <field name="Description">47k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SENSOR.R9.R"/>
+      <property name="MPN" value="0402WGF4702TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25792"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>666525b0-37be-5723-8a02-dad0a090db11</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R10">
+      <value>47k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</datasheet>
+      <description>47k</description>
+      <fields>
+        <field name="Path">SENSOR.R10.R</field>
+        <field name="MPN">0402WGF4702TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25792</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF4702TCE_C25792.pdf</field>
+        <field name="Description">47k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SENSOR.R10.R"/>
+      <property name="MPN" value="0402WGF4702TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25792"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0d84bef1-71c6-5b4e-b9ea-2e77eab6ded5</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R11">
+      <value>200k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF2003TCE_C25764.pdf</datasheet>
+      <description>200k</description>
+      <fields>
+        <field name="Path">SHIFTER.R11.R</field>
+        <field name="MPN">0402WGF2003TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25764</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF2003TCE_C25764.pdf</field>
+        <field name="Description">200k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SHIFTER.R11.R"/>
+      <property name="MPN" value="0402WGF2003TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25764"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>22db4bfa-fa77-54cb-bd6a-e78efbc71362</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R12">
+      <value>10k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <description>10k</description>
+      <fields>
+        <field name="Path">SHIFTER.R12.R</field>
+        <field name="MPN">0402WGF1002TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25744</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</field>
+        <field name="Description">10k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SHIFTER.R12.R"/>
+      <property name="MPN" value="0402WGF1002TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25744"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>bd8aedcc-342e-515d-8d3e-d6ce433d7514</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R13">
+      <value>10k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <description>10k</description>
+      <fields>
+        <field name="Path">SHIFTER.R13.R</field>
+        <field name="MPN">0402WGF1002TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25744</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</field>
+        <field name="Description">10k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SHIFTER.R13.R"/>
+      <property name="MPN" value="0402WGF1002TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25744"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>44b5bc44-4c38-5da3-8ab1-b90cad170ba2</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R14">
+      <value>10k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <description>10k</description>
+      <fields>
+        <field name="Path">SHIFTER.R14.R</field>
+        <field name="MPN">0402WGF1002TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C25744</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</field>
+        <field name="Description">10k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SHIFTER.R14.R"/>
+      <property name="MPN" value="0402WGF1002TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C25744"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>653a239f-3c30-53b5-9db1-952b4c303805</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="R16">
+      <value>1k</value>
+      <footprint>workspace_parts_footprints:R_0402_1005Metric</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2206010216_UNI-ROYAL-Uniroyal-Elec-0402WGF1001TCE_C11702.pdf</datasheet>
+      <description>1k</description>
+      <fields>
+        <field name="Path">SHIFTER.R16.R</field>
+        <field name="MPN">0402WGF1001TCE</field>
+        <field name="Manufacturer">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="LCSC">C11702</field>
+        <field name="Footprint">workspace_parts_footprints:R_0402_1005Metric</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2206010216_UNI-ROYAL-Uniroyal-Elec-0402WGF1001TCE_C11702.pdf</field>
+        <field name="Description">1k</field>
+      </fields>
+      <libsource lib="" part="R" description="R"/>
+      <property name="Path" value="SHIFTER.R16.R"/>
+      <property name="MPN" value="0402WGF1001TCE"/>
+      <property name="Manufacturer" value="UNI-ROYAL(Uniroyal Elec)"/>
+      <property name="LCSC" value="C11702"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d9b5b509-5362-56a4-892b-b0c4cab8bbf3</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="2"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="TP1">
+      <value>TP 1mm</value>
+      <footprint>workspace_parts_footprints:TestPoint_Pad_D1.0mm</footprint>
+      <description>test point</description>
+      <fields>
+        <field name="Path">IO.TP1.TP</field>
+        <field name="Footprint">workspace_parts_footprints:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <libsource lib="" part="TestPoint" description="test point"/>
+      <property name="Path" value="IO.TP1.TP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="test point tp"/>
+      <property name="ki_fp_filters" value="Pin* Test*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7984333b-64cc-5a67-98da-817608d2157a</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="TP2">
+      <value>TP 1mm</value>
+      <footprint>workspace_parts_footprints:TestPoint_Pad_D1.0mm</footprint>
+      <description>test point</description>
+      <fields>
+        <field name="Path">IO.TP2.TP</field>
+        <field name="Footprint">workspace_parts_footprints:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <libsource lib="" part="TestPoint" description="test point"/>
+      <property name="Path" value="IO.TP2.TP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="test point tp"/>
+      <property name="ki_fp_filters" value="Pin* Test*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6c7c4bf6-17be-5e9a-8d10-ad4be9763f30</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="TP3">
+      <value>TP 1mm</value>
+      <footprint>workspace_parts_footprints:TestPoint_Pad_D1.0mm</footprint>
+      <description>test point</description>
+      <fields>
+        <field name="Path">IO.TP3.TP</field>
+        <field name="Footprint">workspace_parts_footprints:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <libsource lib="" part="TestPoint" description="test point"/>
+      <property name="Path" value="IO.TP3.TP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="test point tp"/>
+      <property name="ki_fp_filters" value="Pin* Test*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ebe50daf-96e7-5606-887f-ede6bf6da4be</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="TP4">
+      <value>TP 1mm</value>
+      <footprint>workspace_parts_footprints:TestPoint_Pad_D1.0mm</footprint>
+      <description>test point</description>
+      <fields>
+        <field name="Path">IO.TP4.TP</field>
+        <field name="Footprint">workspace_parts_footprints:TestPoint_Pad_D1.0mm</field>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <libsource lib="" part="TestPoint" description="test point"/>
+      <property name="Path" value="IO.TP4.TP"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <property name="exclude_from_bom"/>
+      <property name="exclude_from_pos_files"/>
+      <property name="ki_keywords" value="test point tp"/>
+      <property name="ki_fp_filters" value="Pin* Test*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2e353eba-37cc-5708-a37b-771f387c454b</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="U1">
+      <value>VL53L8CXV0GC/1</value>
+      <footprint>workspace_parts_footprints:ST_VL53L8CX_LGA16</footprint>
+      <datasheet>https://datasheet.lcsc.com/datasheet/pdf/7f4bc14e797e6799c474b8931a563702.pdf?productCode=C7386355</datasheet>
+      <description>VL53L8CXV0GC/1</description>
+      <fields>
+        <field name="Path">SENSOR.U1.U</field>
+        <field name="MPN">VL53L8CXV0GC/1</field>
+        <field name="Manufacturer">STMicroelectronics</field>
+        <field name="LCSC">C7386355</field>
+        <field name="Footprint">workspace_parts_footprints:ST_VL53L8CX_LGA16</field>
+        <field name="Datasheet">https://datasheet.lcsc.com/datasheet/pdf/7f4bc14e797e6799c474b8931a563702.pdf?productCode=C7386355</field>
+        <field name="Description">VL53L8CXV0GC/1</field>
+      </fields>
+      <libsource lib="" part="VL53L8CX" description="VL53L8CXV0GC/1"/>
+      <property name="Path" value="SENSOR.U1.U"/>
+      <property name="MPN" value="VL53L8CXV0GC/1"/>
+      <property name="Manufacturer" value="STMicroelectronics"/>
+      <property name="LCSC" value="C7386355"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>99644460-7d7d-53e6-beef-41f7ae16e331</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="C4"/>
+            <pin num="B7"/>
+            <pin num="A3"/>
+            <pin num="C3"/>
+            <pin num="C7"/>
+            <pin num="B4"/>
+            <pin num="A6"/>
+            <pin num="A7"/>
+            <pin num="C6"/>
+            <pin num="A4"/>
+            <pin num="A5"/>
+            <pin num="A1"/>
+            <pin num="B1"/>
+            <pin num="A2"/>
+            <pin num="C1"/>
+            <pin num="C2"/>
+            <pin num="C5"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="U2">
+      <value>TLV75533PDRVR</value>
+      <footprint>workspace_parts_footprints:DFN-6-1EP_2x2mm_P0.65mm_EP1x1.6mm</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_1912111437_Texas-Instruments-TLV75533PDRVR_C2861750.pdf</datasheet>
+      <description>TLV75533PDRVR</description>
+      <fields>
+        <field name="Path">POWER.U2.U</field>
+        <field name="MPN">TLV75533PDRVR</field>
+        <field name="Manufacturer">Texas Instruments</field>
+        <field name="LCSC">C2861750</field>
+        <field name="Footprint">workspace_parts_footprints:DFN-6-1EP_2x2mm_P0.65mm_EP1x1.6mm</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_1912111437_Texas-Instruments-TLV75533PDRVR_C2861750.pdf</field>
+        <field name="Description">TLV75533PDRVR</field>
+      </fields>
+      <libsource lib="" part="TLV75533P" description="TLV75533PDRVR"/>
+      <property name="Path" value="POWER.U2.U"/>
+      <property name="MPN" value="TLV75533PDRVR"/>
+      <property name="Manufacturer" value="Texas Instruments"/>
+      <property name="LCSC" value="C2861750"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b9816437-c654-5c64-8f34-66af76172bc5</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="6"/>
+            <pin num="4"/>
+            <pin num="3"/>
+            <pin num="7"/>
+            <pin num="1"/>
+            <pin num="2"/>
+            <pin num="5"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="U3">
+      <value>LM66100DCKR</value>
+      <footprint>workspace_parts_footprints:SOT-363_SC-70-6</footprint>
+      <datasheet>https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205311630_Texas-Instruments-LM66100DCKR_C2869734.pdf</datasheet>
+      <description>LM66100DCKR</description>
+      <fields>
+        <field name="Path">POWER.U3.U</field>
+        <field name="MPN">LM66100DCKR</field>
+        <field name="Manufacturer">Texas Instruments</field>
+        <field name="LCSC">C2869734</field>
+        <field name="Footprint">workspace_parts_footprints:SOT-363_SC-70-6</field>
+        <field name="Datasheet">https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2205311630_Texas-Instruments-LM66100DCKR_C2869734.pdf</field>
+        <field name="Description">LM66100DCKR</field>
+      </fields>
+      <libsource lib="" part="LM66100" description="LM66100DCKR"/>
+      <property name="Path" value="POWER.U3.U"/>
+      <property name="MPN" value="LM66100DCKR"/>
+      <property name="Manufacturer" value="Texas Instruments"/>
+      <property name="LCSC" value="C2869734"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9f026b60-219f-54ef-85fe-1bcf5e8781f6</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="3"/>
+            <pin num="2"/>
+            <pin num="6"/>
+            <pin num="5"/>
+            <pin num="4"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="U4">
+      <value>LP5907MFX-1.8/NOPB</value>
+      <footprint>workspace_parts_footprints:SOT-23-5</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2302221930_Texas-Instruments-LP5907MFX-1-8-NOPB_C92498.pdf</datasheet>
+      <description>LP5907MFX-1.8/NOPB</description>
+      <fields>
+        <field name="Path">POWER.U4.U</field>
+        <field name="MPN">LP5907MFX-1.8/NOPB</field>
+        <field name="Manufacturer">Texas Instruments</field>
+        <field name="LCSC">C92498</field>
+        <field name="Footprint">workspace_parts_footprints:SOT-23-5</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2302221930_Texas-Instruments-LP5907MFX-1-8-NOPB_C92498.pdf</field>
+        <field name="Description">LP5907MFX-1.8/NOPB</field>
+      </fields>
+      <libsource lib="" part="LP5907_1V8" description="LP5907MFX-1.8/NOPB"/>
+      <property name="Path" value="POWER.U4.U"/>
+      <property name="MPN" value="LP5907MFX-1.8/NOPB"/>
+      <property name="Manufacturer" value="Texas Instruments"/>
+      <property name="LCSC" value="C92498"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6c48fb40-74d8-58c3-85ed-99b5ae547c41</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="1"/>
+            <pin num="3"/>
+            <pin num="2"/>
+            <pin num="5"/>
+            <pin num="4"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+    <comp ref="U5">
+      <value>LSF0108RKSR</value>
+      <footprint>workspace_parts_footprints:DHVQFN-20-1EP_2.5x4.5mm_P0.5mm_EP1x3mm</footprint>
+      <datasheet>https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Texas-Instruments-LSF0108RKSR_C130008.pdf</datasheet>
+      <description>LSF0108RKSR</description>
+      <fields>
+        <field name="Path">SHIFTER.U5.U</field>
+        <field name="MPN">LSF0108RKSR</field>
+        <field name="Manufacturer">Texas Instruments</field>
+        <field name="LCSC">C130008</field>
+        <field name="Footprint">workspace_parts_footprints:DHVQFN-20-1EP_2.5x4.5mm_P0.5mm_EP1x3mm</field>
+        <field name="Datasheet">https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Texas-Instruments-LSF0108RKSR_C130008.pdf</field>
+        <field name="Description">LSF0108RKSR</field>
+      </fields>
+      <libsource lib="" part="LSF0108" description="LSF0108RKSR"/>
+      <property name="Path" value="SHIFTER.U5.U"/>
+      <property name="MPN" value="LSF0108RKSR"/>
+      <property name="Manufacturer" value="Texas Instruments"/>
+      <property name="LCSC" value="C130008"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="vl53l8cx_breakout.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>78d9b5f8-4a16-57a1-bd4e-4c7a68bfd957</tstamps>
+      <units>
+        <unit name="A">
+          <pins>
+            <pin num="2"/>
+            <pin num="1"/>
+            <pin num="21"/>
+            <pin num="3"/>
+            <pin num="4"/>
+            <pin num="5"/>
+            <pin num="6"/>
+            <pin num="7"/>
+            <pin num="8"/>
+            <pin num="9"/>
+            <pin num="10"/>
+            <pin num="19"/>
+            <pin num="20"/>
+            <pin num="18"/>
+            <pin num="17"/>
+            <pin num="16"/>
+            <pin num="15"/>
+            <pin num="14"/>
+            <pin num="13"/>
+            <pin num="12"/>
+            <pin num="11"/>
+          </pins>
+        </unit>
+      </units>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="" part="C">
+      <description>C</description>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">C</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="Conn_01x04_MountingPin">
+      <description>Generic connectable mounting pin connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <footprints>
+        <fp>Connector*:*_1x??-1MP*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x04_MountingPin</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Generic connectable mounting pin connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="MP" name="MountPin" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="Conn_01x10">
+      <description>Conn_01x10</description>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x10</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Conn_01x10</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="LED">
+      <description>LED</description>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">LED</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">LED</field>
+      </fields>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="LM66100">
+      <description>LM66100DCKR</description>
+      <docs>https://www.ti.com/lit/ds/symlink/lm66100.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">LM66100DCKR</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/lm66100.pdf</field>
+        <field name="Description">LM66100DCKR</field>
+      </fields>
+      <pins>
+        <pin num="1" name="VIN" type="power_in"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="CE" type="input"/>
+        <pin num="4" name="NC" type="no_connect"/>
+        <pin num="5" name="ST" type="passive"/>
+        <pin num="6" name="VOUT" type="power_out"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="LP5907_1V8">
+      <description>LP5907MFX-1.8/NOPB</description>
+      <docs>https://www.ti.com/lit/ds/symlink/lp5907.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">LP5907MFX-1.8/NOPB</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/lp5907.pdf</field>
+        <field name="Description">LP5907MFX-1.8/NOPB</field>
+      </fields>
+      <pins>
+        <pin num="1" name="IN" type="power_in"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="EN" type="input"/>
+        <pin num="4" name="NC" type="no_connect"/>
+        <pin num="5" name="OUT" type="power_out"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="LSF0108">
+      <description>LSF0108RKSR</description>
+      <docs>https://www.ti.com/lit/ds/symlink/lsf0108.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">LSF0108RKSR</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/lsf0108.pdf</field>
+        <field name="Description">LSF0108RKSR</field>
+      </fields>
+      <pins>
+        <pin num="1" name="GND" type="power_in"/>
+        <pin num="2" name="VREF_A" type="passive"/>
+        <pin num="3" name="A1" type="bidirectional"/>
+        <pin num="4" name="A2" type="bidirectional"/>
+        <pin num="5" name="A3" type="bidirectional"/>
+        <pin num="6" name="A4" type="bidirectional"/>
+        <pin num="7" name="A5" type="bidirectional"/>
+        <pin num="8" name="A6" type="bidirectional"/>
+        <pin num="9" name="A7" type="bidirectional"/>
+        <pin num="10" name="A8" type="bidirectional"/>
+        <pin num="11" name="B8" type="bidirectional"/>
+        <pin num="12" name="B7" type="bidirectional"/>
+        <pin num="13" name="B6" type="bidirectional"/>
+        <pin num="14" name="B5" type="bidirectional"/>
+        <pin num="15" name="B4" type="bidirectional"/>
+        <pin num="16" name="B3" type="bidirectional"/>
+        <pin num="17" name="B2" type="bidirectional"/>
+        <pin num="18" name="B1" type="bidirectional"/>
+        <pin num="19" name="VREF_B" type="passive"/>
+        <pin num="20" name="EN" type="input"/>
+        <pin num="21" name="EP" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="MountingHole">
+      <description>Mounting Hole without connection</description>
+      <footprints>
+        <fp>MountingHole*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">H</field>
+        <field name="Value">MountingHole</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Mounting Hole without connection</field>
+      </fields>
+    </libpart>
+    <libpart lib="" part="R">
+      <description>R</description>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">R</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="SolderJumper_2_Bridged">
+      <description>Solder Jumper, 2-pole, closed/bridged</description>
+      <footprints>
+        <fp>SolderJumper*Bridged*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">SolderJumper_2_Bridged</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Solder Jumper, 2-pole, closed/bridged</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="SolderJumper_2_Open">
+      <description>Solder Jumper, 2-pole, open</description>
+      <footprints>
+        <fp>SolderJumper*Open*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">SolderJumper_2_Open</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">Solder Jumper, 2-pole, open</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="SolderJumper_3_Bridged12">
+      <description>3-pole Solder Jumper, pins 1+2 closed/bridged</description>
+      <footprints>
+        <fp>SolderJumper*Bridged12*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">SolderJumper_3_Bridged12</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">3-pole Solder Jumper, pins 1+2 closed/bridged</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="C" type="passive"/>
+        <pin num="3" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="TLV75533P">
+      <description>TLV75533PDRVR</description>
+      <docs>https://www.ti.com/lit/ds/symlink/tlv755p.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">TLV75533PDRVR</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.ti.com/lit/ds/symlink/tlv755p.pdf</field>
+        <field name="Description">TLV75533PDRVR</field>
+      </fields>
+      <pins>
+        <pin num="1" name="OUT" type="power_out"/>
+        <pin num="2" name="NC2" type="no_connect"/>
+        <pin num="3" name="GND" type="power_in"/>
+        <pin num="4" name="EN" type="input"/>
+        <pin num="5" name="NC5" type="no_connect"/>
+        <pin num="6" name="IN" type="power_in"/>
+        <pin num="7" name="EP" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="TestPoint">
+      <description>test point</description>
+      <footprints>
+        <fp>Pin*</fp>
+        <fp>Test*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">TP</field>
+        <field name="Value">TestPoint</field>
+        <field name="Footprint"/>
+        <field name="Datasheet"/>
+        <field name="Description">test point</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="" part="VL53L8CX">
+      <description>VL53L8CXV0GC/1</description>
+      <docs>https://www.st.com/resource/en/datasheet/vl53l8cx.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">VL53L8CXV0GC/1</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">https://www.st.com/resource/en/datasheet/vl53l8cx.pdf</field>
+        <field name="Description">VL53L8CXV0GC/1</field>
+      </fields>
+      <pins>
+        <pin num="A1" name="INT" type="bidirectional"/>
+        <pin num="A2" name="LPN" type="input"/>
+        <pin num="A3" name="IOVDD" type="power_in"/>
+        <pin num="A4" name="SDA_MOSI" type="bidirectional"/>
+        <pin num="A5" name="SCL_MCLK" type="input"/>
+        <pin num="A6" name="RSVD1" type="passive"/>
+        <pin num="A7" name="RSVD2" type="passive"/>
+        <pin num="B1" name="SYNC" type="bidirectional"/>
+        <pin num="B4" name="THERMALPAD" type="power_in"/>
+        <pin num="B7" name="CORE_1V8" type="power_in"/>
+        <pin num="C1" name="SPI_I2C_N" type="input"/>
+        <pin num="C2" name="NCS" type="input"/>
+        <pin num="C3" name="GND_C3" type="power_in"/>
+        <pin num="C4" name="AVDD" type="power_in"/>
+        <pin num="C5" name="MISO" type="open_collector"/>
+        <pin num="C6" name="RSVD3" type="passive"/>
+        <pin num="C7" name="GND_C7" type="power_in"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries/>
+  <nets>
+    <net code="1" name="1V8" class="Default">
+      <node ref="C4" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="C5" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="C7" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="JP3" pin="3" pinfunction="B_3" pintype="passive"/>
+      <node ref="JP4" pin="3" pinfunction="B_3" pintype="passive"/>
+      <node ref="R3" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R4" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R5" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R6" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R7" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="TP1" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="U1" pin="A3" pinfunction="IOVDD_A3" pintype="power_in"/>
+      <node ref="U1" pin="B7" pinfunction="CORE_1V8_B7" pintype="power_in"/>
+      <node ref="U4" pin="5" pinfunction="OUT_5" pintype="power_out"/>
+      <node ref="U5" pin="2" pinfunction="VREF_A_2" pintype="passive"/>
+    </net>
+    <net code="2" name="3V3" class="Default">
+      <node ref="C3" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="C6" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="J1" pin="2" pinfunction="Pin_2_2" pintype="passive"/>
+      <node ref="J2" pin="2" pinfunction="Pin_2_2" pintype="passive"/>
+      <node ref="J3" pin="2" pinfunction="Pin_2_2" pintype="passive"/>
+      <node ref="JP1" pin="2" pinfunction="B_2" pintype="passive"/>
+      <node ref="JP2" pin="1" pinfunction="A_1" pintype="passive"/>
+      <node ref="R1" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R11" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R14" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R16" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="TP2" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="U1" pin="C4" pinfunction="AVDD_C4" pintype="power_in"/>
+      <node ref="U3" pin="3" pinfunction="CE_3" pintype="input"/>
+      <node ref="U3" pin="6" pinfunction="VOUT_6" pintype="power_out"/>
+      <node ref="U4" pin="1" pinfunction="IN_1" pintype="power_in"/>
+    </net>
+    <net code="3" name="3V3_LDO" class="Default">
+      <node ref="C2" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="U2" pin="1" pinfunction="OUT_1" pintype="power_out"/>
+      <node ref="U3" pin="1" pinfunction="VIN_1" pintype="power_in"/>
+    </net>
+    <net code="4" name="EN_1V8" class="Default">
+      <node ref="C8" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R1" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U4" pin="3" pinfunction="EN_3" pintype="input"/>
+    </net>
+    <net code="5" name="GND" class="Default">
+      <node ref="C1" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="C2" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="C3" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="C4" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="C5" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="C6" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="C7" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="C8" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="C9" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="D1" pin="1" pinfunction="K_1" pintype="passive"/>
+      <node ref="J1" pin="1" pinfunction="Pin_1_1" pintype="passive"/>
+      <node ref="J1" pin="MP" pinfunction="MountPin_MP" pintype="passive"/>
+      <node ref="J2" pin="1" pinfunction="Pin_1_1" pintype="passive"/>
+      <node ref="J2" pin="MP" pinfunction="MountPin_MP" pintype="passive"/>
+      <node ref="J3" pin="3" pinfunction="Pin_3_3" pintype="passive"/>
+      <node ref="JP3" pin="1" pinfunction="A_1" pintype="passive"/>
+      <node ref="JP4" pin="1" pinfunction="A_1" pintype="passive"/>
+      <node ref="R10" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="TP3" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="U1" pin="A6" pinfunction="RSVD1_A6" pintype="passive"/>
+      <node ref="U1" pin="A7" pinfunction="RSVD2_A7" pintype="passive"/>
+      <node ref="U1" pin="B4" pinfunction="THERMALPAD_B4" pintype="power_in"/>
+      <node ref="U1" pin="C3" pinfunction="GND_C3_C3" pintype="power_in"/>
+      <node ref="U1" pin="C6" pinfunction="RSVD3_C6" pintype="passive"/>
+      <node ref="U1" pin="C7" pinfunction="GND_C7_C7" pintype="power_in"/>
+      <node ref="U2" pin="3" pinfunction="GND_3" pintype="power_in"/>
+      <node ref="U2" pin="7" pinfunction="EP_7" pintype="power_in"/>
+      <node ref="U3" pin="2" pinfunction="GND_2" pintype="power_in"/>
+      <node ref="U3" pin="5" pinfunction="ST_5" pintype="passive"/>
+      <node ref="U4" pin="2" pinfunction="GND_2" pintype="power_in"/>
+      <node ref="U5" pin="1" pinfunction="GND_1" pintype="power_in"/>
+      <node ref="U5" pin="21" pinfunction="EP_21" pintype="power_in"/>
+    </net>
+    <net code="6" name="INT" class="Default">
+      <node ref="J3" pin="10" pinfunction="Pin_10_10" pintype="passive"/>
+      <node ref="R14" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U5" pin="17" pinfunction="B2_17" pintype="bidirectional"/>
+    </net>
+    <net code="7" name="INT_1V8" class="Default">
+      <node ref="R5" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U1" pin="A1" pinfunction="INT_A1" pintype="bidirectional"/>
+      <node ref="U5" pin="4" pinfunction="A2_4" pintype="bidirectional"/>
+    </net>
+    <net code="8" name="LED_A" class="Default">
+      <node ref="JP2" pin="2" pinfunction="B_2" pintype="passive"/>
+      <node ref="R2" pin="1" pinfunction="1_1" pintype="passive"/>
+    </net>
+    <net code="9" name="LED_R" class="Default">
+      <node ref="D1" pin="2" pinfunction="A_2" pintype="passive"/>
+      <node ref="R2" pin="2" pinfunction="2_2" pintype="passive"/>
+    </net>
+    <net code="10" name="LPN" class="Default">
+      <node ref="J3" pin="9" pinfunction="Pin_9_9" pintype="passive"/>
+      <node ref="U5" pin="16" pinfunction="B3_16" pintype="bidirectional"/>
+    </net>
+    <net code="11" name="LPN_1V8" class="Default">
+      <node ref="R7" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U1" pin="A2" pinfunction="LPN_A2" pintype="input"/>
+      <node ref="U5" pin="5" pinfunction="A3_5" pintype="bidirectional"/>
+    </net>
+    <net code="12" name="MISO" class="Default">
+      <node ref="J3" pin="4" pinfunction="Pin_4_4" pintype="passive"/>
+      <node ref="R16" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U5" pin="11" pinfunction="B8_11" pintype="bidirectional"/>
+    </net>
+    <net code="13" name="MISO_1V8" class="Default">
+      <node ref="JP5" pin="2" pinfunction="B_2" pintype="passive"/>
+      <node ref="R10" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U5" pin="10" pinfunction="A8_10" pintype="bidirectional"/>
+    </net>
+    <net code="14" name="MISO_PIN" class="Default">
+      <node ref="JP5" pin="1" pinfunction="A_1" pintype="passive"/>
+      <node ref="U1" pin="C5" pinfunction="MISO_C5" pintype="open_collector"/>
+    </net>
+    <net code="15" name="NCS" class="Default">
+      <node ref="J3" pin="7" pinfunction="Pin_7_7" pintype="passive"/>
+      <node ref="U5" pin="14" pinfunction="B5_14" pintype="bidirectional"/>
+    </net>
+    <net code="16" name="NCS_1V8" class="Default">
+      <node ref="R9" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U1" pin="C2" pinfunction="NCS_C2" pintype="input"/>
+      <node ref="U5" pin="7" pinfunction="A5_7" pintype="bidirectional"/>
+    </net>
+    <net code="17" name="NCS_STRAP" class="Default">
+      <node ref="JP4" pin="2" pinfunction="C_2" pintype="passive"/>
+      <node ref="R9" pin="1" pinfunction="1_1" pintype="passive"/>
+    </net>
+    <net code="18" name="PU_I2C" class="Default">
+      <node ref="JP1" pin="1" pinfunction="A_1" pintype="passive"/>
+      <node ref="R12" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R13" pin="1" pinfunction="1_1" pintype="passive"/>
+    </net>
+    <net code="19" name="RST" class="Default">
+      <node ref="J3" pin="8" pinfunction="Pin_8_8" pintype="passive"/>
+      <node ref="U5" pin="15" pinfunction="B4_15" pintype="bidirectional"/>
+    </net>
+    <net code="20" name="RST_1V8" class="Default">
+      <node ref="R8" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U1" pin="C1" pinfunction="SPI_I2C_N_C1" pintype="input"/>
+      <node ref="U5" pin="6" pinfunction="A4_6" pintype="bidirectional"/>
+    </net>
+    <net code="21" name="RST_STRAP" class="Default">
+      <node ref="JP3" pin="2" pinfunction="C_2" pintype="passive"/>
+      <node ref="R8" pin="1" pinfunction="1_1" pintype="passive"/>
+    </net>
+    <net code="22" name="SCL" class="Default">
+      <node ref="J1" pin="4" pinfunction="Pin_4_4" pintype="passive"/>
+      <node ref="J2" pin="4" pinfunction="Pin_4_4" pintype="passive"/>
+      <node ref="J3" pin="5" pinfunction="Pin_5_5" pintype="passive"/>
+      <node ref="R13" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U5" pin="12" pinfunction="B7_12" pintype="bidirectional"/>
+    </net>
+    <net code="23" name="SCL_1V8" class="Default">
+      <node ref="R4" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U1" pin="A5" pinfunction="SCL_MCLK_A5" pintype="input"/>
+      <node ref="U5" pin="9" pinfunction="A7_9" pintype="bidirectional"/>
+    </net>
+    <net code="24" name="SDA" class="Default">
+      <node ref="J1" pin="3" pinfunction="Pin_3_3" pintype="passive"/>
+      <node ref="J2" pin="3" pinfunction="Pin_3_3" pintype="passive"/>
+      <node ref="J3" pin="6" pinfunction="Pin_6_6" pintype="passive"/>
+      <node ref="R12" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U5" pin="13" pinfunction="B6_13" pintype="bidirectional"/>
+    </net>
+    <net code="25" name="SDA_1V8" class="Default">
+      <node ref="R3" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U1" pin="A4" pinfunction="SDA_MOSI_A4" pintype="bidirectional"/>
+      <node ref="U5" pin="8" pinfunction="A6_8" pintype="bidirectional"/>
+    </net>
+    <net code="26" name="SYNC" class="Default">
+      <node ref="TP4" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="U5" pin="18" pinfunction="B1_18" pintype="bidirectional"/>
+    </net>
+    <net code="27" name="SYNC_1V8" class="Default">
+      <node ref="R6" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U1" pin="B1" pinfunction="SYNC_B1" pintype="bidirectional"/>
+      <node ref="U5" pin="3" pinfunction="A1_3" pintype="bidirectional"/>
+    </net>
+    <net code="28" name="VIN" class="Default">
+      <node ref="C1" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="J3" pin="1" pinfunction="Pin_1_1" pintype="passive"/>
+      <node ref="U2" pin="4" pinfunction="EN_4" pintype="input"/>
+      <node ref="U2" pin="6" pinfunction="IN_6" pintype="power_in"/>
+    </net>
+    <net code="29" name="VREF_B" class="Default">
+      <node ref="C9" pin="1" pinfunction="1_1" pintype="passive"/>
+      <node ref="R11" pin="2" pinfunction="2_2" pintype="passive"/>
+      <node ref="U5" pin="19" pinfunction="VREF_B_19" pintype="passive"/>
+      <node ref="U5" pin="20" pinfunction="EN_20" pintype="input"/>
+    </net>
+    <net code="30" name="unconnected-(U2-NC2-Pad2)" class="Default">
+      <node ref="U2" pin="2" pinfunction="NC2_2" pintype="no_connect"/>
+    </net>
+    <net code="31" name="unconnected-(U2-NC5-Pad5)" class="Default">
+      <node ref="U2" pin="5" pinfunction="NC5_5" pintype="no_connect"/>
+    </net>
+    <net code="32" name="unconnected-(U3-NC-Pad4)" class="Default">
+      <node ref="U3" pin="4" pinfunction="NC_4" pintype="no_connect"/>
+    </net>
+    <net code="33" name="unconnected-(U4-NC-Pad4)" class="Default">
+      <node ref="U4" pin="4" pinfunction="NC_4" pintype="no_connect"/>
+    </net>
+  </nets>
+</export>
