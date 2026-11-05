@@ -1,0 +1,383 @@
+[
+ {
+  "ref": "C1",
+  "lcsc": "C15849",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C10",
+  "lcsc": "C85973",
+  "kicad_rot": 180.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C2",
+  "lcsc": "C15849",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C3",
+  "lcsc": "C21120",
+  "kicad_rot": 180.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C4",
+  "lcsc": "C15849",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C5",
+  "lcsc": "C19702",
+  "kicad_rot": 180.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C6",
+  "lcsc": "C14663",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C7",
+  "lcsc": "C85973",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C8",
+  "lcsc": "C85973",
+  "kicad_rot": 180.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "C9",
+  "lcsc": "C85973",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "C0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "D1",
+  "lcsc": "C2286",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "LED-SMD_L1.6-W0.8-R-RD",
+  "correction": 180,
+  "fit_mm": 0.037,
+  "paired": 2,
+  "offset_mm": [
+   0.0,
+   0.0
+  ],
+  "status": "check",
+  "why": "polar two-pad part: pad numbers do not prove polarity, look at the preview"
+ },
+ {
+  "ref": "FB1",
+  "lcsc": "C1002",
+  "kicad_rot": 0.0,
+  "side": "top",
+  "package": "L0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "J1",
+  "lcsc": "C2840011",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "HDR-TH_11P-P2.54-V-M",
+  "correction": 270,
+  "fit_mm": 0.0,
+  "paired": 11,
+  "offset_mm": [
+   -12.7,
+   -0.0
+  ],
+  "status": "ok"
+ },
+ {
+  "ref": "J2",
+  "lcsc": "C492409",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "HDR-TH_10P-P2.54-V-M",
+  "correction": 270,
+  "fit_mm": 0.0,
+  "paired": 10,
+  "offset_mm": [
+   -11.43,
+   -0.0
+  ],
+  "status": "ok"
+ },
+ {
+  "ref": "R1",
+  "lcsc": "C21190",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R10",
+  "lcsc": "C23182",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R11",
+  "lcsc": "C23182",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R12",
+  "lcsc": "C23182",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R13",
+  "lcsc": "C21190",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R14",
+  "lcsc": "C23182",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R15",
+  "lcsc": "C23182",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R16",
+  "lcsc": "C23182",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R17",
+  "lcsc": "C25804",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R18",
+  "lcsc": "C25804",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R2",
+  "lcsc": "C21190",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R3",
+  "lcsc": "C21190",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R4",
+  "lcsc": "C21190",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R5",
+  "lcsc": "C21190",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R6",
+  "lcsc": "C21190",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R7",
+  "lcsc": "C21190",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R8",
+  "lcsc": "C21190",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "R9",
+  "lcsc": "C23182",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "R0603",
+  "status": "symmetric",
+  "correction": 0,
+  "why": "non-polar two-pad part"
+ },
+ {
+  "ref": "U1",
+  "lcsc": "C2862562",
+  "kicad_rot": 90.0,
+  "side": "top",
+  "package": "TSSOP-20_L6.5-W4.4-P0.65-LS6.4-BL",
+  "correction": 270,
+  "fit_mm": 0.029,
+  "paired": 20,
+  "offset_mm": [
+   0.0,
+   0.0
+  ],
+  "status": "ok"
+ },
+ {
+  "ref": "U2",
+  "lcsc": "C2862740",
+  "kicad_rot": 180.0,
+  "side": "top",
+  "package": "SOT-23-5_L2.9-W1.6-P0.95-LS2.8-BR",
+  "correction": 180,
+  "fit_mm": 0.037,
+  "paired": 5,
+  "offset_mm": [
+   -0.008,
+   0.0
+  ],
+  "status": "ok"
+ },
+ {
+  "ref": "Y1",
+  "lcsc": "C7425393",
+  "kicad_rot": -90.0,
+  "side": "top",
+  "package": "OSC-SMD_4P-L3.2-W2.5-CJ13-320001210A20",
+  "correction": 0,
+  "fit_mm": 0.112,
+  "paired": 4,
+  "offset_mm": [
+   0.0,
+   0.0
+  ],
+  "status": "ok"
+ }
+]

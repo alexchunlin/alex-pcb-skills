@@ -12,7 +12,11 @@ from the config's `copper_oz` (outer 1.0, inner 0.5 by default), plating 25 um (
 Report (irdrop.json in --out, default /tmp/pcb-irdrop/<board>-<net>): drop at every sink in mV, the worst
 current-density cells outside the pads with coordinates (A/mm^2: a neck or a spoke shows up here long before a width
 rule does; inside a pad the density is set by the pad, 2.5 A into a 0.3 mm pad is ~240 A/mm^2), total I^2 R, and
-irdrop.svg, the current-density map per layer. Solver selftest: `uv run --with numpy --with scipy python3
+irdrop.svg, the current-density map per layer. `judge` (spike #3, C1): the solved current rated against the copper it
+crosses by the `feeds` arithmetic, so the verdict is per neck, not per cell: necks (a cut across the copper at the hottest
+cells, width x thickness against IPC-2221 at the config's rise_c; a neck as wide as the pad beside it and under 1 mm long
+is that pad's own exit, status `pad`), every via and plated-hole barrel against IPC-2221 on its plating, and sinks the
+source does not reach (`unreached`). `pcb check` reads it as the `irdrop` row. Solver selftest: `uv run --with numpy --with scipy python3
 pcbir_solve.py --selftest` (a 10 x 1 mm strip against rho L / (w t)).
 """
 import base64, json, math, os, subprocess, sys, time, zlib
@@ -35,7 +39,7 @@ def opt(args, name, default=None, multi=False):
     return vals if multi else (vals[-1] if vals else default)
 
 
-def extract(b, net, source, sinks, h, oz):
+def extract(b, net, source, sinks, h, oz, rise_c=20.0):
     stack = list(b.GetEnabledLayers().CuStack())
     names = [b.GetLayerName(l) for l in stack]
     nL = len(stack)
@@ -81,14 +85,24 @@ def extract(b, net, source, sinks, h, oz):
                 if (px - ax - u * dx) ** 2 + (py - ay - u * dy) ** 2 <= r2:
                     cu[base + j * nx + i] = 1
 
-    vlinks = []
+    vlinks, vinfo = [], []   # vinfo[k]: (drill mm, x, y, what) for vlinks[k], so the solve can rate each barrel
     gap_m = ToMM(b.GetDesignSettings().GetBoardThickness()) * 1e-3 / max(1, nL - 1)
 
-    def barrel(x, y, drill_mm, la, lb):
+    ties = []   # (layer, iy, ix, iy2, ix2): the barrel's cell tied to every cell under its ring, so a via is not a point
+    #            contact (kicad-irdrop does the same; without it the drop through a via read 6 to 21 % high, spike #3)
+
+    def barrel(x, y, drill_mm, la, lb, what="via", ring_mm=None):
         G = (math.pi * drill_mm * 1e-3 * PLATING_UM * 1e-6) / (RHO * gap_m)
         ix, iy = int((x - x0) / h), int((y - y0) / h)
         for l in range(la, lb):
-            vlinks.append([l, l + 1, iy, ix, G])
+            vlinks.append([l, l + 1, iy, ix, G]); vinfo.append([round(drill_mm, 3), round(x, 3), round(y, 3), what])
+        r = max(ring_mm or 0.0, drill_mm / 2 + PLATING_UM * 1e-3)
+        k = int(r / h) + 1
+        for l in range(la, lb + 1):
+            for j in range(max(0, iy - k), min(ny, iy + k + 1)):
+                for i in range(max(0, ix - k), min(nx, ix + k + 1)):
+                    if (i, j) != (ix, iy) and (cx[i] - x) ** 2 + (cy[j] - y) ** 2 <= r * r:
+                        ties.append([l, iy, ix, j, i])
 
     for t in tracks:
         if t.GetClass() == "PCB_VIA":
@@ -96,7 +110,7 @@ def extract(b, net, source, sinks, h, oz):
             la, lb = sorted((stack.index(t.TopLayer()), stack.index(t.BottomLayer())))
             for l in range(la, lb + 1):
                 capsule(l, x, y, x, y, ToMM(t.GetWidth(pcbnew.F_Cu)) / 2)
-            barrel(x, y, ToMM(t.GetDrillValue()), la, lb)
+            barrel(x, y, ToMM(t.GetDrillValue()), la, lb, ring_mm=ToMM(t.GetWidth(pcbnew.F_Cu)) / 2)
             continue
         if t.GetLayer() not in stack:
             continue
@@ -108,9 +122,10 @@ def extract(b, net, source, sinks, h, oz):
         else:
             capsule(l, ToMM(s.x), ToMM(s.y), ToMM(e.x), ToMM(e.y), r)
 
-    pad_cells = {}
+    pad_cells, pad_minor = {}, {}
     for p in pads:
         name = f"{p.GetParentFootprint().GetReference()}.{p.GetNumber()}"
+        pad_minor[name] = round(min(ToMM(p.GetSize().x), ToMM(p.GetSize().y)), 3)
         c = p.GetPosition(); r = ToMM(p.GetBoundingRadius()); px, py = ToMM(c.x), ToMM(c.y)
         j0, j1, i0, i1 = window(px - r, px + r, py - r, py + r)
         cells = pad_cells.setdefault(name, set())
@@ -123,7 +138,7 @@ def extract(b, net, source, sinks, h, oz):
                         k = l_i * plane + j * nx + i
                         cu[k] = 1; cells.add(k)
         if p.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and p.GetDrillSize().x > 0:
-            barrel(px, py, ToMM(p.GetDrillSize().x), 0, nL - 1)
+            barrel(px, py, ToMM(p.GetDrillSize().x), 0, nL - 1, name, ring_mm=min(ToMM(p.GetSize().x), ToMM(p.GetSize().y)) / 2)
     for z, cs in zip(zones, zc):
         j0, j1, i0, i1 = window(min(c[0] for c in cs), max(c[0] for c in cs), min(c[1] for c in cs), max(c[1] for c in cs))
         for l_i, l in enumerate(stack):
@@ -147,7 +162,31 @@ def extract(b, net, source, sinks, h, oz):
     return {"net": net, "source": source, "h_mm": h, "shape": [nL, ny, nx], "layers": names, "t_um": t_um, "origin": [x0, y0],
             "cu_z": base64.b64encode(zlib.compress(bytes(cu))).decode(), "vlinks": vlinks, "source_cells": sorted(src),
             "sinks": [{"pad": n, "amps": a, "cells": sorted(pad_cells[n])} for n, a in sinks],
-            "pad_cells": sorted(set().union(*pad_cells.values())) if pad_cells else []}
+            "pad_cells": sorted(set().union(*pad_cells.values())) if pad_cells else [],
+            "vinfo": vinfo, "ties": ties, "plating_um": PLATING_UM, "rise_c": float(rise_c), "outer": [0, nL - 1],
+            "pads": [{"pad": n, "minor_mm": pad_minor[n], "cells": sorted(c)} for n, c in pad_cells.items() if c]}
+
+
+def run(b, net, source, sinks, h, cfg, out):
+    """Extract the net (KiCad's Python), solve it under uv (numpy + scipy), return the report; raises RuntimeError.
+    pcbcheck's `irdrop` row calls this on the board it already has open."""
+    os.makedirs(out, exist_ok=True)
+    t = time.time()
+    d = extract(b, net, source, sinks, h, cfg.get("copper_oz", {}), float(cfg.get("rise_c", 20.0)))
+    t_ex = time.time() - t
+    inp = os.path.join(out, "irdrop-in.json")
+    json.dump(d, open(inp, "w"))
+    cmd = ["uv", "run", "--no-project", "--quiet", "--with", "numpy", "--with", "scipy", "python3",
+           os.path.join(HERE, "pcbir_solve.py"), inp, "--svg", os.path.join(out, "irdrop.svg")]
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, cwd=out)
+    except FileNotFoundError:
+        raise RuntimeError("`uv` not found; the solver needs it for numpy and scipy (brew install uv)")
+    if p.returncode:
+        raise RuntimeError(f"solver failed: {p.stderr[-800:]}")
+    rep = json.loads(p.stdout.strip().splitlines()[-1])
+    rep.update(extract_s=round(t_ex, 1), solve_s=round(time.time() - t - t_ex, 1), svg=os.path.join(out, "irdrop.svg"))
+    return rep
 
 
 def main():
@@ -178,23 +217,8 @@ def main():
         if not sinks:
             sys.exit(f"pcb irdrop: no sinks: pass --sink REF.PAD=AMPS or a --config whose feeds rows name pads on {net}")
     out = out or os.path.join("/tmp/pcb-irdrop", f"{os.path.splitext(os.path.basename(board))[0]}-{net}")
-    os.makedirs(out, exist_ok=True)
-    t = time.time()
-    d = extract(b, net, source, sinks, h, cfg.get("copper_oz", {}))
-    t_ex = time.time() - t
-    inp = os.path.join(out, "irdrop-in.json")
-    json.dump(d, open(inp, "w"))
-    cmd = ["uv", "run", "--no-project", "--quiet", "--with", "numpy", "--with", "scipy", "python3",
-           os.path.join(HERE, "pcbir_solve.py"), inp, "--svg", os.path.join(out, "irdrop.svg")]
-    try:
-        p = subprocess.run(cmd, capture_output=True, text=True, cwd=out)
-    except FileNotFoundError:
-        sys.exit("pcb irdrop: `uv` not found; the solver needs it for numpy and scipy (brew install uv)")
-    if p.returncode:
-        sys.exit(f"pcb irdrop: solver failed: {p.stderr[-800:]}")
-    rep = json.loads(p.stdout.strip().splitlines()[-1])
-    rep.update(board=board, extract_s=round(t_ex, 1), solve_s=round(time.time() - t - t_ex, 1),
-               left_out=[f"{n} {a} A (capacitor: ripple current, no DC)" for n, a in left_out], svg=os.path.join(out, "irdrop.svg"))
+    rep = run(b, net, source, sinks, h, cfg, out)
+    rep.update(board=board, left_out=[f"{n} {a} A (capacitor: ripple current, no DC)" for n, a in left_out])
     json.dump(rep, open(os.path.join(out, "irdrop.json"), "w"), indent=1)
     if as_json:
         print(json.dumps(rep))
@@ -207,6 +231,14 @@ def main():
         print(f"PCBIR left out {n}")
     for w in rep["worst"][:5]:
         print(f"PCBIR hot {w['layer']} ({w['x']}, {w['y']}): {w['J_A_mm2']} A/mm2, {w['I_A']} A through the cell")
+    jd = rep.get("judge", {})
+    for n in jd.get("necks", [])[:4]:
+        print(f"PCBIR neck {n['status'].upper()} {n['layer']} ({n['x']}, {n['y']}): {n['width_mm']} mm wide, {n['length_mm']} mm long, "
+              f"{n['I_A']} A against IPC {n['ipc_A']} A (x{n['ratio']}){' near ' + ', '.join(n['near_pads']) if n['near_pads'] else ''}")
+    for v in jd.get("barrels", [])[:3]:
+        print(f"PCBIR barrel {v['status'].upper()} {v['what']} ({v['x']}, {v['y']}) {v['drill_mm']} mm: {v['I_A']} A against IPC {v['ipc_A']} A (x{v['ratio']})")
+    for u in rep.get("unreached", []):
+        print(f"PCBIR OPEN sink {u}: no copper path from the source")
     print(f"PCBIR -> {os.path.join(out, 'irdrop.json')}, {rep['svg']}")
 
 

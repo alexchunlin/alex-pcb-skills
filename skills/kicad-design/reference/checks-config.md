@@ -24,6 +24,10 @@ test points `TP*`), the same rule cadcheck applies. Net names are the project's 
   "currents": {"VIN": 4.0, "5V": 3.0, "MOTOR_A": 2.5}, "copper_oz": {"outer": 1.0, "inner": 0.5}, "rise_c": 20,
                                                                         // IPC-2221 width per net vs the narrowest track per layer (rung 2)
   "thermal_vias": {"U3": {"pad": "EP", "min": 9, "within_mm": 2.5}},   // stitching vias on the pad's net near the pad
+  "via_in_pad": {"allow": ["U1.21"]},                                   // SMD pads that may hold a via; thermal_vias pads are already exempt
+  "edge_margin": {"tracks_mm": 1.0, "vias_mm": 1.0, "parts_mm": 1.0, "zones_mm": 1.0, "connector_mm": 1.5, "skip_refs": [], "skip_zones": []},  // courtyards; pours on every layer; J* and H* exempt as parts
+  "pin1_mark": {"refs": "^(U|Q|D|LED|Y)[0-9]", "within_mm": 1.5, "skip_refs": []},  // silk by pin 1 with no twin through the part's centre
+  "gnd_islands": {"ground": "GND", "warn_mm2": 0.5, "max_mm2": 2.0},    // ground fill pieces with no ground copper
   "feeds": [{"pad": "U3.11", "amps": 2.5, "within_mm": 2.0}],           // what reaches a high-current pad: vias + touching tracks, as amps
   "calcs": [                                                            // formula rows, in order; R("R5"), C("C3"), L("L1") read the netlist values
     {"id": "p_ldo", "expr": "(5.0 - 3.3) * 0.5", "unit": "W", "max": 1.0},
@@ -57,6 +61,7 @@ test points `TP*`), the same rule cadcheck applies. Net names are the project's 
 | refplane | one per net with tracks | bucket 3/4 net has more than `max_gap_mm` (0) off solid ground on the adjacent layer; bucket 2 warns above `mid_max_mm` (5); 1 and rails carry the mm as a cost; points within `antipad_mm` (0.5) of the net's own vias and `connector_mm` (1.5) of the through-hole pads of footprints it lands on are skipped; rows have `bucket`, `gaps` | REFPLANE-1, SIG-1, SIG-4 |
 | return_via | one per net with vias | a via on a bucket 3/4 net has no ground via or through-hole ground pad within `max_mm_3` 2.0 / `max_mm_4` 1.0 mm; bucket 2 warns above `max_mm_2` 5.0 | SIG-2 |
 | exposure | one per exposed net | track within `within_mm` (1.0) of the aggressor's copper on the same layer (default aggressor: the switch node), mm times `victim_weight` (3) for victims; fails (victim) or warns above `max_mm` if set, else a cost | SIG-3 |
+| refstat | one per (row, matching part instance) | no passive of `pattern.class` in `pattern.band` on the part's canonical `pin` net whose other pin lands on `pattern.to` (GND, IC:<pin>, PWR); nearest one farther than `pattern.max_mm` pad to pad. Rows are corpus counts (`tools/bench/data/refstat-rows.json`, spike 2); declare the ones you want, the message quotes the support | SPIKE2 |
 | signals | (data, no rows) per net: `driver`, `t_rise_ns` (null = DC), `source`, `slowed_by`, `victim`; `pcb signals checks.json --netlist x.xml` prints knee and bucket (1 <1 MHz, 2 1-50, 3 50-500, 4 >=500, P rail) and the nets left unclassified; the routing judges read the bucket | SIG-1 |
 
 `pcb check x.kicad_pcb checks.json --only connectors,rails` runs a subset; `--netlist x.xml` and `--bringup F`

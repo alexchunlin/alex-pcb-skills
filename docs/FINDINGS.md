@@ -1058,3 +1058,127 @@ than ground.
   classes from the config (`pcb route classes`: +BATT W2.35, +5V W0.9, motor outputs W0.35, victims Sense) and takes
   feeds (15) and thermal vias (5 pads) from it; `default_plan` now puts every class wider than Default in the power
   wave (the 0.35 mm motor outputs included). Not run: the benchmark waits for the readiness list in the handoff.
+
+## Spikes 1 to 4: literature reviews, then the experiments (2026-11-03)
+
+Four `Spike:` issues (#1 placement surrogate, #2 scraped KiCad corpus, #3 fundamental versions of the human
+conventions, #4 routing as topology) each got a hypothesis, a null, a procedure and a cost, then a literature-review
+agent whose corrections were folded into the issue body, then an Opus 5.5 agent in its own worktree that ran the
+procedure as corrected. Reports with charts: `docs/spikes/spike-N-*.md`, `docs/img/spikes/`; evidence under
+`tools/spikes/spikeN/`; each issue carries the findings as a comment. Verdict rule throughout: keep only what beats the
+existing code by a number.
+
+- **SPIKE-3 (C1) The `irdrop` row: precision, not recall.** Prior art was the repo's own `pcb irdrop` (IRDROP-1), which
+  had no verdict; the spike added `pcbir_solve.judge` (necks cut perpendicular to the local current and rated by
+  IPC-2221 for their cross-section, via fields summed within 1 mm and rated on the barrel, unreached sinks reported)
+  and fixed the via as a point contact (drops read 6 to 21 % high; ring cells tied to the barrel now, as kicad-irdrop
+  does). kicad-irdrop agrees within 0 to 11 % on barrel currents and is 7x slower in the median, so no wrapper. Bench:
+  `irdrop` and `feeds` each catch 5 of the 6 feed and thermal labels (the LDO thermal label is out of reach of a DC
+  solve); `irdrop` adds one true positive (attempt 2, L1.2's 3 A of 5V to In2 through two single 0.3 mm vias at 1.52 and
+  1.48 A against 1.22). On the MotorGo Plink as built, `feeds` fails 15 of 15 pads by construction (pours) and `irdrop`
+  passes 10 of 10 nets: the row that survives a pour-fed board. Both rows see only declared sinks: with the designers'
+  own configs neither catches anything, which is C3's case (currents generated, not declared). 1 to 5 s per rail.
+- **SPIKE-3 (B) Thermal runs, unscored.** kicad-analysis-suite on attempt 2 at 40 degC ambient, 20 to 26 s a solve: LDO
+  alone 77.2 degC at its pads (the log claimed a 116.5 degC junction), DRV8874 alone 86.6, both on 93.9 and 96.2 (each
+  heats the other). No open solver claims a measurement validation; the `temp` row waits for C2's thermocouple.
+- **SPIKE-3 (C2) The hardware loop is prepared, nothing ordered.** `basic_parts` row against a dated JLC cache
+  (`tools/bench/jlc_parts.py`): attempt 2 has 17 extended part types ($52.19 in feeder fees), rung 1 has 2 ($6.14); one
+  0402 has a drop-in basic (C13 -> C1532), not the five the review guessed. A pogo plate from `pcb q` test points
+  (cadlib STL, printcheck pass), an OpenHTF bring-up script that parses 17 and 19 measurements from the two `BRINGUP.md`
+  files and fails on an injected wrong WHO_AM_I and a low rail, and `docs/spikes/ORDER.md` (both fab packages
+  regenerated and complete, every line in stock, the checklist).
+- **SPIKE-3 (C8) Guardrail coverage measured: 16 of 21 planted bugs caught by the check meant for them (76 %), 19 of
+  21 by any check.** The misses are missing config, not wrong checks: the rung-1 config has no `pinmaps` row for U1,
+  so its own SDA/SCL swap passes (Plink v1's shipped bug); rung 2 declares no I2C bus, so a missing pull-up is caught
+  only by a calc naming the deleted resistor; no check knows a diode's orientation.
+- **SPIKE-4 (H2) Net order matters, and MPS is not the thing to replace.** On the four rung-2 placements, random orders
+  land 4 to 9 signal vias from KRT's default `--ordering mps` (the issue's close rule was 2), a 35 to 61 % spread on
+  the route bench and 27 to 29 % inside the wave plans; MPS is the only order with 0 airwires on every finished board,
+  but the cheapest clean order differs per board. Routing five orders (MPS, original, the three global-plan orders) and
+  keeping the best by the SIG-4 rank saves 1, 1 and 8 signal vias (opus2 34 -> 26). Roadmap item 6 stays open as plan
+  variants of `pcb route waves --search`, no new code. `KICAD_GLOBAL_PLAN` is on/off in KRT 0.23.7; the order is
+  `KICAD_GLOBAL_PLAN_ORDER`.
+- **SPIKE-4 (H1) KRT's MPS conflict count is a secondary feature, not a bound.** `pcb q conflicts` reproduces KRT's
+  printed count on all four boards (31/41, 30/39, 33/56, 28/53). Over 84 placements (4 archived + 20 perturbed per
+  board, `tools/bench/results/placements.jsonl`) Spearman against signal vias is +0.71 for conflicts and +0.83 for HPWL;
+  partial gain +0.11; it wins within opus and sonnet and loses on fable and opus2. It counts pairs and signal vias fall
+  below it (opus2 53 vs 34), so it is not a lower bound; the triangulation forced-crossing count is 0 by theorem (Pach
+  and Wenger 2001) and was not built. `signal_vias` (vias on nets with no inner-layer zone) is now a column: attempt 2
+  has 64 vias, 27 of them signal.
+- **SPIKE-4 (H3) Agent-drawn guide corridors lose.** On opus2, KRT `--guide-corridor` polylines for VIN, 5V and the
+  motor nets: signal vias 43 and 49 against 47, worst VIN density 519 against 324 A/mm2, wall 736 and 1820 s against
+  199; on the 17-pad VIN the waypoints broke MST edges and the rescue search ran to the 900 s wave timeout. Dropped.
+- **SPIKE-2 (A) The corpus exists and was read whole.** bshada/open-schematics, 939 shards, 87,931 projects, 27.8 min
+  for the schematics and 2.0 h for the boards, 1.5 GB peak disk, index in `tools/bench/data/corpus-index.jsonl` (2,636
+  hits, no contents). Repos per part: AMS1117-3.3 912, ESP32-WROOM-32 586, ESP32-S3-WROOM-1 279, LSM6DS3 72; DRV8874
+  19 and TPS54620 4 miss the 30 bar. KiCad 6+ schematics give a netlist through `kicad-cli` 98.7 to 100 % of the time;
+  legacy `.sch` 0 % (no symbol cache in the dataset). No parser was written.
+- **SPIKE-2 (B) Statistical reference circuits add no recall; the `refstat` kind stays opt-in.** 0 of the 8 labelled
+  decoupling and feed majors (all on the DRV8874, under the bar); 4 unlabelled fails, all on the Plink (ESP32-S3 EN with
+  no capacitor, its pull-up 48.5 mm away). Corpus p90 distances are 2.6 to 6.5x looser than the 2.0 mm `decoupling`
+  default: learning limits from the corpus would have loosened the checks. Datasheet circuits (#3 C6) stay the source.
+- **SPIKE-2 (C) Placement priors from the corpus seed routable placements.** On the rung-1 Sonnet board (LSM6DS3, 37
+  corpus instances with a board; 71 % of nearest 100 nF caps at the IC's rotation, median 1.7 mm): 33 of 50 prior-seeded
+  placements route clean against 17 of 50 uniform (Fisher p = 0.0025), router calls per clean route at or under the
+  designer's 26 vias 1.52 against 2.94, via counts equal (median 19 vs 18). Routability, not vias. KRT's own
+  `py_placer` decap cost was not compared (needs groups and intent files); that is #1's first comparison.
+- **SPIKE-2 (D) Rev-diff mining: dropped.** 141 keyword commits read across 450 repos, 22 real post-build fixes
+  (precision 0.16, not the review's 0.44), 4 new tool-catchable kinds against the 10 hypothesised; one worth a row
+  (footprint land pattern against the datasheet, 6 of 22). Triage in `tools/bench/data/revdiff-triage.jsonl`, 10 rows
+  marked for Alex's spot check.
+- **SPIKE-T1 Three agents found the same break in `verify_all --changed` on main:** section 29 had no `#@ end` marker
+  after the dev merge, so the selector refused to plan. Fixed on the first merge; sections 30 (irdrop, basic_parts), 31
+  (signal vias, conflicts), 32 (refstat) added; `--changed` on merged main after each merge green.
+- **SPIKE-1 (B) A learned placement surrogate ranks no better than HPWL: dropped.** 651 router-labelled placements
+  (`tools/bench/results/placements.jsonl`: 600 rung-2 at sigma tuned per board for 24 to 32 % clean, 51 rung-1, 18 hand
+  features; label noise 0, one placement routed five times identical). Gradient-boosted trees trained on three boards and
+  tested on the fourth gain +0.004, +0.026 and -0.002 over HPWL at the clean boundary, every 90 % interval spanning 0;
+  AUC on clean 0.47 to 0.57 against the 0.85 bar; HPWL alone ranks signal vias at Spearman 0.70 to 0.80 and KRT's
+  conflict count adds nothing (-0.042 to 0.000). Replaying the opus2 pool in HPWL order reaches a clean placement at or
+  under 27 signal vias in 11 router calls; in model order 43 to 60; random about 37. The fable board routes clean 1 % of
+  the time at any sigma because its archived placement already leaves 6 airwires.
+- **SPIKE-1 (C) No search arm reached the target in an hour, and the router label does not match the judges.** On
+  opus2: KRT `place_simple` with `judge_seeds` 2 clean of 7 full routes, best 35 signal vias, 37 calls; the GBT filter
+  inside it 0 clean in 16; kct one 32-minute run, not clean; plain random perturbation of the designer's placement
+  reached 27 or fewer at call 31 (best 24). On the dev judges (refplane, return_via, exposure, irdrop, feeds, decoupling)
+  no arm's best beat the designer's own placement: the random winner on opus routes to 52 signal vias on Alex's stackup
+  against the start's 32 with 10.8 mm of exposure beside SW against 4.3. A surrogate trained on the bench's router label
+  would optimise the wrong thing; the judges are the label, and they cost a wave plan per sample. No surrogate goes
+  into `pcb`; the dataset, the features and verify 33 (the rank numbers from the committed rows in 9 s) are kept.
+- **SPIKE-1 (D) Generalisation: none.** No held-out rung-2 board gains; on rung 1 the GBT's Spearman is 0.33 against
+  HPWL's 0.30 and its boundary gain rests on one clean placement in 51.
+- **SPIKE-T2 Long runs go under `caffeinate`.** The Mac slept 70 minutes mid-search; the agent resumed with awake time
+  counted and one batch winner never fully routed.
+
+What the four spikes say together: the prior art already had most of it (KRT's planar-first order, its own conflict
+graph and placer, the repo's own irdrop), the two learned pieces that were tried (a surrogate, corpus-learned limits)
+lost to a one-line baseline, and the three things that paid were measurements: a field solve that survives a pour-fed
+board, a mutation bench that says which config rows are missing, and a mined placement prior that doubles routability.
+Next: `docs/spikes/HANDOFF-spike-5-class-priors.md` (class-pooled priors, held out, from KiCad, Eagle and Altium).
+
+## Spike 5: placement priors pooled by component class (2026-11-04)
+
+Full report `docs/spikes/spike-5-class-priors.md`, issue #5, merged without any change to `pcb`. Issue opened from the
+handoff, reviewed, corrected, then run by an Opus agent (Fable out of credits).
+
+- **SPIKE-5 (A) KRT's decap cost was the bar, and it cleared the part prior.** Locked to the same satellites on the
+  rung-1 board, KRT at default weights reached 37/50 clean against the part prior's 33 and uniform's 17, so the class
+  prior had to beat KRT outright. It did not.
+- **SPIKE-5 (B) The prior transfers to an unseen part.** With LSM6DS3 held out 39/50, with all of LGA-14 held out 33/50
+  (uniform 17, p = 0.00002 and 0.0025), equal to or above the part prior; against KRT p = 0.82 and 0.51. What transfers it
+  is the pin frame: a sample is stored relative to the IC pin it serves, so it crosses packages. For a new sensor on a small
+  board KRT needs no corpus and routes as well; the prior's edge is `decoupling` rows, 2.51 against 3.22 (p = 0.019).
+- **SPIKE-5 (C) Motor board: quality yes, clean rate unproven.** DRV8874 held out, 27/50 with 14 rejected seeds; the
+  pre-registered rerun with tight roles drawn first, fresh seeds, 34/50 with 0 rejected, one seed under the 35/50 bar
+  (p = 0.068 against uniform's 24). So the verdict stands, at a clean rate near 0.68. Firm: 29 against 35 signal vias and
+  fewer failing rows than uniform (p = 0.00001), 34 against KRT's 11. Perturbing the designer's satellites stays ahead on
+  quality (28 signal vias, 1.19 `decoupling` fails against 2.68), and on the waves judges no arm beats the designer's start.
+- **SPIKE-5 (D) Package moves a satellite's distance three times as far as designer does** (median gap 2.95 against 0.95
+  mm, 120 and 54 pairs), so pool within a package and treat file format as irrelevant. Eagle imports faithfully (0 of
+  64,206 pads off by more than 0.02 mm) but a converted board does not reload (127 of 146); Altium has no headless pin
+  names. Third-party Eagle gives 183 IMU instances from 140 repos; vendors alone 23.
+- **SPIKE-5 (E) Built-board evidence is not in the repos.** Tag or release plus gerbers on 8, 1 and 4 repos; gerbers in 1
+  of 681 Adafruit Eagle repos. H3 dropped under its own null.
+- **SPIKE-5-T1 A sample floor is not a sampling floor.** 7 flying-cap rows passed the n >= 5 licence floor and cost 14
+  seeds; R10's 6 rows collapse to one legal pose in every seed, in either draw order. Draw the thinnest role first.
+

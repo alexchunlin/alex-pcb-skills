@@ -1,0 +1,110 @@
+{
+ "schema": 1,
+ "order": [
+  "power",
+  "inputs",
+  "digital",
+  "adc"
+ ],
+ "groups": [
+  {
+   "name": "power",
+   "role": "power",
+   "refs": [
+    "U2",
+    "C4",
+    "C5",
+    "FB1",
+    "JP1",
+    "R13",
+    "D1",
+    "TP1",
+    "TP2",
+    "TP3"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "LDO, AVDD ferrite, LED, test points; west end, between the VIN pin and the ADC supply pins",
+   "region": [
+    101,
+    101,
+    111.7,
+    116.6
+   ]
+  },
+  {
+   "name": "inputs",
+   "role": "analog",
+   "refs": [
+    "J1",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "R8",
+    "C7",
+    "C8",
+    "C9",
+    "C10"
+   ],
+   "anchor": "J1",
+   "near": [],
+   "why": "J1 on the south edge and the RC filters, nothing digital south of U1",
+   "region": [
+    104,
+    116.85,
+    131.8,
+    125.4
+   ]
+  },
+  {
+   "name": "digital",
+   "role": "digital",
+   "refs": [
+    "J2",
+    "R9",
+    "R10",
+    "R11",
+    "R12",
+    "R15",
+    "R16",
+    "R17",
+    "R18",
+    "Y1",
+    "C6",
+    "R14"
+   ],
+   "anchor": "J2",
+   "near": [],
+   "why": "J2 on the north edge, series R, pull-ups, oscillator; everything that switches sits north of U1",
+   "region": [
+    111.75,
+    100.1,
+    137.6,
+    107.5
+   ]
+  },
+  {
+   "name": "adc",
+   "role": "adc",
+   "refs": [
+    "U1",
+    "C1",
+    "C2",
+    "C3"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "U1 between the analog south band and the digital north band",
+   "region": [
+    112.2,
+    107.51,
+    120.5,
+    116.8
+   ]
+  }
+ ]
+}

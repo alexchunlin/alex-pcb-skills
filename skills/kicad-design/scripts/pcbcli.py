@@ -577,12 +577,21 @@ def cmd_fab(a):
         sys.exit("fab: position export failed")
     cpl = os.path.join(out, f"{name}_cpl_jlcpcb.csv")
     n_cpl = 0
+    # JLC turns a part by its EasyEDA footprint, not by ours (spike #6): corrections from `pcb cpl`, trusted ones applied
+    sys.path.insert(0, HERE)   # plain python3 -I
+    import pcbcpl
+    try:
+        rot = pcbcpl.run(board)
+    except Exception as e:
+        rot = []
+        print(f"  CPL rotations NOT corrected, EasyEDA lookup failed ({type(e).__name__}: {e}): rerun `pcb fab` before ordering")
+    fix = {r["ref"]: r["correction"] for r in rot if r["status"] == "ok" and r["side"] == "top"}
     with open(pos_raw, newline="") as f, open(cpl, "w", newline="") as g:
         w = csv.writer(g)
         w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
         for row in csv.DictReader(f):
             w.writerow([row["Ref"], f"{float(row['PosX']):.4f}mm", f"{float(row['PosY']):.4f}mm",
-                        "Top" if row["Side"] == "top" else "Bottom", f"{float(row['Rot']):.1f}"])
+                        "Top" if row["Side"] == "top" else "Bottom", f"{(float(row['Rot']) + fix.get(row['Ref'], 0)) % 360:.1f}"])
             n_cpl += 1
     offsets = {r["ref"]: r["origin_to_fab_centre_mm"] for r in fd["footprints"]
                if r["origin_to_fab_centre_mm"] is not None and r["origin_to_fab_centre_mm"] > 0.1 and not r["dnp"]}
@@ -597,6 +606,12 @@ def cmd_fab(a):
     man["bom_missing_lcsc"] = missing
     man["cpl_lines"] = n_cpl
     man["cpl_origin_offsets_mm"] = offsets
+    man["cpl_rotations"] = {"corrected": {k: v for k, v in fix.items() if v}, "looked_up": len(rot),
+                            "for_a_person": {r["ref"]: r.get("why", "") for r in rot if r["status"] in ("check", "missing")}}
+    if man["cpl_rotations"]["corrected"]:
+        print("  CPL rotations corrected for JLC's footprints: " + ", ".join(f"{k} +{v}" for k, v in sorted(fix.items()) if v))
+    if man["cpl_rotations"]["for_a_person"]:
+        print("  CPL rotations to check in JLC's preview: " + ", ".join(sorted(man["cpl_rotations"]["for_a_person"])))
     man["dnp"] = sorted(r["ref"] for r in fd["footprints"] if r["dnp"])
     if offsets:
         man["notes"].append("CPL Mid X/Y is the KiCad footprint origin; for these parts it sits away from the fab-outline "

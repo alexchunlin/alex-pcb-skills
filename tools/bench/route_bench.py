@@ -9,6 +9,8 @@ zones are refilled and the result is measured with `pcb route measure --drc`:
   errors          plain / packed DRC errors (`pcb drc --pack jlcpcb`, the headline is errors_total); errors_start is the
                   same on the stripped input, so errors the placement and pours carry are not charged to the router
   vias, length    via count and total track length in mm; `part` is the same for the DRV8874's nets (R2-T2)
+  signal_vias     vias on nets with no filled zone on an inner layer: the router's layer changes, without the plane
+                  stitching that `vias` also counts (spike #4)
   wall_s          router wall time (export/import and refill are `overhead_s`)
   setup_changed   the board-setup minimums differ from the input's (a router that loosened the rules to read 0, R1-A2-T5)
   inner_mm        track length on the inner layers, which are planes on every rung-2 board (R2A2-T1: signals on the planes)
@@ -53,7 +55,18 @@ CONFIGS = {
             "outer": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER"],
             "power": ["--no-fix-drc-settings", "--escalation", "off", "@POWER"],
             "outer_power": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "@POWER"],
-            "outer_noneck": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "--no-power-tap-neckdown"]},
+            "outer_noneck": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "--no-power-tap-neckdown"],
+            # spike #4 (H2): net-order arms on the outer config. outer = KRT's default --ordering mps; original = the '*'
+            # expansion in name order; gp_* = KRT's global plan (#589) reordering from probe-routed conflicts
+            # (KICAD_GLOBAL_PLAN=1 plus KICAD_GLOBAL_PLAN_ORDER in KRT 0.23.7); rand<N> = KRT's own routed-net list
+            # (pcbkrt.py nets) shuffled with seed N, passed as --nets under --ordering original
+            "outer_original": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "--ordering", "original"],
+            **{f"outer_gp_{o}": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "@ENV:KICAD_GLOBAL_PLAN=1",
+                                 f"@ENV:KICAD_GLOBAL_PLAN_ORDER={o}"] for o in ("planar", "share", "contended")},
+            **{f"outer_rand{n}": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", f"@SHUFFLE:{n}"] for n in range(1, 6)},
+            # KRT's "route to judge, not to ship": main pass only, no rescue, escalation, plane finalize or polish (spike #4
+            # H1 labels on the perturbed placements)
+            "outer_quick2": ["--no-fix-drc-settings", "--escalation", "off", "@OUTER", "--quick", "2"]},
     "kct": {"default": [], "negotiated": ["--strategy", "negotiated"]},
 }
 
@@ -92,9 +105,31 @@ def wide_classes(pro: Path) -> list[tuple[str, float]]:
     return [(x["pattern"], w[x["netclass"]]) for x in ns.get("netclass_patterns", []) if w.get(x.get("netclass"), 0) > base + 1e-9]
 
 
-def expand(extra: list[str], pcb: Path) -> list[str]:
-    out = []
+def krt_nets(pcb: Path) -> list[str]:
+    """The nets KRT routes on this board by default, in its order (its own functions, under its venv)."""
+    p = subprocess.run([KRT_PY, "-I", str(ROOT / "skills/kicad-design/scripts/pcbkrt.py"), "nets", str(pcb)], capture_output=True, text=True,
+                       env={**os.environ, "KRT_DIR": KRT_DIR})
+    if p.returncode:
+        raise RuntimeError(f"pcbkrt nets: {p.stderr[-400:]}")
+    return json.loads(p.stdout.strip().splitlines()[-1])
+
+
+def expand(extra: list[str], pcb: Path, env: dict | None = None) -> list[str]:
+    """Config tokens to KRT arguments; @ENV:K=V tokens go into `env` (the caller's dict) instead."""
+    out, tail = [], []
     for a in extra:
+        if a.startswith("@ENV:"):
+            k, _, v = a[5:].partition("=")
+            if env is not None:
+                env[k] = v
+            continue
+        if a.startswith("@SHUFFLE:"):
+            import random
+            nets = krt_nets(pcb)
+            random.Random(int(a.split(":", 1)[1])).shuffle(nets)
+            out += ["--ordering", "original"]
+            tail += ["--nets", *nets]   # literal names keep their order (net_queries.expand_net_patterns)
+            continue
         if a == "@OUTER":
             ls = cu_layers(pcb)
             out += ["--layers", *ls, "--layer-costs", *["1.0" if l in ("F.Cu", "B.Cu") else "-1" for l in ls]]
@@ -104,7 +139,7 @@ def expand(extra: list[str], pcb: Path) -> list[str]:
                 out += ["--power-nets", *[p for p, _ in wc], "--power-nets-widths", *[str(x) for _, x in wc]]
         else:
             out.append(a)
-    return out
+    return out + tail
 
 
 def rules(routed: str, m: dict, board: str, out_dir: Path) -> dict:
@@ -163,7 +198,8 @@ def run_router(router: str, cfg: str, pcb: Path, out_dir: Path, timeout: int) ->
         if f.suffix in (".kicad_pro", ".kicad_prl"):
             shutil.copy(f, out_dir / f.name)
     routed = out_dir / pcb.name
-    extra = expand(CONFIGS[router][cfg], pcb)
+    env = {**os.environ, "PYTHONHASHSEED": "0"}   # ROUTE-T3
+    extra = expand(CONFIGS[router][cfg], pcb, env)
     r = {"rc": None, "wall_s": None, "overhead_s": 0.0, "timeout": False, "log": str(out_dir / "router.log")}
     if router == "freerouting":
         t = time.time()
@@ -186,8 +222,11 @@ def run_router(router: str, cfg: str, pcb: Path, out_dir: Path, timeout: int) ->
             r["error"] = "no .ses written"
     elif router == "krt":
         cmd = [KRT_PY, os.path.join(KRT_DIR, "py_router/route.py"), str(pcb), str(routed), "--json-out", str(out_dir / "krt.json"), *extra]
-        rc, out, err, wall, to = sh(cmd, cwd=KRT_DIR, timeout=timeout, log=r["log"], env={**os.environ, "PYTHONHASHSEED": "0"})   # ROUTE-T3
+        rc, out, err, wall, to = sh(cmd, cwd=KRT_DIR, timeout=timeout, log=r["log"], env=env)
         r.update(rc=rc, wall_s=round(wall, 1), timeout=to)
+        r["krt_env"] = {k: v for k, v in env.items() if k.startswith("KICAD_")}
+        r["mps"] = next((l.strip() for l in out.splitlines() if " crossing conflicts" in l), None)
+        r["order"] = [l.split("Routing ", 1)[1].split(" (id=")[0] for l in out.splitlines() if l.startswith("[") and "] Routing " in l and " (id=" in l]
         try:
             j = json.load(open(out_dir / "krt.json"))
             r["router_says"] = {k: j.get(k) for k in ("successful", "failed", "total_vias", "pad_pairs_connected", "pad_pairs_total", "min_clearance_used")}
@@ -227,13 +266,14 @@ def row_of(board, variant, router, cfg, rep, start, rr, m):
     r = {"ts": dt.datetime.now().isoformat(timespec="seconds"), "board": board, "variant": variant, "router": router, "config": cfg,
          "rep": rep, "airwires_start": start.get("airwires_start"), "errors_start": start.get("errors_start"),
          "plain_by_type_start": start.get("plain_by_type_start"),
-         **{k: rr.get(k) for k in ("rc", "wall_s", "timeout", "error", "router_says", "log")}}
+         **{k: rr.get(k) for k in ("rc", "wall_s", "timeout", "error", "router_says", "log", "krt_env", "mps", "order")}}
     r["overhead_s"] = round((rr.get("overhead_s") or 0) + (m.get("overhead_s") or 0), 1)
     if "error" in m:
         r["error"] = (r.get("error") or "") + " " + m["error"]
         return r
     d = m.get("drc", {})
-    r.update(airwires=m["ratsnest"]["airwires"], open_nets=m["open"], vias=m["vias"], tracks=m["tracks"], length_mm=m["length_mm"],
+    r.update(airwires=m["ratsnest"]["airwires"], open_nets=m["open"], vias=m["vias"], signal_vias=m.get("signal_vias"),
+             signal_vias_by_net=m.get("signal_vias_by_net"), tracks=m["tracks"], length_mm=m["length_mm"],
              min_width_mm=m["min_width_mm"], via_sizes=m["via_sizes"], plain_errors=d.get("plain_errors"), packed_errors=d.get("packed_errors"),
              errors_total=d.get("errors_total"), plain_by_type=d.get("plain_by_type"), setup_changed=m.get("setup_changed", False),
              part=m.get("part"), board_file=m["board"])
@@ -251,7 +291,7 @@ def fmt_row(r):
     return (f"{r['board']:7} {r['variant']:7} {r['router']:11} {r['config']:10} {r.get('rep', 0):>2}  "
             f"{'CLEAN' if r.get('clean') else 'open ' if r.get('airwires') else 'drc  ':5} "
             f"air {r.get('airwires_start', '?'):>3}->{r.get('airwires', '?'):<3} err {str(r.get('plain_errors')):>3}/{str(r.get('packed_errors')):<3} "
-            f"vias {str(r.get('vias')):>3} len {str(r.get('length_mm')):>7} minw {str(r.get('min_width_mm')):<6} "
+            f"vias {str(r.get('vias')):>3} sig {str(r.get('signal_vias')):>3} len {str(r.get('length_mm')):>7} minw {str(r.get('min_width_mm')):<6} "
             f"part air {p.get('airwires', '?')} vias {p.get('vias', '?')} len {p.get('length_mm', '?')}  "
             f"wall {str(r.get('wall_s')):>6}s +{r.get('overhead_s', 0)}s  setup {'CHANGED' if r.get('setup_changed') else 'kept'}  "
             f"inner {r.get('inner_mm', '?')}mm narrow {len(r.get('narrow') or {})}/{r.get('narrow_mm', '?')}mm "
@@ -265,8 +305,8 @@ def table(results: Path, md=False):
         for r in rows:
             print(fmt_row(r))
         return
-    print("| board | variant | router / config | airwires start -> end | DRC plain / packed (start) | vias | length mm | DRV8874 nets: open / vias / mm | min width | router wall s | setup |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|")
+    print("| board | variant | router / config | airwires start -> end | DRC plain / packed (start) | vias | signal vias | length mm | DRV8874 nets: open / vias / mm | min width | router wall s | setup |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|")
     for r in rows:
         if r.get("error") and "airwires" not in r:
             print(f"| {r['board']} | {r['variant']} | {r['router']} / {r['config']} | ERROR {r['error'][:60]} | | | | | | | |")
@@ -275,7 +315,7 @@ def table(results: Path, md=False):
         st = r.get("errors_start")
         st = f" ({st[0]})" if st and st[0] else ""
         print(f"| {r['board']} | {r['variant']} | {r['router']} / {r['config']} | {r.get('airwires_start')} -> **{r.get('airwires')}** | "
-              f"**{r.get('plain_errors')}** / {r.get('packed_errors')}{st} | {r.get('vias')} | {r.get('length_mm'):.0f} | "
+              f"**{r.get('plain_errors')}** / {r.get('packed_errors')}{st} | {r.get('vias')} | {r.get('signal_vias', '')} | {r.get('length_mm'):.0f} | "
               f"{p.get('airwires', '')} / {p.get('vias', '')} / {p.get('length_mm', 0):.0f} | {r.get('min_width_mm')} | "
               f"{r.get('wall_s') if r.get('wall_s') is not None else ''} | {'changed' if r.get('setup_changed') else 'kept'} |")
 

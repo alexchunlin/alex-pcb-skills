@@ -26,7 +26,7 @@ printf '{"commit": "%s", "dirty": %s, "when": "%s"}\n' "$(git -C "$ROOT" rev-par
 #@ group @check = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcbcheck.py skills/kicad-design/scripts/pcbq.py skills/kicad-design/scripts/pcbcli.py
 #@ group @lib = skills/kicad-design/scripts/pcb skills/kicad-design/scripts/pcblib/**
 # none: paths no test reads (a watch wins: section 20 reads FINDINGS.md and every skills/**/*.md)
-#@ none: docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README
+#@ none: examples/rung3-*/** docs/** README.md .gitignore bench/design/** tools/bench/README.md tools/bench/results/** tools/verify.d/README tools/spikes/** tools/readme/** tools/bench/plink/** tools/bench/plink_signals.py
 SELECTED=ALL; EXPECT=""; CHANGED=""; RAN=""; CUR=""; CUR_N=0; CUR_OK=""
 case "${1:-}" in
   --*) P=$(python3 -I "$ROOT/tools/verify_select.py" "$@") || { rc=$?; printf '%s\n' "$P"; exit $rc; }
@@ -442,15 +442,16 @@ fi  #@ end 25
 
 if want 26; then  #@ watch: @check @cli examples/rung2-zener-a*/**
 echo "== 26 rung-2 boards: the reviewers' majors as rows (feeds, declared decoupling, currents; drc shorts on the unfinished board) (R2-T5)"
+# the irdrop rows these configs now carry (spike #3) are asserted in section 30; the counts here are the other rows
 for a in opus sonnet fable; do
   B=$(ls "$ROOT"/examples/rung2-zener-a1-$a/board/*.kicad_pcb)
   $PCB check "$B" "$ROOT/examples/rung2-zener-a1-$a/checks.json" --out "$V/r2${a:0:1}check.json" > "$V/r2$a.txt"
 done
-[ "$(jq_ "$V/r2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['decoupling:U2.11:C10', 'decoupling:U2.11:C11', 'decoupling:U2.11:C17', 'feeds:U2.11']" ] && ok "r2 opus: feeds U2.11 0.00 A (pour neck), C11 11.76 / C17 15.47 mm (the reviewer's two electrical majors)" || bad "r2 opus: $(jq_ "$V/r2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+[ "$(jq_ "$V/r2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail' and r['check'] != 'irdrop')")" = "['decoupling:U2.11:C10', 'decoupling:U2.11:C11', 'decoupling:U2.11:C17', 'feeds:U2.11']" ] && ok "r2 opus: feeds U2.11 0.00 A (pour neck), C11 11.76 / C17 15.47 mm (the reviewer's two electrical majors)" || bad "r2 opus: $(jq_ "$V/r2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
 [ "$(jq_ "$V/r2scheck.json" "[round(r['value'], 2) for r in d['rows'] if r['id']=='feeds:U2.11'][0]")" = 1.22 ] && ok "r2 sonnet: feeds U2.11 1.22 A from one 0.3 mm via (reviewer: one via, 0.34 mm finger)" || bad "r2 sonnet feeds $(grep feeds "$V/r2sonnet.txt")"
 [ "$(jq_ "$V/r2scheck.json" "sum(1 for r in d['rows'] if r['check']=='decoupling' and r['status']=='fail')")" = 4 ] && ok "r2 sonnet: 4 declared VM/charge-pump caps beyond 2 mm (5.05 to 7.6 mm)" || bad "r2 sonnet decoupling"
 [ "$(jq_ "$V/r2fcheck.json" "[round(r['value'], 2) for r in d['rows'] if r['id']=='feeds:U1.11'][0]")" = 1.36 ] && ok "r2 fable: feeds U1.11 1.36 A (reviewer: 1.355 A through an 0402 pad)" || bad "r2 fable feeds"
-[ "$(jq_ "$V/r2fcheck.json" "d['summary']['fails']")" = 9 ] && ok "r2 fable: 9 fails (4 decoupling, 4 currents on 0.28-0.3 mm tracks, feeds)" || bad "r2 fable fails $(jq_ "$V/r2fcheck.json" "d['summary']")"
+[ "$(jq_ "$V/r2fcheck.json" "sum(1 for r in d['rows'] if r['status']=='fail' and r['check'] != 'irdrop')")" = 9 ] && ok "r2 fable: 9 fails (4 decoupling, 4 currents on 0.28-0.3 mm tracks, feeds)" || bad "r2 fable fails $(jq_ "$V/r2fcheck.json" "d['summary']")"
 grep -q "currents:VIN_RAW: .*no tracks: carried by pours only" "$V/r2opus.txt" && ok "r2 opus: pour-only nets warn, not pass" || bad "r2 opus currents warn"
 $PCB drc "$ROOT/examples/rung2-zener-a1-fable/board/motor_channel.kicad_pcb" --pack jlcpcb --out "$V/r2fdrc" > "$V/r2fdrc.txt"
 # 67 here against the designer's 62: the archived board sits without its vendored footprint library (59 lib_footprint_issues), which
@@ -458,7 +459,7 @@ $PCB drc "$ROOT/examples/rung2-zener-a1-fable/board/motor_channel.kicad_pcb" --p
 # shorting_items is 20 or 21 run to run: the shorts sit on fill boundaries and the fill is multithreaded (P6-T5, seen twice in full runs)
 [ "$(jq_ "$V/r2fdrc/drc.json" "(d['plain']['by_type']['error'].get('shorting_items') in (20, 21), d['plain']['by_type']['error'].get('courtyards_overlap'), d['plain']['unconnected'])")" = "(True, 14, 6)" ] && ok "r2 fable drc: 20 or 21 shorts (P6-T5), 14 courtyard overlaps, 6 unconnected (the reviewer's blockers)" || bad "r2 fable drc $(jq_ "$V/r2fdrc/drc.json" "(d['plain']['errors'], d['plain']['by_type'])")"
 $PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$ROOT/examples/rung2-zener-a2-opus/checks.json" --out "$V/r2a2ocheck.json" > "$V/r2a2opus.txt"
-[ "$(jq_ "$V/r2a2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail')")" = "['feeds:C17.1', 'feeds:J3.1']" ] && ok "r2 attempt-2 opus: feeds J3.1 and C17.1 at 0.00 A (the reviewer's two electrical majors, R2A2-O-1/2); the designer's own 147 rows pass" || bad "r2a2 opus: $(jq_ "$V/r2a2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
+[ "$(jq_ "$V/r2a2ocheck.json" "sorted(r['id'] for r in d['rows'] if r['status']=='fail' and r['check'] != 'irdrop')")" = "['feeds:C17.1', 'feeds:J3.1']" ] && ok "r2 attempt-2 opus: feeds J3.1 and C17.1 at 0.00 A (the reviewer's two electrical majors, R2A2-O-1/2); the designer's own 147 rows pass" || bad "r2a2 opus: $(jq_ "$V/r2a2ocheck.json" "[r['id'] for r in d['rows'] if r['status']=='fail']")"
 fi  #@ end 26
 
 if want 27; then  #@ watch: @q skills/kicad-design/scripts/pcbroute.py tools/bench/route_bench.py tools/bench/plan_bench.py tools/bench/plan_kpy.py examples/rung1-zener-a1/board/**
@@ -506,10 +507,11 @@ d=[k for k in a if abs(a[k][0]-b[k][0]) > 0.005 or a[k][1] != b[k][1]]; assert n
   $PCB route strip "$R2/motor_channel.kicad_pcb" > /dev/null && $PCB route auto "$R2/motor_channel.kicad_pcb" --work "$R2/work" > "$R2/auto.txt" 2>&1
   [ "$(jq_ "$R2/route.json" "(d['clean'], d['inner_tracks'], d['inner_mm'], d['final']['airwires'])")" = "(True, False, 0, 0)" ] && grep -q -- "--layer-costs 1.0 -1 -1 1.0" "$R2/work/route.log" && ok "route auto: rung-2 Opus placement CLEAN with 0 mm of track on the inner (plane) layers, KRT given --layer-costs 1 -1 -1 1" || bad "route auto outer-only: $(jq_ "$R2/route.json" "(d['clean'], d['inner_mm'], d['final'])" | cut -c1-200)"
   # waves (WAVES-1): the default plan on the same stripped Opus placement, wide classes then Sense then the rest, each
-  # wave's nets closed before the next, the result clean against the input and off the inner layers
+  # wave's nets closed before the next (GND may stay open for the finish: spike 6's pad clearance left one GND pad to it), the
+  # result clean against the input and off the inner layers
   R3="$R/r3"; mkdir -p "$R3"; cp "$ROOT"/examples/rung2-zener-a1-opus/board/motor_channel.kicad_p* "$R3"/
   $PCB route strip "$R3/motor_channel.kicad_pcb" > /dev/null && $PCB route waves "$R3/motor_channel.kicad_pcb" --work "$R3/work" > "$R3/waves.txt" 2>&1
-  [ "$(jq_ "$R3/waves.json" "([w['name'] for w in d['waves']], [w.get('open_in_wave') for w in d['waves'][1:]], d['clean'], d['finish']['inner_mm'])")" = "(['feeds', 'power', 'sense', 'rest'], [{}, {}, {}], True, 0)" ] && ok "route waves: default plan power -> sense -> rest, every wave's nets closed, CLEAN against the input, 0 mm on the inner layers ($(jq_ "$R3/waves.json" "d['wall_s']") s)" || bad "route waves: $(grep 'waves verdict\|PCBROUTE wave' "$R3/waves.txt" | cut -c1-200 | tail -4)"
+  [ "$(jq_ "$R3/waves.json" "([w['name'] for w in d['waves']], [[k for k in (w.get('open_in_wave') or []) if k != 'GND'] for w in d['waves'][1:]], d['clean'], d['finish']['inner_mm'])")" = "(['feeds', 'power', 'sense', 'rest'], [[], [], []], True, 0)" ] && ok "route waves: default plan power -> sense -> rest, every wave's nets closed, CLEAN against the input, 0 mm on the inner layers ($(jq_ "$R3/waves.json" "d['wall_s']") s)" || bad "route waves: $(grep 'waves verdict\|PCBROUTE wave' "$R3/waves.txt" | cut -c1-200 | tail -4)"
   # plan bench (PLAN-1): the zones rule plan on the Opus placement adds the buck's own wave and keeps sense and rest out of its box
   python3 -I "$ROOT/tools/bench/plan_bench.py" rules --board opus --zones > "$R/zplan.json" 2> "$R/zplan.err"
   [ "$(jq_ "$R/zplan.json" "([w['name'] for w in d['waves']], [len(w.get('keepouts', [])) for w in d['waves']], len(d['feeds']), d['thermal_vias'])")" = "(['power', 'u1-local', 'sense', 'rest'], [0, 0, 1, 1], 7, ['U2', 'U1'])" ] && ok "plan bench: zones rule plan power -> u1-local -> sense and rest kept out of the switch-node box, 7 feeds, U2/U1 thermal vias" || bad "plan bench rules: $(cut -c1-200 "$R/zplan.json") $(tail -2 "$R/zplan.err")"
@@ -525,7 +527,7 @@ if command -v uv > /dev/null; then
   # R2A2-O-1: the 5 V header pin fed only by 0.30 mm In2 thermal spokes; the hottest copper outside any pad is those spokes
   $PCB irdrop "$J/motor1.kicad_pcb" --net 5V --source L1.2 --sink J3.1=3.0 --out "$J/ir5" --json > "$J/ir5.txt" 2>&1
   tail -1 "$J/ir5.txt" > "$J/ir5.json"
-  [ "$(jq_ "$J/ir5.json" "(d['worst'][0]['layer'], abs(d['worst'][0]['x'] - 143.24) < 2 and abs(d['worst'][0]['y'] - 117.34) < 2, d['worst'][0]['J_A_mm2'] > 150, round(d['sinks'][0]['drop_mV']))")" = "('In2.Cu', True, True, 9)" ] && ok "irdrop: attempt-2 5V, L1 to J3.1 at 3 A: 9 mV, hottest copper the In2 spokes into J3.1 at $(jq_ "$J/ir5.json" "d['worst'][0]['J_A_mm2']") A/mm2 (the reviewer's R2A2-O-1, found without a declared row)" || bad "irdrop 5V: $(tail -c 300 "$J/ir5.txt")"
+  [ "$(jq_ "$J/ir5.json" "(d['worst'][0]['layer'], abs(d['worst'][0]['x'] - 143.24) < 2 and abs(d['worst'][0]['y'] - 117.34) < 2, d['worst'][0]['J_A_mm2'] > 150, round(d['sinks'][0]['drop_mV']))")" = "('In2.Cu', True, True, 7)" ] && ok "irdrop: attempt-2 5V, L1 to J3.1 at 3 A: 7 mV (9 before vias were tied to their ring, spike #3), hottest copper the In2 spokes into J3.1 at $(jq_ "$J/ir5.json" "d['worst'][0]['J_A_mm2']") A/mm2 (the reviewer's R2A2-O-1, found without a declared row)" || bad "irdrop 5V: $(tail -c 300 "$J/ir5.txt")"
 else nochecks "uv not installed: pcb irdrop's solver not run"; fi
 python3 -I -c "
 import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json')); c['refplane']={'ground':'GND'}; json.dump(c,open('$J/c.json','w'))"
@@ -565,25 +567,34 @@ print([x.GetParentFootprint().GetReference() + '.' + x.GetNumber() for x in r])"
 grep -q "\['J4.1', 'U1.2'\]" "$J/pbd.txt" && ok "stitch pass reads KiCad's through-hole wording: PTH pad 1 of J4 -> J4.1 (STARVE-1)" || bad "pad_by_desc: $(tail -1 "$J/pbd.txt")"
 fi  #@ end 28
 
-if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
-echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"
-  KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
-  for py in python3 "$KPY"; do
-    "$py" -I -m py_compile "$ROOT"/skills/kicad-design/scripts/*.py "$ROOT"/skills/kicad-design/scripts/pcblib/*.py "$ROOT"/examples/*/*.py 2> "$V/compile.txt" && ok "compiles under $("$py" -c 'import sys; print(sys.version.split()[0])')" || bad "compile: $(cat "$V/compile.txt")"
-  done
-fi  #@ end 16
-
-#@ plumbing
-# per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
-# Under --changed, each by its # watch: header.
-mkdir -p "$ROOT/tools/verify.d"
-for f in "$ROOT"/tools/verify.d/*.sh; do [ -f "$f" ] && want "${f##*/}" && . "$f"; done
-unit_end
-# --changed: every unit the plan selected must have run (a broken want() or loop ran nothing and passed)
-if [ -n "$CHANGED" ]; then
-  for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
-  echo "verify_all --changed: ran$RAN"
-fi
+if want 30; then  #@ watch: skills/kicad-design/scripts/pcbir.py skills/kicad-design/scripts/pcbir_solve.py skills/kicad-design/scripts/pcbcheck.py examples/rung2-zener-a2-opus/** tools/bench/plink/checks.json tools/bench/jlc_parts.py tools/bench/data/**
+echo "== 30 the irdrop row: feeds currents solved on the copper, necks and via fields rated by IPC-2221 (spike #3, C1)"
+I="$V/irrow"; mkdir -p "$I"; cp "$ROOT"/examples/rung2-zener-a2-opus/board/motor1.kicad_p* "$I"/
+if command -v uv > /dev/null; then
+  # the judge on a strip necked to 0.3 mm for 3 mm at 2 A: IPC-2221 outer 1 oz 20 degC rates 1.355 A, so x1.48 and a fail
+  (cd "$I" && uv run --no-project --quiet --with numpy --with scipy python3 "$ROOT/skills/kicad-design/scripts/pcbir_solve.py" --selftest) > "$I/self.json" 2>&1
+  [ "$(jq_ "$I/self.json" "(d['selftest'], d['neck']['width_mm'], d['neck']['I_A'], d['neck']['ratio'], d['neck']['status'])")" = "('PASS', 0.3, 2.0, 1.48, 'fail')" ] && ok "irdrop judge: a 0.3 mm x 3 mm neck at 2 A is cut at 0.3 mm, carries 2.0 A against IPC-2221 1.355 A (x1.48), fails" || bad "irdrop judge selftest: $(tail -c 300 "$I/self.json")"
+  # attempt 2 with its archived config: the reviewer's R2A2-O-1 (In2 spokes into J3.1) and R2A2-O-2 (C17 through single
+  # vias) fail from the solve, plus L1.2's two 5V vias; VIN at 4 A, the motor nets and VIN_RAW pass
+  $PCB check "$I/motor1.kicad_pcb" "$ROOT/examples/rung2-zener-a2-opus/checks.json" --only irdrop --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$I/a2.json" > "$I/a2.txt" 2>&1
+  [ "$(jq_ "$I/a2.json" "sorted(r['id'].split('@')[0] + ('/C17' if 'C17' in r['msg'] else '') for r in d['rows'] if r['status'] == 'fail')")" = "['irdrop:5V:neck:In2.Cu', 'irdrop:5V:neck:In2.Cu', 'irdrop:5V:via', 'irdrop:5V:via', 'irdrop:VIN:via/C17', 'irdrop:VIN:via/C17']" ] \
+    && [ "$(jq_ "$I/a2.json" "sorted(r['id'] for r in d['rows'] if r['status'] == 'pass')")" = "['irdrop:MOTOR_A', 'irdrop:MOTOR_B', 'irdrop:VIN_RAW']" ] \
+    && ok "irdrop row, attempt 2: J3.1's In2 spokes (x$(jq_ "$I/a2.json" "max(r['value'] for r in d['rows'] if 'neck' in r['id'])")), C17's single vias (x2.05) and L1.2's two 5V vias fail; MOTOR_A/B and VIN_RAW pass" \
+    || bad "irdrop row a2: $(grep -E 'FAIL|pcbcheck' "$I/a2.txt" | cut -c1-120 | head -8)"
+  # precision on a board that was built and works: the published MotorGo Plink, pour-fed, where `feeds` fails every pad
+  PL="$REF/motorgo-plink-hardware/motorgo_plink"
+  if [ -f "$PL/motorgo_plink.kicad_pcb" ]; then
+    mkdir -p "$I/plink"; cp "$PL"/motorgo_plink.kicad_p* "$PL"/*.kicad_sch "$I/plink"/ 2>/dev/null
+    $PCB check "$I/plink/motorgo_plink.kicad_pcb" "$ROOT/tools/bench/plink/checks.json" --only feeds,irdrop --out "$I/plink.json" > /dev/null 2>&1
+    [ "$(jq_ "$I/plink.json" "(sum(r['status'] == 'fail' for r in d['rows'] if r['check'] == 'feeds'), sum(r['status'] == 'fail' for r in d['rows'] if r['check'] == 'irdrop'), sum(r['status'] == 'pass' for r in d['rows'] if r['check'] == 'irdrop'))")" = "(15, 0, 10)" ] && ok "irdrop row, Plink as built: 10 of 10 nets pass where feeds fails 15 of 15 pads by construction (pours)" || bad "irdrop Plink: $(jq_ "$I/plink.json" "[(r['id'], r['status']) for r in d['rows'] if r['status'] != 'pass'][:6]")"
+  else nochecks "Plink clone not at $PL: the irdrop precision check not run (tools/bench/README.md)"; fi
+else nochecks "uv not installed: the irdrop row not run"; fi
+# basic_parts against the dated JLC cache (tools/bench/jlc_parts.py; no network here): attempt 2's 17 extended types
+python3 -I -c "
+import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json')); c['basic_parts']={'boards': 5}; json.dump(c, open('$I/bp.json','w'))"
+$PCB check "$I/motor1.kicad_pcb" "$I/bp.json" --only basic_parts --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$I/bpout.json" > /dev/null 2>&1
+[ "$(jq_ "$I/bpout.json" "([r['value'] for r in d['rows'] if r['id'] == 'basic_parts:total'], sum(r['status'] == 'warn' for r in d['rows']), sum(r['status'] == 'fail' for r in d['rows']), 'C1532' in [r for r in d['rows'] if r['id'] == 'basic_parts:C337699'][0]['msg'])")" = "([17], 17, 0, True)" ] && ok "basic_parts: attempt 2 has 17 extended types (\$52.19 in feeder fees), none short of stock for 5 boards, C13's basic drop-in C1532 named" || bad "basic_parts: $(jq_ "$I/bpout.json" "[r['msg'][:100] for r in d['rows'] if r['id'] == 'basic_parts:total']")"
+fi  #@ end 30
 
 if want 29; then  #@ watch: skills/kicad-design/scripts/pcbsig.py skills/kicad-design/scripts/pcbroute.py tools/bench/rung2_signals.py tools/bench/plan_bench.py tools/bench/results/plan.jsonl examples/rung2-zener-a*/checks.json
 echo "== 29 signal classes and the plan search pieces: pcb signals, plan_variants, pcbsig.plan_rank (SIG-1, SIG-4)"
@@ -625,7 +636,149 @@ import json; c=json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json'))
 $PCB check "$S/rv.kicad_pcb" "$S/rvc.json" --only return_via --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$S/rvj.json" > /dev/null 2>&1
 placed=$(grep -o "[0-9]* ground vias placed" "$S/rv.txt" | cut -d' ' -f1); fails=$(jq_ "$S/rvj.json" "sum(1 for r in d['rows'] if r['check']=='return_via' and r['status']=='fail')")
 [ "${placed:-0}" -ge 5 ] && [ "${fails:-9}" -le 1 ] && ok "return-vias: $placed ground vias placed beside the attempt-2 board's fast vias (In2 made ground first) in one pass, return_via fails 5 -> $fails (SIG-2)" || bad "return-vias: placed '$placed', fails '$fails': $(grep PCBROUTE "$S/rv.txt" | cut -c1-200)"
+fi  #@ end 29
+
+if want 16; then  #@ watch: skills/kicad-design/scripts/** examples/*/*.py
+echo "== 16 every script compiles under python3 and under KiCad's Python 3.9 (P1-T13)"
+  KPY="${KICAD_PY:-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3}"
+  for py in python3 "$KPY"; do
+    "$py" -I -m py_compile "$ROOT"/skills/kicad-design/scripts/*.py "$ROOT"/skills/kicad-design/scripts/pcblib/*.py "$ROOT"/examples/*/*.py 2> "$V/compile.txt" && ok "compiles under $("$py" -c 'import sys; print(sys.version.split()[0])')" || bad "compile: $(cat "$V/compile.txt")"
+  done
+fi  #@ end 16
+
+if want 31; then  #@ watch: skills/kicad-design/scripts/pcbroute.py skills/kicad-design/scripts/pcbkrt.py skills/kicad-design/scripts/pcbq.py tools/bench/route_bench.py examples/rung2-zener-a*/board/**
+echo "== 31 signal vias and KRT's MPS conflict graph (spike #4)"
+T4="$V/spike4"; mkdir -p "$T4"
+# signal_vias: vias on nets with no filled inner-layer zone. The archived attempt-2 board: 64 vias, 37 of them on the
+# plane nets (GND In1/In2, VIN and 5V In2), 27 layer changes on 13 signal nets
+$PCB route measure "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" --json > "$T4/m.json"
+[ "$(jq_ "$T4/m.json" "(d['vias'], d['signal_vias'], d['plane_nets'], sum(d['signal_vias_by_net'].values()), len(d['signal_vias_by_net']))")" = "(64, 27, ['5V', 'GND', 'VIN'], 27, 13)" ] \
+  && ok "measure: attempt-2 board 64 vias, 27 signal vias on 13 nets, plane nets 5V GND VIN" || bad "measure signal_vias: $(jq_ "$T4/m.json" "(d['vias'], d.get('signal_vias'), d.get('plane_nets'))")"
+# pcb q conflicts: KRT's own MPS graph from the placement (tracks stripped on a temp copy, footprints sorted, pours kept).
+# The expected counts are the "MPS: N nets with K crossing conflicts" lines KRT printed when the route bench routed the
+# same boards (tools/bench/results/route.jsonl, tag spike4-h2, config outer): opus 31/41, sonnet 30/39, fable 33/56,
+# opus2 28/53
+if [ -x "${KRT_PY:-$REF/KiCadRoutingTools/.venv/bin/python}" ]; then
+  got=""
+  for b in rung2-zener-a1-opus rung2-zener-a1-sonnet rung2-zener-a1-fable rung2-zener-a2-opus; do
+    $PCB q "$ROOT"/examples/$b/board/*.kicad_pcb conflicts --json > "$T4/c-$b.json" 2>"$T4/c-$b.err"
+    got="$got $(jq_ "$T4/c-$b.json" "'%d/%d' % (d['nets'], d['conflicts'])")"
+  done
+  [ "$got" = " 31/41 30/39 33/56 28/53" ] && ok "pcb q conflicts matches KRT's routed-run MPS count on the four rung-2 boards:$got" || bad "pcb q conflicts:$got (want 31/41 30/39 33/56 28/53)"
+  [ "$(jq_ "$T4/c-rung2-zener-a2-opus.json" "(d['signal_conflicts'], d['rounds'], d['bipartite'], d['order'][:3], round(d['hpwl_mm'], 1))")" = "(40, 7, False, ['BOOT', 'COMP_RC', 'CPH'], 575.1)" ] \
+    && ok "conflicts on the attempt-2 board: 40 between signal nets, 7 MPS rounds, not bipartite, KRT's order starts BOOT COMP_RC CPH, HPWL 575.1 mm" \
+    || bad "conflicts detail: $(jq_ "$T4/c-rung2-zener-a2-opus.json" "(d['signal_conflicts'], d['rounds'], d['bipartite'], d['order'][:3], d['hpwl_mm'])")"
+else
+  nochecks "pcb q conflicts: KiCadRoutingTools not installed under $REF"
 fi
+fi  #@ end 31
+
+if want 32; then  #@ watch: skills/kicad-design/scripts/pcbrefstat.py skills/kicad-design/scripts/pcbcheck.py tools/corpus/** tools/spikes/spike2/** tools/bench/data/** examples/rung2-zener-a2-opus/board/**
+echo "== 32 refstat rows (spike 2): canonical pins and bands, the committed corpus index and rows, the rows on the attempt-2 board, planted fails"
+RS="$V/refstat"; mkdir -p "$RS"
+python3 -I -c "
+import sys; sys.path.insert(0, '$ROOT/skills/kicad-design/scripts'); import pcbrefstat as r
+assert [r.canon_pin('AMS1117-3.3', n, m) for n, m in (('1', 'GND'), ('2', 'VO'), ('3', 'VI'), ('4', ''))] == ['GND', 'VOUT', 'VIN', 'VOUT']
+assert [r.canon_pin('LSM6DS3', n, m) for n, m in (('1', 'SDO/SA0'), ('5', 'VDDIO'), ('8', 'VDD'), ('12', 'CS'), ('13', 'SCL/SPC/AUX_SCL'))] == ['SA0', 'VDDIO', 'VDD', 'CS', 'SCL']
+assert [r.canon_pin('ESP32-S3-WROOM-1', n, m) for n, m in (('2', '3V3'), ('3', 'EN'), ('27', 'IO0'), ('3', 'CHIP_PU'))] == ['3V3', 'EN', 'IO0', 'EN']
+assert [r.value_band('C', v) for v in ('100nF', '0.1u', '10uF/16V', '22u', '4.7uF', '100')] == ['100n', '100n', '10u', '22u', '10u', '100u+']
+assert r.band_matches('C', 'bulk', '22uF') and not r.band_matches('C', 'bulk', '100nF') and r.value_band('R', '10k') == '10k'
+assert r.part_regex('AMS1117-3.3').search('AMS1117-3.3') and not r.part_regex('LSM6DS3').search('LSM6DS33')
+" 2> "$RS/unit.txt" && ok "pcbrefstat: canonical pins (AMS1117 VI/VO, LSM6DS3 SDO/SA0, ESP32 CHIP_PU), value bands, part regexes" || bad "pcbrefstat: $(tail -1 "$RS/unit.txt")"
+python3 -I -c "
+import json, collections
+rows = [json.loads(l) for l in open('$ROOT/tools/bench/data/corpus-index.jsonl')]
+assert all(not set(r) & {'schematic', 'pcb_files', 'text'} for r in rows), 'contents in the index'
+need = {'key', 'part', 'repo', 'sch_version', 'has_pcb_ext', 'board', 'licence'}
+assert all(need <= set(r) for r in rows), 'fields'
+repos = collections.Counter()
+for p in {(r['part'], r['repo']) for r in rows}: repos[p[0]] += 1
+assert all(repos[p] >= 30 for p in ('AMS1117-3.3', 'ESP32-WROOM-32', 'ESP32-S3-WROOM-1')), repos
+rs = json.load(open('$ROOT/tools/bench/data/refstat-rows.json'))['rows']
+assert rs and all(x['support'] >= 0.7 and x['n'] >= 30 and x['kind'] == 'refstat' for x in rs), 'rows'
+print(len(rows), dict(repos), len(rs))" > "$RS/index.txt" 2>&1 && ok "corpus index: $(cut -d' ' -f1 "$RS/index.txt") hits, no file contents, 30+ repos for AMS1117 and both ESP32 modules; every refstat row at support >= 0.7 over 30+ designs" || bad "corpus index / rows: $(tail -1 "$RS/index.txt")"
+python3 -I -c "
+import json
+c = json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json'))
+c['refstat'] = json.load(open('$ROOT/tools/bench/data/refstat-rows.json'))['rows']
+json.dump(c, open('$RS/c.json', 'w'))
+c['refstat'] = [{'kind': 'refstat', 'part': 'AMS1117-3.3', 'pin': 'VOUT', 'support': 0.8, 'n': 100, 'pattern': {'feature': 'C:bulk:GND', 'class': 'C', 'band': 'bulk', 'to': 'GND', 'max_mm': 0.5}},
+                {'kind': 'refstat', 'part': 'AMS1117-3.3', 'pin': 'VOUT', 'support': 0.8, 'n': 100, 'pattern': {'feature': 'L:-:GND', 'class': 'L', 'band': '-', 'to': 'GND'}}]
+json.dump(c, open('$RS/p.json', 'w'))"
+$PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$RS/c.json" --only refstat --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$RS/a.json" > /dev/null 2>&1
+$PCB check "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$RS/p.json" --only refstat --netlist "$ROOT/examples/rung2-zener-a2-opus/board/motor1.xml" --out "$RS/b.json" > /dev/null 2>&1
+st=$(jq_ "$RS/a.json" "' '.join(sorted(r['status'] + ':' + r['id'] for r in d['rows'] if r['check'] == 'refstat'))")
+case "$st" in *fail*|"") bad "refstat rows on the attempt-2 board: '$st'" ;; *"pass:refstat:U3.VIN:C:bulk:GND"*"pass:refstat:U3.VOUT:C:bulk:GND"*) ok "refstat rows on the attempt-2 board: AMS1117 U3 VIN and VOUT bulk caps to GND pass, no fails" ;; *) bad "refstat rows on the attempt-2 board: '$st'" ;; esac
+pl=$(jq_ "$RS/b.json" "' | '.join(r['status'] + ' ' + r['msg'][:200] for r in d['rows'] if r['check'] == 'refstat')")
+case "$pl" in "fail U3 (AMS1117-3.3): C bulk from VOUT"*"mm pad to pad (corpus p90 0.5)"*"fail U3 (AMS1117-3.3): no L - from VOUT"*) ok "planted refstat rows fail: a 0.5 mm limit on the VOUT bulk cap, and an inductor no design here has" ;; *) bad "planted refstat rows: $pl" ;; esac
+fi  #@ end 32
+
+if want 33; then  #@ watch: tools/spikes/spike1/** tools/bench/results/placements.jsonl tools/bench/results/spike1_rank.json examples/rung2-zener-a2-opus/board/**
+echo "== 33 placement surrogate (spike #1): the rank test from the committed rows, and the features recomputed on the attempt-2 board"
+T1="$V/spike1"; mkdir -p "$T1"
+# the rank test needs numpy and scikit-learn: the repo's .venv (in a worktree, the main checkout's), or SPIKE1_PY
+PY1="${SPIKE1_PY:-$ROOT/.venv/bin/python3}"
+[ -x "$PY1" ] || PY1="$(cd "$(git -C "$ROOT" rev-parse --git-common-dir 2>/dev/null)/.." 2>/dev/null && pwd)/.venv/bin/python3"
+if [ -x "$PY1" ] && "$PY1" -c "import sklearn, scipy, matplotlib" 2>/dev/null; then
+  # every number in tools/bench/results/spike1_rank.json from the rows in placements.jsonl (no routing, about 20 s)
+  "$PY1" -I "$ROOT/tools/spikes/spike1/rank.py" --check > "$T1/rank.txt" 2>&1 && ok "rank test reproduces spike1_rank.json from the committed placement rows" \
+    || bad "rank test: $(grep -v Warn "$T1/rank.txt" | tail -2 | tr '\n' ' ')"
+  # the features: the archived attempt-2 placement's stored features recomputed from a fresh stripped copy of the board
+  cp "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pcb" "$ROOT/examples/rung2-zener-a2-opus/board/motor1.kicad_pro" "$T1/"
+  $PCB route canon "$T1/motor1.kicad_pcb" > /dev/null 2>&1; $PCB route strip "$T1/motor1.kicad_pcb" > /dev/null 2>&1
+  $PCB py "$ROOT/tools/spikes/spike1/board_kpy.py" "$T1/motor1.kicad_pcb" "$T1/static.json" > /dev/null 2>&1
+  "$PY1" -I -c "
+import json, sys; sys.path.insert(0, '$ROOT/tools/spikes/spike1'); import features as F, surrogate as S
+st = json.load(open('$T1/static.json'))
+r = next(r for r in S.load() if r['board'] == 'opus2' and r['k'] == 0)
+dec = json.load(open('$ROOT/examples/rung2-zener-a2-opus/checks.json'))['decoupling']
+f = F.features(st, r['placement'], dec, (r['conflicts'], r['signal_conflicts']))
+bad = [k for k in S.FEATS if abs(f[k] - r['feat'][k]) > 1e-6]
+assert not bad, bad
+assert abs(f['hpwl'] - r['hpwl_mm']) < 1e-3, (f['hpwl'], r['hpwl_mm'])
+print(f['hpwl'], f['conflicts'], f['pads_off_pour'])" > "$T1/feat.txt" 2>&1 \
+    && ok "features: the attempt-2 placement's 18 stored features recomputed from a fresh copy (HPWL equals pcb q conflicts' $(cut -d' ' -f1 "$T1/feat.txt") mm)" \
+    || bad "features recomputed: $(tail -1 "$T1/feat.txt")"
+else
+  nochecks "spike 1 rank test: no python with scikit-learn (repo .venv or SPIKE1_PY)"
+fi
+fi  #@ end 33
+
+if want 34; then  #@ watch: tools/corpus/pooling.py tools/corpus/test_pooling.py tools/corpus/classlabel.py tools/corpus/eagle.py tools/spikes/spike5/** tools/bench/data/class-table.json
+echo "== 34 class priors (spike #5): pooling, then the routing, H2 and H3 numbers from the committed rows and summaries"
+T5="$V/spike5"; mkdir -p "$T5"
+python3 -I "$ROOT/tools/corpus/test_pooling.py" > "$T5/pool.txt" 2>&1 && ok "pooling: part, package, class weights, held-out levels, the licence floor" || bad "pooling test: $(tail -1 "$T5/pool.txt")"
+python3 -I "$ROOT/tools/spikes/spike5/report.py" --check > "$T5/route.txt" 2>&1 && ok "route tables, Fisher and rank-sum tests reproduce route-summary.json from the per-seed rows" || bad "route summary: $(tail -1 "$T5/route.txt")"
+python3 -I "$ROOT/tools/spikes/spike5/h2.py" check > "$T5/h2.txt" 2>&1 && ok "H2: $(cat "$T5/h2.txt")" || bad "H2: $(tail -1 "$T5/h2.txt")"
+python3 -I "$ROOT/tools/spikes/spike5/h3_counts.py" --check > "$T5/h3.txt" 2>&1 && ok "H3: strict build signal 8, 1 and 4 repos" || bad "H3: $(tail -1 "$T5/h3.txt")"
+python3 -I -c "
+import json, sys; sys.path.insert(0, '$ROOT/tools/corpus'); import pooling as P
+s = json.load(open('$ROOT/tools/spikes/spike5/pool-summary.json'))
+for arm, sats in s.items():
+    if arm == 'r2_moved_rule':
+        continue
+    for ref, x in sats.items():
+        lv = x['levels']
+        ws = P.weights([0] + [lv[k]['n'] for k in ('package', 'class')])[1:]
+        assert [round(w, 3) for w in ws] == [lv['package']['weight'], lv['class']['weight']], (arm, ref)
+        assert all(v['n'] == 0 or (v['n'] >= 5 and v['repos'] >= 3) for v in lv.values()), (arm, ref)
+rule = s['r2_moved_rule']
+assert rule['cp_res']['joins'] and rule['cp_fly']['joins'], rule
+print('ok')" > "$T5/weights.txt" 2>&1 && ok "pool-summary: the mixture weights and the n >= 5, 3-repo floor hold in every arm" || bad "pool summary: $(tail -1 "$T5/weights.txt")"
+fi  #@ end 34
+
+#@ plumbing
+# per-feature checks: each tools/verify.d/*.sh is sourced here and calls ok/bad. Each may use $ROOT, $PCB, $V, $RUNS, $REF.
+# Under --changed, each by its # watch: header.
+mkdir -p "$ROOT/tools/verify.d"
+for f in "$ROOT"/tools/verify.d/*.sh; do [ -f "$f" ] && want "${f##*/}" && . "$f"; done
+unit_end
+# --changed: every unit the plan selected must have run (a broken want() or loop ran nothing and passed)
+if [ -n "$CHANGED" ]; then
+  for u in $EXPECT; do case " $RAN " in *" $u "*) ;; *) bad "verify_all: $u was selected but did not run" ;; esac; done
+  echo "verify_all --changed: ran$RAN"
+fi
+
 echo; echo "verify_all: $pass passed, $fail failed  ($V)"
 [ "$fail" = 0 ]
 #@ plumbing end

@@ -15,7 +15,8 @@
                                                     errors the input already had are inherited, not the router's. Writes
                                                     route.json beside the output; exit 1 unless clean (P6-T4)
   measure BOARD [--json] [--drc] [--pack jlcpcb] [--ref-value DRV8874]
-                                                    copper as numbers: tracks, vias, length, widths, airwires left
+                                                    copper as numbers: tracks, vias, signal_vias (vias on nets with no
+                                                    filled inner-layer zone, spike #4), length, widths, airwires left
                                                     (pcb q ratsnest), setup minimums, the nets of the footprint whose value
                                                     matches --ref-value (the 0.65 mm pitch part, R2-T2) and with --drc the
                                                     dual DRC of `pcb drc` (plain, packed, errors_total)
@@ -29,6 +30,7 @@
   classes BOARD --config checks.json [--round 0.05] [--min MM] [--dry]
                                                     net classes from the config's currents (IPC-2221 widths, W<mm>) and
                                                     victims (Sense) into the .kicad_pro, for a board that has none
+  ground-islands BOARD [--min-mm2 0.5] [--edge-mm 1.0] [--dry]   a via into each ground fill island (spike #6); `auto` runs it last
   return-vias BOARD --config checks.json [--netlist x.xml] [--max-mm 2] [--buckets 3,4] [--dry]
                                                     a ground via beside every bucket-3/4 via without one within max_mm
                                                     (SIG-2); `waves --return-vias` runs it after the finish, before the
@@ -114,12 +116,22 @@ def c_fill(args):
     return bd.summary()
 
 
+def plane_nets(b):
+    """Nets with a filled zone on an inner copper layer: their vias are plane taps (stitch, fan-out), not layer changes."""
+    inner = {l for l in b.GetEnabledLayers().CuStack() if l not in (pcbnew.F_Cu, pcbnew.B_Cu)}
+    return {z.GetNetname() for z in b.Zones() if z.GetNetname() and z.IsFilled()
+            and any(z.GetFilledPolysList(l).OutlineCount() for l in z.GetLayerSet().CuStack() if l in inner)}
+
+
 def copper(b):
     tracks, vias, length, widths, per_layer = 0, 0, 0.0, {}, {}
     via_sizes, net_minw = {}, {}
+    planes, sig_vias = plane_nets(b), {}
     for t in b.GetTracks():
         if t.GetClass() == "PCB_VIA":
             vias += 1
+            if t.GetNetname() not in planes:
+                sig_vias[t.GetNetname()] = sig_vias.get(t.GetNetname(), 0) + 1
             k = f"{ToMM(t.GetWidth()):.2f}/{ToMM(t.GetDrillValue()):.2f}"
             via_sizes[k] = via_sizes.get(k, 0) + 1
         else:
@@ -132,7 +144,10 @@ def copper(b):
             nw[str(w)] = round(nw.get(str(w), 0.0) + l, 3)
             ln = b.GetLayerName(t.GetLayer())
             per_layer[ln] = round(per_layer.get(ln, 0.0) + l, 3)
-    return {"tracks": tracks, "vias": vias, "length_mm": round(length, 3), "min_width_mm": min(widths) if widths else None,
+    # signal_vias: vias on nets with no filled inner-layer zone, the layer changes a router chose (spike #4: `vias` also
+    # counts plane stitching, which the P6-T4 stitch pass adds and the designers placed by hand)
+    return {"tracks": tracks, "vias": vias, "signal_vias": sum(sig_vias.values()), "signal_vias_by_net": dict(sorted(sig_vias.items())),
+            "plane_nets": sorted(planes), "length_mm": round(length, 3), "min_width_mm": min(widths) if widths else None,
             "widths": {str(k): v for k, v in sorted(widths.items())}, "via_sizes": via_sizes, "length_per_layer_mm": per_layer,
             "net_width_mm": dict(sorted(net_minw.items()))}   # net -> {track width: length mm}
 
@@ -171,7 +186,7 @@ def c_measure(args):
                         "packed_by_type": d["packed"]["by_type"].get("error", {}), "sentinel": d.get("sentinel"), "rc": p.returncode}
         except Exception as e:  # noqa: BLE001
             r["drc"] = {"error": f"{e}: {p.stdout[-300:]} {p.stderr[-300:]}", "rc": p.returncode}
-    say("PCBROUTE measure", path, "tracks", r["tracks"], "vias", r["vias"], "length", r["length_mm"], "minw", r["min_width_mm"],
+    say("PCBROUTE measure", path, "tracks", r["tracks"], "vias", r["vias"], "signal_vias", r["signal_vias"], "length", r["length_mm"], "minw", r["min_width_mm"],
         "airwires", r["ratsnest"]["airwires"], "open", r["open"])
     if "part" in r:
         say("PCBROUTE part", r["part"]["ref"], r["part"]["value"], "nets", r["part"]["nets"], "airwires", r["part"]["airwires"],
@@ -190,6 +205,10 @@ JAVA = os.environ.get("JAVA", "/opt/homebrew/opt/openjdk/bin/java")
 # KRT: the board setup is never rewritten and sizes stay exact on the first pass; the second pass may neck a net that
 # did not fit down to the board's own minimums (P6-T3: 'board' closed the last VIN airwire on the Opus board)
 KRT_PASSES = [["--no-fix-drc-settings", "--escalation", "off"], ["--no-fix-drc-settings", "--escalation", "board"]]
+# Spike #6, Alex's rules: no via in a pad (KRT allows it unless told otherwise; mask web between via and pad) and copper
+# 1 mm off the outline, not at the setup's floor. PCB_ROUTE_RULES=0 routes as before, other values replace the arguments
+# (the before/after measurement).
+ROUTE_RULES = ["--same-net-pad-clearance", "0.10", "--board-edge-clearance", "1.0"]   # 0.15 starved two ground pads on the Qwiic board
 FR_ARGS = ["-mt", "4", "-da", "--gui.enabled=false", "--logging.file.enabled=false"]
 
 
@@ -217,16 +236,20 @@ def run_engine(engine, board, out_dir, pass_no, log, inner_tracks=False, extra_a
     if engine == "krt":
         if not os.path.exists(KRT_PY):
             sys.exit(f"pcbroute: KiCadRoutingTools not installed at {KRT_DIR} (KRT_DIR, KRT_PY; see tools/bench/README.md)")
-        extra = KRT_PASSES[min(pass_no, len(KRT_PASSES)) - 1] + ([] if inner_tracks else outer_only_args(board)) + list(extra_args)
+        rules = os.environ.get("PCB_ROUTE_RULES")
+        rules = ROUTE_RULES if rules is None else ([] if rules == "0" else rules.split())
+        extra = KRT_PASSES[min(pass_no, len(KRT_PASSES)) - 1] + rules + ([] if inner_tracks else outer_only_args(board)) + list(extra_args)
         cmd = [KRT_PY, os.path.join(KRT_DIR, "py_router/route.py"), board, routed, "--json-out", os.path.join(out_dir, "krt.json"), *extra]
         # KRT orders rip-up candidates by iterating a set of net names, so its second pass varied with Python's per-process
         # string hash seed (1 run in 4 on the rung-1 board, ROUTE-T3); a fixed seed makes every pass reproducible
         try:
             p = subprocess.run(cmd, cwd=KRT_DIR, capture_output=True, text=True, env={**os.environ, "PYTHONHASHSEED": "0"}, timeout=timeout)
-        except subprocess.TimeoutExpired:
-            # an agent-written wave with an edge keepout ran 23 min, another 17 min in KRT's plane repair (PLAN-1)
+        except subprocess.TimeoutExpired as e:
+            # an agent-written wave with an edge keepout ran 23 min, another 17 min in KRT's plane repair (PLAN-1); the
+            # output so far goes to the log (spike #4: two guided power waves timed out with nothing to read)
+            part = e.stdout.decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
             with open(log, "a") as f:
-                f.write(f"$ {' '.join(cmd)}\nTIMEOUT after {timeout} s\n")
+                f.write(f"$ {' '.join(cmd)}\nTIMEOUT after {timeout} s\n{part[-20000:]}\n")
             return None, round(time.time() - t, 1), "timeout"
     elif engine == "freerouting":
         if not os.path.exists(FR_JAR) or not os.path.exists(JAVA):
@@ -524,6 +547,29 @@ def c_auto(args):
             passes.append(rec if better else {**rec, "discarded": True})
             if better:
                 final, cur, last = m, fixed, rec
+    if last.get("airwires") == 0 and not opt(args, "--no-islands", flag=True):   # spike #6: ground the fill's islands, last, on a clean board
+        fixed = os.path.join(work, "islands", os.path.basename(board))
+        os.makedirs(os.path.dirname(fixed), exist_ok=True)
+        for ext in (".kicad_pcb", ".kicad_pro", ".kicad_prl"):
+            src = os.path.splitext(cur)[0] + ext
+            if os.path.exists(src):
+                shutil.copy(src, os.path.join(os.path.dirname(fixed), os.path.basename(src)))
+        got = c_ground_islands([fixed])
+        if got["placed"]:
+            canonical(fixed)
+            Board.load(fixed).fill()
+            keep = len(OUT)
+            m = c_measure([fixed, "--drc", "--pack", pack])
+            del OUT[keep:]
+            d = m.get("drc", {})
+            rec = {"pass": "islands", "placed": got["placed"], "skipped": got["skipped"], "airwires": m["ratsnest"]["airwires"], "open": m["open"],
+                   "vias": m["vias"], "tracks": m["tracks"], "length_mm": m["length_mm"], "min_width_mm": m["min_width_mm"], "plain_errors": d.get("plain_errors"),
+                   "packed_errors": d.get("packed_errors"), "new_errors": new_errors(d.get("plain_by_type", {}), inherited), "setup_changed": False}
+            better = (rec["airwires"], sum(rec["new_errors"].values())) <= (last["airwires"], sum(last["new_errors"].values()))
+            say("PCBROUTE islands", len(got["placed"]), "vias, airwires", rec["airwires"], "new", rec["new_errors"], "kept" if better else "DISCARDED (worse)")
+            passes.append(rec if better else {**rec, "discarded": True})
+            if better:
+                final, cur, last = m, fixed, rec
     clean = bool(passes and last.get("airwires") == 0 and not last.get("new_errors") and (last.get("packed_errors") or 0) <= inherited_packed
                  and not last.get("setup_changed"))
     dest = out or board
@@ -581,6 +627,43 @@ def keepout_blocks(polys, tag):
     return out
 
 
+def guide_blocks(lines, tag):
+    """gr_line chains on User.1 (KRT's --guide-corridor layer; gr_poly would close the path), uuids from the tag."""
+    import uuid
+    ns = uuid.UUID("7c1d0e2a-3b4f-4a5e-8d6c-1f2e3a4b5c6d")
+    out = []
+    for i, line in enumerate(lines):
+        for j, ((x1, y1), (x2, y2)) in enumerate(zip(line, line[1:])):
+            out.append(f'\t(gr_line\n\t\t(start {x1} {y1})\n\t\t(end {x2} {y2})\n\t\t(stroke (width 0.1) (type solid))\n'
+                       f'\t\t(layer "User.1")\n\t\t(uuid "{uuid.uuid5(ns, tag + "#" + str(i) + "." + str(j))}")\n\t)\n')
+    return out
+
+
+def put_guides(path, lines, tag):
+    if not lines:
+        return
+    t = open(path).read().rstrip()
+    assert t.endswith(")")
+    open(path, "w").write(t[:-1] + "".join(guide_blocks(lines, tag)) + ")\n")
+
+
+def drop_guides(path, lines, tag):
+    if not lines:
+        return
+    import re
+    ids = set(re.findall(r'\(uuid "([^"]+)"\)', "".join(guide_blocks(lines, tag))))
+    text = open(path).read()
+    pieces, last = [], 0
+    for a, b in top_spans(text):
+        blk = text[a:b]
+        if blk.startswith("(gr_line") and any(i in blk for i in ids):
+            pieces.append(text[last:a].rstrip("\t")); last = b
+            if text[last:last + 1] == "\n":
+                last += 1
+    pieces.append(text[last:])
+    open(path, "w").write("".join(pieces))
+
+
 def put_keepouts(path, polys, tag):
     if not polys:
         return
@@ -621,7 +704,7 @@ def c_waves(args):
     """pcb route waves BOARD [--plan plan.json] [--out F] [--work DIR] [--pack jlcpcb]
     plan.json: {"feeds": [{"pad": "U2.11", "amps": 2.5}, {"pad": "U1.4,5,6", "amps": 2.8}], "thermal_vias": ["U1"], "timeout_s": 300,
                 "waves": [{"name": "power", "nets": ["VIN", "5V"], "layers": "outer"|"all"|["F.Cu", ...],
-                           "keepouts": [[[x, y], ...], ...], "args": ["--ordering", "bus"]}, ...]}
+                           "keepouts": [[[x, y], ...], ...], "guides": [[[x, y], ...], ...], "args": ["--ordering", "bus"]}, ...]}
     Wave 0 (feeds, thermal vias) is pcblib code; each later wave is one KRT call on its nets, its copper locked after;
     then `auto` finishes the board (second pass, stitch, dual DRC, verdict). Writes waves.json and route.json."""
     import shutil, time, fnmatch
@@ -671,10 +754,14 @@ def c_waves(args):
         inp = stage(f"w{i}-{name}-in", cur)
         polys = w.get("keepouts", [])
         put_keepouts(inp, polys, f"{name}{i}")
+        guides = w.get("guides", [])   # spike #4 H3: polylines KRT steers this wave's nets through (--guide-corridor)
+        put_guides(inp, guides, f"{name}{i}")
         lay = w.get("layers", "outer")
         extra = ["--nets", *w["nets"]]
         if polys:
             extra += ["--keepout", "--keepout-layer", "User.2"]
+        if guides:
+            extra += ["--guide-corridor", "--guide-corridor-layer", "User.1"]
         if isinstance(lay, list):
             b = pcbnew.LoadBoard(inp); cu = [b.GetLayerName(l) for l in b.GetEnabledLayers().CuStack()]
             extra += ["--layers", *cu, "--layer-costs", *["1.0" if l in lay else "-1" for l in cu]]
@@ -686,6 +773,7 @@ def c_waves(args):
             rec["waves"].append({"name": name, "rc": rc, "wall_s": wall, "error": "timeout" if rc == "timeout" else "no board written"})
             continue
         drop_keepouts(routed, polys, f"{name}{i}")
+        drop_guides(routed, guides, f"{name}{i}")
         canonical(routed)
         Board.load(routed).fill()
         keep = len(OUT)
@@ -982,6 +1070,19 @@ def c_return_vias(args):
     return rec
 
 
+def c_ground_islands(args):
+    """pcb route ground-islands BOARD [--min-mm2 0.5] [--edge-mm 1.0] [--dry]
+    Tie the ground fill's islands to ground with a via rather than let KiCad rip them up (Alex, spike #6): each piece with
+    no ground copper gets a through via at the deepest clear spot inside it, then the zones refill as they were set."""
+    bd = Board.load(args[0])
+    bd.clearance = pcbnew.ToMM(bd.b.GetDesignSettings().m_MinClearance) or 0.2
+    r = bd.ground_islands(min_mm2=float(opt(args, "--min-mm2", "0.5")), edge_mm=float(opt(args, "--edge-mm", "1.0")), dry=opt(args, "--dry", flag=True))
+    if not opt(args, "--dry", flag=True):
+        bd.save()
+    say("PCBROUTE ground-islands", len(r["placed"]), "vias placed", r["placed"], "skipped", r["skipped"])
+    return r
+
+
 def c_classes(args):
     """pcb route classes BOARD --config checks.json [--round 0.05] [--min MM] [--dry]
     Net classes from the config, for a board that has none (a foreign board on the bench): one class per IPC-2221
@@ -1023,7 +1124,7 @@ def c_classes(args):
     return {"board": board, "pro": pro, "classes": [c["name"] for c in ns["classes"]], "nets": out}
 
 
-CMDS = {"waves": c_waves, "return-vias": c_return_vias, "classes": c_classes, "strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
+CMDS = {"waves": c_waves, "return-vias": c_return_vias, "ground-islands": c_ground_islands, "classes": c_classes, "strip": c_strip, "export-dsn": c_export_dsn, "import-ses": c_import_ses, "fill": c_fill, "measure": c_measure, "auto": c_auto,
         "canon": c_canon}
 
 

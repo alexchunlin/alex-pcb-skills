@@ -15,6 +15,12 @@
   ratsnest                     unrouted connections: multi-pad nets, nets left open, airwires (pad clusters minus
                                one per net, through tracks, vias and filled zones), per-net list (P6-T1)
   edge                         board bbox from Edge.Cuts, size, corner arcs, copper layer count
+  conflicts [--as-is] [--edges]  KiCadRoutingTools' MPS conflict graph from the placement (tracks and vias stripped on a
+                               temp copy, footprints sorted, pours kept, as `pcb route auto` hands the board to KRT):
+                               nets KRT would route, crossing conflicts (MST segments that intersect, layer-filtered),
+                               signal conflicts (both nets without a filled inner-layer zone), MPS rounds, the edge list;
+                               plus HPWL over all multi-pad nets and over the signal nets (spike #4). Needs KRT (KRT_DIR,
+                               KRT_PY, tools/bench/README.md); computed by KRT's own functions (pcbkrt.py)
   fabdata                      footprint fields (MPN/Manufacturer/LCSC/Datasheet, any case), DNP/exclusion flags,
                                origin-to-fab-outline-centre offset (feeds `pcb fab`; R1-S1-F4)
 Output lines start with `PCBQ`; --json prints one JSON object instead.
@@ -254,6 +260,71 @@ def q_ratsnest(b, fps, args):
     for x in r["nets"]:
         if x["airwires"]:
             say("PCBQ open", x["net"], "pads", x["pads"], "airwires", x["airwires"], "clusters", x["clusters"][1:])
+    return r
+
+
+def plane_nets(b):
+    """Nets with a filled zone on an inner copper layer: their vias are plane taps, not layer changes (spike #4)."""
+    inner = {l for l in b.GetEnabledLayers().CuStack() if l not in (pcbnew.F_Cu, pcbnew.B_Cu)}
+    return {z.GetNetname() for z in b.Zones() if z.GetNetname() and z.IsFilled()
+            and any(z.GetFilledPolysList(l).OutlineCount() for l in z.GetLayerSet().CuStack() if l in inner)}
+
+
+def hpwl(b, skip=()):
+    """Half-perimeter wire length, mm: per multi-pad net the pad-centre bounding box's width plus height, summed."""
+    box = {}
+    for f in b.GetFootprints():
+        for p in f.Pads():
+            n = p.GetNetname()
+            if not n or n.startswith("unconnected-") or n in skip:
+                continue
+            x, y = ToMM(p.GetPosition().x), ToMM(p.GetPosition().y)
+            bx = box.setdefault(n, [x, y, x, y, 0])
+            bx[0], bx[1], bx[2], bx[3], bx[4] = min(bx[0], x), min(bx[1], y), max(bx[2], x), max(bx[3], y), bx[4] + 1
+    return round(sum((v[2] - v[0]) + (v[3] - v[1]) for v in box.values() if v[4] > 1), 3)
+
+
+def q_conflicts(b, fps, args):
+    import os, shutil, subprocess, tempfile
+    path = os.path.abspath(sys.argv[1])
+    planes = plane_nets(b)
+    src = path
+    if "--as-is" not in args:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # -I drops the script dir
+        from pcblib.board import Board
+        import pcbroute
+        d = tempfile.mkdtemp(prefix="pcbq-conflicts-")
+        src = os.path.join(d, os.path.basename(path))
+        for ext in (".kicad_pcb", ".kicad_pro"):
+            f = os.path.splitext(path)[0] + ext
+            if os.path.exists(f):
+                shutil.copy(f, os.path.join(d, os.path.basename(f)))
+        pcbroute.canonical(src)
+        bd = Board.load(src)
+        bd.clear(tracks=True, zones=False, drawings=False)
+        bd.save()
+    krt_dir = os.environ.get("KRT_DIR", os.path.join(os.environ.get("PCB_REF", "/tmp/pcb-ref"), "KiCadRoutingTools"))
+    krt_py = os.environ.get("KRT_PY", os.path.join(krt_dir, ".venv/bin/python"))
+    if not os.path.exists(krt_py):
+        sys.exit(f"pcbq: conflicts needs KiCadRoutingTools at {krt_dir} (KRT_DIR, KRT_PY; tools/bench/README.md)")
+    p = subprocess.run([krt_py, "-I", os.path.join(os.path.dirname(os.path.abspath(__file__)), "pcbkrt.py"), "conflicts", src],
+                       capture_output=True, text=True, env={**os.environ, "KRT_DIR": krt_dir, "PYTHONHASHSEED": "0"})
+    if p.returncode:
+        sys.exit(f"pcbq: pcbkrt conflicts failed: {p.stderr[-600:]}")
+    r = json.loads(p.stdout.strip().splitlines()[-1])
+    r["board"] = path
+    r["plane_nets"] = sorted(planes)
+    sig = [e for e in r["edges"] if not (set(e[0].split("+")) | set(e[1].split("+"))) & planes]
+    r["signal_conflicts"] = len(sig)
+    r["signal_edges"] = sig
+    r["hpwl_mm"] = hpwl(b)
+    r["hpwl_signal_mm"] = hpwl(b, planes)
+    say("PCBQ conflicts nets", r["nets"], "conflicts", r["conflicts"], "signal", r["signal_conflicts"], "rounds", r["rounds"],
+        "bipartite", r["bipartite"], "hpwl", r["hpwl_mm"], "hpwl_signal", r["hpwl_signal_mm"], "plane nets", r["plane_nets"])
+    say("PCBQ conflicts late (MPS round 2+)", r["late_nets"])
+    if "--edges" in args:
+        for e in r["edges"]:
+            say("PCBQ edge", e[0], e[1])
     return r
 
 

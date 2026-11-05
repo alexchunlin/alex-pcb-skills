@@ -1,0 +1,149 @@
+{
+ "_doc": "refstat rows from tools/corpus/refstat.py emit over bshada/open-schematics (spike 2); one row per (part, pin, feature) with support >= 0.70; max_mm = the corpus p90 pad-to-pad distance where 20+ boards measured it",
+ "rows": [
+  {
+   "kind": "refstat",
+   "part": "AMS1117-3.3",
+   "pin": "VIN",
+   "pattern": {
+    "feature": "C:bulk:GND",
+    "class": "C",
+    "band": "bulk",
+    "to": "GND",
+    "max_mm": 12.46
+   },
+   "support": 0.806,
+   "n": 772,
+   "n_board": 186,
+   "dist_median_mm": 3.34
+  },
+  {
+   "kind": "refstat",
+   "part": "AMS1117-3.3",
+   "pin": "VOUT",
+   "pattern": {
+    "feature": "C:bulk:GND",
+    "class": "C",
+    "band": "bulk",
+    "to": "GND",
+    "max_mm": 12.99
+   },
+   "support": 0.854,
+   "n": 768,
+   "n_board": 192,
+   "dist_median_mm": 5.31
+  },
+  {
+   "kind": "refstat",
+   "part": "LSM6DS3",
+   "pin": "VDDIO",
+   "pattern": {
+    "feature": "C:100n:GND",
+    "class": "C",
+    "band": "100n",
+    "to": "GND",
+    "max_mm": 5.26
+   },
+   "support": 0.849,
+   "n": 53,
+   "n_board": 32,
+   "dist_median_mm": 1.67
+  },
+  {
+   "kind": "refstat",
+   "part": "LSM6DS3",
+   "pin": "VDD",
+   "pattern": {
+    "feature": "C:100n:GND",
+    "class": "C",
+    "band": "100n",
+    "to": "GND",
+    "max_mm": 5.67
+   },
+   "support": 0.882,
+   "n": 51,
+   "n_board": 32,
+   "dist_median_mm": 1.85
+  },
+  {
+   "kind": "refstat",
+   "part": "ESP32-WROOM-32",
+   "pin": "3V3",
+   "pattern": {
+    "feature": "C:*:GND",
+    "class": "C",
+    "band": "*",
+    "to": "GND",
+    "max_mm": 32.42
+   },
+   "support": 0.772,
+   "n": 421,
+   "n_board": 134,
+   "dist_median_mm": 3.83
+  },
+  {
+   "kind": "refstat",
+   "part": "ESP32-WROOM-32",
+   "pin": "EN",
+   "pattern": {
+    "feature": "R:*:IC:3V3",
+    "class": "R",
+    "band": "*",
+    "to": "IC:3V3",
+    "max_mm": 37.26
+   },
+   "support": 0.828,
+   "n": 349,
+   "n_board": 120,
+   "dist_median_mm": 15.4
+  },
+  {
+   "kind": "refstat",
+   "part": "ESP32-S3-WROOM-1",
+   "pin": "3V3",
+   "pattern": {
+    "feature": "C:bulk:GND",
+    "class": "C",
+    "band": "bulk",
+    "to": "GND",
+    "max_mm": 39.25
+   },
+   "support": 0.804,
+   "n": 265,
+   "n_board": 125,
+   "dist_median_mm": 6.8
+  },
+  {
+   "kind": "refstat",
+   "part": "ESP32-S3-WROOM-1",
+   "pin": "EN",
+   "pattern": {
+    "feature": "R:*:IC:3V3",
+    "class": "R",
+    "band": "*",
+    "to": "IC:3V3",
+    "max_mm": 33.29
+   },
+   "support": 0.832,
+   "n": 238,
+   "n_board": 123,
+   "dist_median_mm": 9.35
+  },
+  {
+   "kind": "refstat",
+   "part": "ESP32-S3-WROOM-1",
+   "pin": "EN",
+   "pattern": {
+    "feature": "C:*:GND",
+    "class": "C",
+    "band": "*",
+    "to": "GND",
+    "max_mm": 31.01
+   },
+   "support": 0.798,
+   "n": 238,
+   "n_board": 108,
+   "dist_median_mm": 9.91
+  }
+ ]
+}

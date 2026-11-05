@@ -1,0 +1,93 @@
+{
+ "designer": {
+  "n": 1,
+  "clean": 1,
+  "signal_vias": 47,
+  "length_mm": 642.2,
+  "vin_mW": 92.9,
+  "bucket3_off_mm": 0.0,
+  "return_via_bad": 8,
+  "exposure_mm": 0.8,
+  "currents_fails": 2,
+  "feeds_fails": 3,
+  "decoupling_fails": 0
+ },
+ "uniform": {
+  "n": 5,
+  "clean": 1,
+  "signal_vias": 56,
+  "length_mm": 753.5,
+  "vin_mW": 118.8,
+  "bucket3_off_mm": 0.0,
+  "return_via_bad": 10,
+  "exposure_mm": 1.4,
+  "currents_fails": 4,
+  "feeds_fails": 2,
+  "decoupling_fails": 4
+ },
+ "krt": {
+  "n": 5,
+  "clean": 1,
+  "signal_vias": 47,
+  "length_mm": 658.0,
+  "vin_mW": 138.7,
+  "bucket3_off_mm": 0.0,
+  "return_via_bad": 10,
+  "exposure_mm": 0.8,
+  "currents_fails": 3,
+  "feeds_fails": 2,
+  "decoupling_fails": 1
+ },
+ "class": {
+  "n": 5,
+  "clean": 2,
+  "signal_vias": 47,
+  "length_mm": 640.7,
+  "vin_mW": 129.0,
+  "bucket3_off_mm": 0.0,
+  "return_via_bad": 9,
+  "exposure_mm": 0.8,
+  "currents_fails": 3,
+  "feeds_fails": 3,
+  "decoupling_fails": 3
+ },
+ "krt_tpl": {
+  "n": 5,
+  "clean": 4,
+  "signal_vias": 47,
+  "length_mm": 658.0,
+  "vin_mW": 126.3,
+  "bucket3_off_mm": 0.0,
+  "return_via_bad": 12,
+  "exposure_mm": 0.8,
+  "currents_fails": 3,
+  "feeds_fails": 4,
+  "decoupling_fails": 2
+ },
+ "perturb": {
+  "n": 5,
+  "clean": 4,
+  "signal_vias": 47,
+  "length_mm": 650.6,
+  "vin_mW": 102.9,
+  "bucket3_off_mm": 0.2,
+  "return_via_bad": 11,
+  "exposure_mm": 0.8,
+  "currents_fails": 2,
+  "feeds_fails": 2,
+  "decoupling_fails": 1
+ },
+ "class_rerun": {
+  "n": 5,
+  "clean": 1,
+  "signal_vias": 48,
+  "length_mm": 656.7,
+  "vin_mW": 112.8,
+  "bucket3_off_mm": 0.2,
+  "return_via_bad": 10,
+  "exposure_mm": 0.8,
+  "currents_fails": 4,
+  "feeds_fails": 3,
+  "decoupling_fails": 3
+ }
+}

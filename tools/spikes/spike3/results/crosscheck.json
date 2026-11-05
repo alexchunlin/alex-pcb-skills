@@ -1,0 +1,553 @@
+[
+ {
+  "board": "rung2-zener-a2-opus",
+  "net": "VIN",
+  "sink": "U2.11",
+  "amps": 2.5,
+  "ours_0.1": {
+   "drop_mV": 7.77,
+   "worst_J_outside_pads": 189.6,
+   "worst_at": [
+    "F.Cu",
+    117.85,
+    115.85
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 117.85,
+    "y": 115.85,
+    "width_mm": 0.4,
+    "I_A": 2.5,
+    "ratio": 1.5,
+    "status": "pad"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 117.9,
+    "y": 116.55,
+    "drill_mm": 0.3,
+    "n": 3,
+    "I_A": 2.5,
+    "ipc_A": 3.653,
+    "ratio": 0.68,
+    "max_one_A": 1.155,
+    "status": "pass"
+   },
+   "power_mW": 19.24,
+   "wall_s": 4.0
+  },
+  "ours_0.05": {
+   "drop_mV": 7.41,
+   "worst_J_outside_pads": 220.0,
+   "worst_at": [
+    "F.Cu",
+    117.88,
+    115.92
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 118.08,
+    "y": 115.88,
+    "width_mm": 0.4,
+    "I_A": 2.502,
+    "ratio": 1.5,
+    "status": "pad"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 117.9,
+    "y": 116.55,
+    "drill_mm": 0.3,
+    "n": 3,
+    "I_A": 2.5,
+    "ipc_A": 3.653,
+    "ratio": 0.68,
+    "max_one_A": 1.124,
+    "status": "pass"
+   },
+   "power_mW": 18.43,
+   "wall_s": 11.9
+  },
+  "kicad_irdrop_0.05": {
+   "drop_mV": 8.093,
+   "peak_J_incl_pads": 230.2,
+   "peak_at": [
+    "F.Cu",
+    117.88,
+    115.88
+   ],
+   "barrels_over_10C": 2,
+   "busiest_barrel": {
+    "amps": 1.0911834225036945,
+    "x": 117.9,
+    "y": 116.55,
+    "layer_a": "In1.Cu",
+    "layer_b": "In2.Cu",
+    "rating": 0.9511695820735189
+   },
+   "unreached": [],
+   "wall_s": 35.0,
+   "stdout": [
+    "VIN: 2.5 A from Q1 to U2 | worst 8.1 mV at U2.11, median 8.1 mV, R_eff 3.24 mOhm",
+    "  vias 14; 2 barrel segments over their IPC-2221 rating; busiest: 1.09 A @(117.9,116.55) In1.Cu-In2.Cu, 1.09 A @(117.9,116.55) F.Cu-In1.Cu, 0.74 A @(124.6,123.9) F.Cu-In1.Cu"
+   ]
+  },
+  "drop_diff_pct_0.05": -8.4,
+  "drop_diff_pct_0.1": -4.0
+ },
+ {
+  "board": "rung2-zener-a2-opus",
+  "net": "5V",
+  "sink": "J3.1",
+  "amps": 3.0,
+  "ours_0.1": {
+   "drop_mV": 6.57,
+   "worst_J_outside_pads": 193.0,
+   "worst_at": [
+    "In2.Cu",
+    142.15,
+    117.45
+   ],
+   "worst_neck": {
+    "layer": "In2.Cu",
+    "x": 142.15,
+    "y": 117.35,
+    "width_mm": 0.3,
+    "I_A": 0.977,
+    "ratio": 2.38,
+    "status": "fail"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 137.4,
+    "y": 127.6,
+    "drill_mm": 0.3,
+    "n": 1,
+    "I_A": 1.516,
+    "ipc_A": 1.218,
+    "ratio": 1.25,
+    "max_one_A": 1.516,
+    "status": "fail"
+   },
+   "power_mW": 19.58,
+   "wall_s": 3.7
+  },
+  "ours_0.05": {
+   "drop_mV": 6.39,
+   "worst_J_outside_pads": 213.1,
+   "worst_at": [
+    "In2.Cu",
+    142.07,
+    117.47
+   ],
+   "worst_neck": {
+    "layer": "In2.Cu",
+    "x": 142.28,
+    "y": 117.47,
+    "width_mm": 0.3,
+    "I_A": 0.975,
+    "ratio": 2.38,
+    "status": "fail"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 137.4,
+    "y": 127.6,
+    "drill_mm": 0.3,
+    "n": 1,
+    "I_A": 1.535,
+    "ipc_A": 1.218,
+    "ratio": 1.26,
+    "max_one_A": 1.535,
+    "status": "fail"
+   },
+   "power_mW": 19.12,
+   "wall_s": 8.3
+  },
+  "kicad_irdrop_0.05": {
+   "drop_mV": 7.59,
+   "peak_J_incl_pads": 245.2,
+   "peak_at": [
+    "In2.Cu",
+    142.08,
+    117.48
+   ],
+   "barrels_over_10C": 4,
+   "busiest_barrel": {
+    "amps": 1.5359984020944837,
+    "x": 137.4,
+    "y": 127.6,
+    "layer_a": "F.Cu",
+    "layer_b": "In1.Cu",
+    "rating": 0.9511695820735189
+   },
+   "unreached": [
+    "J3.1",
+    "J3.1",
+    "J3.1"
+   ],
+   "wall_s": 20.3,
+   "stdout": [
+    "5V: 3 A from L1 to J3 | worst 7.6 mV at J3.1, median 7.6 mV, R_eff 2.53 mOhm",
+    "  not connected to the source: J3.1, J3.1, J3.1"
+   ]
+  },
+  "drop_diff_pct_0.05": -15.8,
+  "drop_diff_pct_0.1": -13.4
+ },
+ {
+  "board": "rung2-zener-a2-opus",
+  "net": "MOTOR_A",
+  "sink": "U2.8",
+  "amps": 2.5,
+  "ours_0.1": {
+   "drop_mV": 16.48,
+   "worst_J_outside_pads": 146.1,
+   "worst_at": [
+    "F.Cu",
+    116.45,
+    108.95
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 109.45,
+    "y": 109.05,
+    "width_mm": 0.7,
+    "I_A": 2.411,
+    "ratio": 0.96,
+    "status": "pass"
+   },
+   "worst_via_field": {},
+   "power_mW": 41.2,
+   "wall_s": 1.1
+  },
+  "ours_0.05": {
+   "drop_mV": 16.19,
+   "worst_J_outside_pads": 178.3,
+   "worst_at": [
+    "F.Cu",
+    116.48,
+    108.97
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 109.53,
+    "y": 108.92,
+    "width_mm": 0.75,
+    "I_A": 2.496,
+    "ratio": 0.95,
+    "status": "pass"
+   },
+   "worst_via_field": {},
+   "power_mW": 40.47,
+   "wall_s": 1.9
+  },
+  "kicad_irdrop_0.05": {
+   "drop_mV": 16.328,
+   "peak_J_incl_pads": 205.3,
+   "peak_at": [
+    "F.Cu",
+    116.53,
+    108.97
+   ],
+   "barrels_over_10C": 0,
+   "busiest_barrel": {},
+   "unreached": [],
+   "wall_s": 1.1,
+   "stdout": [
+    "MOTOR_A: 2.5 A from J1 to U2 | worst 16.3 mV at U2.8, median 16.3 mV, R_eff 6.53 mOhm",
+    "  vias 0; 0 barrel segments over their IPC-2221 rating; busiest: "
+   ]
+  },
+  "drop_diff_pct_0.05": -0.8,
+  "drop_diff_pct_0.1": 0.9
+ },
+ {
+  "board": "rung2-zener-a1-opus",
+  "net": "VIN",
+  "sink": "U2.11",
+  "amps": 2.5,
+  "ours_0.1": {
+   "drop_mV": 28.81,
+   "worst_J_outside_pads": 257.3,
+   "worst_at": [
+    "F.Cu",
+    128.35,
+    117.15
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 128.35,
+    "y": 117.15,
+    "width_mm": 0.3,
+    "I_A": 2.502,
+    "ratio": 1.85,
+    "status": "fail"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 126.0,
+    "y": 114.8,
+    "drill_mm": 0.3,
+    "n": 1,
+    "I_A": 0.446,
+    "ipc_A": 1.218,
+    "ratio": 0.37,
+    "max_one_A": 0.446,
+    "status": "pass"
+   },
+   "power_mW": 71.71,
+   "wall_s": 4.9
+  },
+  "ours_0.05": {
+   "drop_mV": 24.51,
+   "worst_J_outside_pads": 246.7,
+   "worst_at": [
+    "F.Cu",
+    129.43,
+    117.17
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 129.43,
+    "y": 117.17,
+    "width_mm": 0.35,
+    "I_A": 2.506,
+    "ratio": 1.65,
+    "status": "fail"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 126.0,
+    "y": 114.8,
+    "drill_mm": 0.3,
+    "n": 1,
+    "I_A": 0.44,
+    "ipc_A": 1.218,
+    "ratio": 0.36,
+    "max_one_A": 0.44,
+    "status": "pass"
+   },
+   "power_mW": 61.12,
+   "wall_s": 20.0
+  },
+  "kicad_irdrop_0.05": {
+   "drop_mV": 24.599,
+   "peak_J_incl_pads": 260.8,
+   "peak_at": [
+    "F.Cu",
+    129.38,
+    117.18
+   ],
+   "barrels_over_10C": 0,
+   "busiest_barrel": {
+    "amps": 0.3945642177534754,
+    "x": 126.0,
+    "y": 114.8,
+    "layer_a": "In1.Cu",
+    "layer_b": "In2.Cu",
+    "rating": 0.9511695820735189
+   },
+   "unreached": [],
+   "wall_s": 68.2,
+   "stdout": [
+    "VIN: 2.5 A from Q1 to U2 | worst 24.6 mV at U2.11, median 24.6 mV, R_eff 9.84 mOhm",
+    "  vias 11; 0 barrel segments over their IPC-2221 rating; busiest: 0.39 A @(126.0,114.8) In1.Cu-In2.Cu, 0.39 A @(126.0,114.8) F.Cu-In1.Cu, 0.30 A @(118.6,115.3) In1.Cu-In2.Cu"
+   ]
+  },
+  "drop_diff_pct_0.05": -0.4,
+  "drop_diff_pct_0.1": 17.1
+ },
+ {
+  "board": "rung2-zener-a1-sonnet",
+  "net": "VIN",
+  "sink": "U2.11",
+  "amps": 2.5,
+  "ours_0.1": {
+   "drop_mV": 10.12,
+   "worst_J_outside_pads": 239.3,
+   "worst_at": [
+    "F.Cu",
+    117.95,
+    126.95
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 117.95,
+    "y": 126.95,
+    "width_mm": 0.3,
+    "I_A": 2.5,
+    "ratio": 1.84,
+    "status": "fail"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 117.627,
+    "y": 127.025,
+    "drill_mm": 0.3,
+    "n": 1,
+    "I_A": 2.5,
+    "ipc_A": 1.218,
+    "ratio": 2.05,
+    "max_one_A": 2.5,
+    "status": "fail"
+   },
+   "power_mW": 25.1,
+   "wall_s": 4.2
+  },
+  "ours_0.05": {
+   "drop_mV": 9.26,
+   "worst_J_outside_pads": 246.8,
+   "worst_at": [
+    "F.Cu",
+    117.97,
+    127.02
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 118.12,
+    "y": 127.02,
+    "width_mm": 0.35,
+    "I_A": 2.5,
+    "ratio": 1.65,
+    "status": "pad"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 117.627,
+    "y": 127.025,
+    "drill_mm": 0.3,
+    "n": 1,
+    "I_A": 2.5,
+    "ipc_A": 1.218,
+    "ratio": 2.05,
+    "max_one_A": 2.5,
+    "status": "fail"
+   },
+   "power_mW": 23.02,
+   "wall_s": 12.1
+  },
+  "kicad_irdrop_0.05": {
+   "drop_mV": 10.072,
+   "peak_J_incl_pads": 269.4,
+   "peak_at": [
+    "F.Cu",
+    117.92,
+    127.03
+   ],
+   "barrels_over_10C": 2,
+   "busiest_barrel": {
+    "amps": 2.499999999999699,
+    "x": 117.627,
+    "y": 127.025,
+    "layer_a": "In1.Cu",
+    "layer_b": "In2.Cu",
+    "rating": 0.9511695820735189
+   },
+   "unreached": [],
+   "wall_s": 28.8,
+   "stdout": [
+    "VIN: 2.5 A from Q1 to U2 | worst 10.1 mV at U2.11, median 10.1 mV, R_eff 4.03 mOhm",
+    "  vias 13; 2 barrel segments over their IPC-2221 rating; busiest: 2.50 A @(117.627,127.025) In1.Cu-In2.Cu, 2.50 A @(117.627,127.025) F.Cu-In1.Cu, 0.54 A @(117.0,113.1) In1.Cu-In2.Cu"
+   ]
+  },
+  "drop_diff_pct_0.05": -8.1,
+  "drop_diff_pct_0.1": 0.5
+ },
+ {
+  "board": "rung2-zener-a1-fable",
+  "net": "VIN",
+  "sink": "U1.11",
+  "amps": 2.5,
+  "ours_0.1": {
+   "drop_mV": 24.93,
+   "worst_J_outside_pads": 343.3,
+   "worst_at": [
+    "F.Cu",
+    119.15,
+    134.15
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 119.25,
+    "y": 134.45,
+    "width_mm": 0.3,
+    "I_A": 2.666,
+    "ratio": 1.97,
+    "status": "fail"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 122.5,
+    "y": 109.0,
+    "drill_mm": 0.4,
+    "n": 1,
+    "I_A": 1.464,
+    "ipc_A": 1.5,
+    "ratio": 0.98,
+    "max_one_A": 1.464,
+    "status": "pass"
+   },
+   "power_mW": 62.18,
+   "wall_s": 5.0
+  },
+  "ours_0.05": {
+   "drop_mV": 23.38,
+   "worst_J_outside_pads": 308.0,
+   "worst_at": [
+    "F.Cu",
+    119.17,
+    134.03
+   ],
+   "worst_neck": {
+    "layer": "F.Cu",
+    "x": 119.02,
+    "y": 134.03,
+    "width_mm": 0.25,
+    "I_A": 2.342,
+    "ratio": 1.97,
+    "status": "fail"
+   },
+   "worst_via_field": {
+    "what": "via",
+    "x": 122.5,
+    "y": 109.0,
+    "drill_mm": 0.4,
+    "n": 1,
+    "I_A": 1.461,
+    "ipc_A": 1.5,
+    "ratio": 0.97,
+    "max_one_A": 1.461,
+    "status": "pass"
+   },
+   "power_mW": 58.38,
+   "wall_s": 12.8
+  },
+  "kicad_irdrop_0.05": {
+   "drop_mV": 24.681,
+   "peak_J_incl_pads": 320.1,
+   "peak_at": [
+    "F.Cu",
+    119.17,
+    133.97
+   ],
+   "barrels_over_10C": 4,
+   "busiest_barrel": {
+    "amps": 1.442345695163867,
+    "x": 122.5,
+    "y": 109.0,
+    "layer_a": "F.Cu",
+    "layer_b": "In1.Cu",
+    "rating": 1.1553790566273408
+   },
+   "unreached": [],
+   "wall_s": 39.6,
+   "stdout": [
+    "VIN: 2.5 A from Q1 to U1 | worst 24.7 mV at U1.11, median 24.7 mV, R_eff 9.87 mOhm",
+    "  vias 7; 4 barrel segments over their IPC-2221 rating; busiest: 1.44 A @(122.5,109.0) F.Cu-In1.Cu, 1.44 A @(122.5,109.0) In1.Cu-In2.Cu, 1.41 A @(119.975,139.1) In1.Cu-In2.Cu"
+   ]
+  },
+  "drop_diff_pct_0.05": -5.3,
+  "drop_diff_pct_0.1": 1.0
+ }
+]

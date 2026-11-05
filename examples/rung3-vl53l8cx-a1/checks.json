@@ -1,0 +1,603 @@
+{
+ "_about": "Filled at the plan checkpoint from DESIGN_LOG.md tables. Limits come from the brief, DS14161 rev 7 and the part datasheets.",
+ "project": "r3-vl53l8cx-a1",
+ "rails": {
+  "VIN": {
+   "v": 5.0,
+   "source": "header J3.1, 3.3-5 V"
+  },
+  "3V3_LDO": {
+   "v": 3.3,
+   "source": "U2 before ideal diode U3"
+  },
+  "3V3": {
+   "v": 3.3,
+   "source": "U3 output and Qwiic J1/J2 pin 2"
+  },
+  "1V8": {
+   "v": 1.8,
+   "source": "U4, CORE_1V8 and IOVDD"
+  },
+  "GND": {}
+ },
+ "decoupling_max_mm": 2.0,
+ "decoupling": [
+  {
+   "ic": "U1",
+   "pin": "C4",
+   "cap": "C3",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U1",
+   "pin": "B7",
+   "cap": "C4",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U1",
+   "pin": "A3",
+   "cap": "C5",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U2",
+   "pin": "6",
+   "cap": "C1",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U2",
+   "pin": "1",
+   "cap": "C2",
+   "max_mm": 3.5,
+   "note": "U2 output cap sits at the U3 end of 3V3_LDO; 3.4 mm, log section 7"
+  },
+  {
+   "ic": "U4",
+   "pin": "1",
+   "cap": "C6",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U4",
+   "pin": "5",
+   "cap": "C7",
+   "max_mm": 4.0
+  },
+  {
+   "ic": "U5",
+   "pin": "19",
+   "cap": "C9",
+   "max_mm": 4.0
+  }
+ ],
+ "buses": {
+  "I2C": {
+   "sda": "SDA",
+   "scl": "SCL",
+   "rail": "3V3",
+   "max_sink_ma": 3.0,
+   "chain_boards": 2,
+   "devices": {
+    "U1": {
+     "address": "0x29"
+    }
+   }
+  },
+  "I2C_1V8": {
+   "sda": "SDA_1V8",
+   "scl": "SCL_1V8",
+   "rail": "1V8",
+   "max_sink_ma": 3.0,
+   "chain_boards": 1,
+   "devices": {}
+  }
+ },
+ "connectors": {
+  "J1": {
+   "1": "GND",
+   "2": "3V3",
+   "3": "SDA",
+   "4": "SCL"
+  },
+  "J2": {
+   "1": "GND",
+   "2": "3V3",
+   "3": "SDA",
+   "4": "SCL"
+  },
+  "J3": {
+   "1": "VIN",
+   "2": "3V3",
+   "3": "GND",
+   "4": "MISO",
+   "5": "SCL",
+   "6": "SDA",
+   "7": "NCS",
+   "8": "RST",
+   "9": "LPN",
+   "10": "INT"
+  }
+ },
+ "jumpers": {
+  "JP1": {
+   "pads": {
+    "1": "PU_I2C",
+    "2": "3V3"
+   },
+   "default": "1-2"
+  },
+  "JP2": {
+   "pads": {
+    "1": "3V3",
+    "2": "LED_A"
+   },
+   "default": "1-2"
+  },
+  "JP3": {
+   "pads": {
+    "1": "GND",
+    "2": "RST_STRAP",
+    "3": "1V8"
+   },
+   "default": "1-2"
+  },
+  "JP4": {
+   "pads": {
+    "1": "GND",
+    "2": "NCS_STRAP",
+    "3": "1V8"
+   },
+   "default": "1-2"
+  },
+  "JP5": {
+   "pads": {
+    "1": "MISO_PIN",
+    "2": "MISO_1V8"
+   },
+   "default": ""
+  }
+ },
+ "test_points": {
+  "TP1": "1V8",
+  "TP2": "3V3",
+  "TP3": "GND",
+  "TP4": "SYNC"
+ },
+ "margin": {
+  "pack": "jlcpcb",
+  "default_ratio": 1.0,
+  "min_ratio": {
+   "track_width": 2.0,
+   "clearance": 2.0,
+   "via_drill": 2.0
+  }
+ },
+ "accepted_warns": [
+  {
+   "check": "test_points",
+   "match": "rail VIN",
+   "reason": "VIN is probed on J3.1"
+  },
+  {
+   "check": "test_points",
+   "match": "rail 3V3_LDO",
+   "reason": "probed on C2, a net with no external load"
+  }
+ ],
+ "policy": {
+  "_about": "the brief's numbers; copy them here at the plan checkpoint and do not lower them to make a tool read 0 (R1-A2-T5)",
+  "clearance_mm": 0.2,
+  "track_mm": 0.2,
+  "via_drill_mm": 0.3,
+  "via_dia_mm": 0.6,
+  "hole_clearance_mm": 0.3,
+  "silk_text_mm": 1.0
+ },
+ "currents": {
+  "VIN": 0.17,
+  "3V3": 0.17,
+  "3V3_LDO": 0.17,
+  "1V8": 0.11
+ },
+ "copper_oz": {
+  "outer": 1.0,
+  "inner": 0.5
+ },
+ "rise_c": 20,
+ "thermal_vias": {
+  "U1": {
+   "pad": "B4",
+   "min": 4,
+   "within_mm": 1.5
+  },
+  "U2": {
+   "pad": "7",
+   "min": 2,
+   "within_mm": 2.0
+  }
+ },
+ "refplane": {
+  "ground": "GND",
+  "step_mm": 0.25,
+  "max_gap_mm": 0,
+  "mid_max_mm": 5,
+  "skip_nets": [],
+  "_why": "Alex's stackup: In1 and In2 both solid GND, rails routed, every signal over unbroken ground (REFPLANE-1); the limit follows the net's bucket in `signals`"
+ },
+ "return_via": {
+  "ground": "GND",
+  "_why": "a via on a bucket-3 net needs a GND via within 2 mm (SIG-2)"
+ },
+ "exposure": {
+  "within_mm": 1.0,
+  "victim_weight": 3,
+  "_why": "same-layer track beside the switch node, victims weighted (SIG-3)"
+ },
+ "signals": {
+  "SCL": {
+   "driver": "host GPIO in SPI mode, push-pull",
+   "t_rise_ns": 5,
+   "source": "assumption: 3.3 V MCU GPIO 5 ns; SPI at 3 MHz is the fast case, I2C edge is RC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SDA": {
+   "driver": "host GPIO in SPI mode, push-pull",
+   "t_rise_ns": 5,
+   "source": "same as SCL",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SCL_1V8": {
+   "driver": "U5 pass gate from SCL",
+   "t_rise_ns": 5,
+   "source": "pass gate adds no slowing below 100 MHz (LSF0108 features)",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SDA_1V8": {
+   "driver": "U5 pass gate from SDA",
+   "t_rise_ns": 5,
+   "source": "same",
+   "slowed_by": [],
+   "victim": false
+  },
+  "NCS": {
+   "driver": "host GPIO in SPI mode, push-pull",
+   "t_rise_ns": 5,
+   "source": "assumption",
+   "slowed_by": [],
+   "victim": false
+  },
+  "NCS_1V8": {
+   "driver": "U5 pass gate",
+   "t_rise_ns": 5,
+   "source": "assumption",
+   "slowed_by": [],
+   "victim": false
+  },
+  "MISO": {
+   "driver": "U5 pass gate up-translation with 1k to 3V3",
+   "t_rise_ns": 66,
+   "source": "2.2 x 1k x 30 pF",
+   "slowed_by": [
+    "R16 1k + 30 pF host"
+   ],
+   "victim": false
+  },
+  "MISO_1V8": {
+   "driver": "U1.C5 push-pull through JP5",
+   "t_rise_ns": 3,
+   "source": "DS14161 Table 8: TriseFallMiso 3 ns max at 20 pF",
+   "slowed_by": [],
+   "victim": false
+  },
+  "MISO_PIN": {
+   "driver": "U1.C5 push-pull",
+   "t_rise_ns": 3,
+   "source": "DS14161 Table 8",
+   "slowed_by": [],
+   "victim": false
+  },
+  "INT": {
+   "driver": "U1.A1 open drain through U5, 10k to 3V3",
+   "t_rise_ns": 660,
+   "source": "2.2 x 10k x 30 pF",
+   "slowed_by": [
+    "R14 10k"
+   ],
+   "victim": false
+  },
+  "INT_1V8": {
+   "driver": "U1.A1 open drain, 47k to 1V8",
+   "t_rise_ns": 1500,
+   "source": "2.2 x 47k x 15 pF",
+   "slowed_by": [
+    "R5 47k"
+   ],
+   "victim": false
+  },
+  "SYNC": {
+   "driver": "U1.B1 through U5, no host-side pull-up",
+   "t_rise_ns": 660,
+   "source": "host side floats unless the user adds one",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SYNC_1V8": {
+   "driver": "U1.B1 open drain",
+   "t_rise_ns": 1500,
+   "source": "2.2 x 47k x 15 pF",
+   "slowed_by": [
+    "R6 47k"
+   ],
+   "victim": false
+  },
+  "LPN": {
+   "driver": "host GPIO",
+   "t_rise_ns": 5,
+   "source": "assumption",
+   "slowed_by": [],
+   "victim": false
+  },
+  "LPN_1V8": {
+   "driver": "U5 pass gate",
+   "t_rise_ns": 5,
+   "source": "assumption",
+   "slowed_by": [],
+   "victim": false
+  },
+  "RST": {
+   "driver": "host GPIO, static except an I2C reset pulse",
+   "t_rise_ns": 5,
+   "source": "assumption",
+   "slowed_by": [],
+   "victim": false
+  },
+  "RST_1V8": {
+   "driver": "U5 pass gate",
+   "t_rise_ns": 5,
+   "source": "assumption",
+   "slowed_by": [],
+   "victim": false
+  },
+  "RST_STRAP": {
+   "driver": "static strap or bias",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "NCS_STRAP": {
+   "driver": "static strap or bias",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "EN_1V8": {
+   "driver": "static strap or bias",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "VREF_B": {
+   "driver": "static strap or bias",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "LED_A": {
+   "driver": "static strap or bias",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "LED_R": {
+   "driver": "static strap or bias",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "PU_I2C": {
+   "driver": "static",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  }
+ },
+ "calcs": [
+  {
+   "id": "i_avdd_ma",
+   "expr": "50+10",
+   "unit": "mA",
+   "max": 60,
+   "note": "DS14161 Table 12 active max + 10 mA peak note"
+  },
+  {
+   "id": "i_1v8_ma",
+   "expr": "80+10+0.006+10+2.0",
+   "unit": "mA",
+   "max": 110,
+   "note": "CORE 80+10, IOVDD 10 peak, 1V8 pull-ups: 2x 0.82 mA + 5x 38 uA"
+  },
+  {
+   "id": "i_3v3_ma",
+   "expr": "i_avdd_ma+i_1v8_ma+5+1.3",
+   "unit": "mA",
+   "max": 170,
+   "note": "AVDD + 1V8 + host-side pull-ups 5 mA + LED 1.3 mA"
+  },
+  {
+   "id": "p_u2_w",
+   "expr": "(5.0-3.3)*i_3v3_ma/1000",
+   "unit": "W",
+   "max": 0.3,
+   "note": "U2 at VIN 5 V"
+  },
+  {
+   "id": "tj_u2",
+   "expr": "60+p_u2_w*100.2",
+   "unit": "degC",
+   "max": 125,
+   "note": "TLV755P WSON RthJA 100.2 K/W, 60 C ambient"
+  },
+  {
+   "id": "p_u4_w",
+   "expr": "(3.3-1.8)*i_1v8_ma/1000",
+   "unit": "W",
+   "max": 0.2,
+   "note": "U4"
+  },
+  {
+   "id": "tj_u4",
+   "expr": "60+p_u4_w*194",
+   "unit": "degC",
+   "max": 125,
+   "note": "LP5907 SOT-23-5 RthJA about 194 K/W"
+  },
+  {
+   "id": "rail_at_vin_3v3",
+   "expr": "3.3-0.238*i_3v3_ma/500-0.095*i_3v3_ma/1000",
+   "unit": "V",
+   "min": 3.13,
+   "note": "U2 dropout 238 mV max at 500 mA scaled, U3 95 mOhm; AVDD min 3.13 (Table 10)"
+  },
+  {
+   "id": "rail_at_vin_5v_low",
+   "expr": "3.3*0.985-0.095*i_3v3_ma/1000",
+   "unit": "V",
+   "min": 3.13,
+   "note": "U2 1.5 % accuracy, U3 drop"
+  },
+  {
+   "id": "rail_at_vin_5v_high",
+   "expr": "3.3*1.015",
+   "unit": "V",
+   "max": 3.47,
+   "note": "AVDD max Table 10"
+  },
+  {
+   "id": "en_delay_ms",
+   "expr": "1e3*(R('R1')*1e6/(R('R1')+1e6))*C('C8')*log((3.3*1e6/(R('R1')+1e6))/((3.3*1e6/(R('R1')+1e6))-1.2))",
+   "unit": "ms",
+   "min": 3.3,
+   "max": 10,
+   "note": "U4 EN crosses VIH 1.2 V; R1 with internal 1M; must exceed the slowest legal AVDD ramp 3.3 V / 0.001 V/us = 3.3 ms"
+  },
+  {
+   "id": "core_slew_typ",
+   "expr": "(0.95*1.8)/80",
+   "unit": "V/us",
+   "min": 0.012,
+   "note": "LP5907 tON 80 us typ to 95 %; Table 5 0.012 V/us"
+  },
+  {
+   "id": "core_0v9_1v6_at_tonmax_us",
+   "expr": "150*(1.6-0.9)/(0.95*1.8)",
+   "unit": "us",
+   "max": 63,
+   "note": "Figure 9: 0.9 to 1.6 V in 63 us, linear ramp at tON max 150 us"
+  },
+  {
+   "id": "i2c_tr_ns",
+   "expr": "0.8473*R('R12')*30e-12*1e9",
+   "unit": "ns",
+   "max": 300,
+   "note": "host side, 10k, 30 pF, FM limit 300 ns"
+  },
+  {
+   "id": "i2c_1v8_tr_ns",
+   "expr": "0.8473*R('R3')*30e-12*1e9",
+   "unit": "ns",
+   "max": 120,
+   "note": "sensor side, 2.2k, 30 pF, DS14161 Table 6 tR 120 ns"
+  },
+  {
+   "id": "miso_tr_ns",
+   "expr": "2.2*R('R16')*30e-12*1e9",
+   "unit": "ns",
+   "max": 120,
+   "note": "MISO up-translation at 3 MHz: half period 167 ns"
+  },
+  {
+   "id": "miso_sink_ma",
+   "expr": "3.3/R('R16')*1e3",
+   "unit": "mA",
+   "max": 4.0,
+   "note": "Table 15 VOL rated at 4 mA"
+  }
+ ],
+ "feeds": [],
+ "via_in_pad": {
+  "allow": []
+ },
+ "edge_margin": {
+  "tracks_mm": 1.0,
+  "vias_mm": 1.0,
+  "parts_mm": 1.0,
+  "connector_mm": 1.5,
+  "skip_refs": []
+ },
+ "gnd_islands": {
+  "ground": "GND",
+  "warn_mm2": 0.5,
+  "max_mm2": 2.0
+ },
+ "pinmaps": {
+  "U1": {
+   "A1": "INT_1V8",
+   "A2": "LPN_1V8",
+   "A3": "1V8",
+   "A4": "SDA_1V8",
+   "A5": "SCL_1V8",
+   "A6": "GND",
+   "A7": "GND",
+   "B1": "SYNC_1V8",
+   "B4": "GND",
+   "B7": "1V8",
+   "C1": "RST_1V8",
+   "C2": "NCS_1V8",
+   "C3": "GND",
+   "C4": "3V3",
+   "C5": "MISO_PIN",
+   "C6": "GND",
+   "C7": "GND"
+  },
+  "U5": {
+   "2": "1V8",
+   "19": "VREF_B",
+   "20": "VREF_B",
+   "1": "GND",
+   "21": "GND"
+  },
+  "U2": {
+   "6": "VIN",
+   "4": "VIN",
+   "1": "3V3_LDO",
+   "3": "GND",
+   "7": "GND"
+  },
+  "U3": {
+   "1": "3V3_LDO",
+   "6": "3V3",
+   "3": "3V3",
+   "2": "GND",
+   "5": "GND"
+  },
+  "U4": {
+   "1": "3V3",
+   "3": "EN_1V8",
+   "5": "1V8",
+   "2": "GND"
+  }
+ },
+ "bringup": "BRINGUP.md"
+}

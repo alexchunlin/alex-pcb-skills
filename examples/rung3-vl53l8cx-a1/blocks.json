@@ -1,0 +1,177 @@
+{
+ "schema": 1,
+ "order": [
+  "qwiic_w",
+  "qwiic_e",
+  "header",
+  "ldo1v8",
+  "vout",
+  "diode",
+  "sensor",
+  "shifter"
+ ],
+ "groups": [
+  {
+   "name": "qwiic_w",
+   "role": "",
+   "refs": [
+    "J1"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "",
+   "region": [
+    100,
+    100,
+    105.4,
+    113.2
+   ]
+  },
+  {
+   "name": "qwiic_e",
+   "role": "",
+   "refs": [
+    "J2"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "",
+   "region": [
+    120.05,
+    100,
+    125.4,
+    113.2
+   ]
+  },
+  {
+   "name": "header",
+   "role": "",
+   "refs": [
+    "J3"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "",
+   "region": [
+    100,
+    114.0,
+    125.4,
+    117.8
+   ]
+  },
+  {
+   "name": "ldo1v8",
+   "role": "",
+   "refs": [
+    "U4",
+    "C6",
+    "C4",
+    "C7",
+    "R1",
+    "C8",
+    "C1",
+    "TP2",
+    "U2"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "",
+   "region": [
+    105.4,
+    100,
+    109.4,
+    111.15
+   ]
+  },
+  {
+   "name": "vout",
+   "role": "",
+   "refs": [
+    "C2",
+    "R16"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "",
+   "region": [
+    105.4,
+    111.15,
+    109.4,
+    114.0
+   ]
+  },
+  {
+   "name": "diode",
+   "role": "",
+   "refs": [
+    "U3"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "",
+   "region": [
+    109.4,
+    109.5,
+    111.45,
+    114.0
+   ]
+  },
+  {
+   "name": "sensor",
+   "role": "",
+   "refs": [
+    "U1",
+    "C3",
+    "C5",
+    "R3",
+    "R4",
+    "R10",
+    "R5",
+    "R6",
+    "R7",
+    "R8",
+    "R9",
+    "R12",
+    "R13",
+    "JP2",
+    "JP3",
+    "JP4",
+    "JP5",
+    "TP1",
+    "D1",
+    "R2"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "",
+   "region": [
+    109.4,
+    100,
+    120.05,
+    109.5
+   ]
+  },
+  {
+   "name": "shifter",
+   "role": "",
+   "refs": [
+    "U5",
+    "C9",
+    "R11",
+    "R14",
+    "JP1",
+    "TP3",
+    "TP4"
+   ],
+   "anchor": null,
+   "near": [],
+   "why": "",
+   "region": [
+    111.45,
+    109.5,
+    120.05,
+    114.0
+   ]
+  }
+ ]
+}

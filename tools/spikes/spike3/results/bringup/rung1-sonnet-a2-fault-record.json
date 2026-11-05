@@ -1,0 +1,1127 @@
+{
+ "dut_id": "sim-001",
+ "start_time_millis": 1793740197939,
+ "end_time_millis": 1793740197945,
+ "outcome": "FAIL",
+ "outcome_details": [],
+ "marginal": null,
+ "metadata": {
+  "test_name": "r1-fault",
+  "config": {
+   "attachments_directory": null,
+   "plug_teardown_timeout_s": 0,
+   "allow_unset_measurements": false,
+   "station_id": "sim-bench",
+   "cancel_timeout_s": 2,
+   "stop_on_first_failure": false,
+   "capture_source": false
+  }
+ },
+ "phases": [
+  {
+   "measurements": {},
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197939,
+   "end_time_millis": 1793740197939,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "PASS",
+   "marginal": false,
+   "descriptor_id": 4330216528,
+   "name": "trigger_phase",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  },
+  {
+   "measurements": {},
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197939,
+   "end_time_millis": 1793740197940,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "PASS",
+   "marginal": false,
+   "descriptor_id": 4330215520,
+   "name": "step_01_visual",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  },
+  {
+   "measurements": {
+    "s02_1_a_short_reads": {
+     "name": "s02_1_a_short_reads",
+     "outcome": "PASS",
+     "validators": [
+      "10.0 <= x"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "A short reads (2. Expected: not a short. A short reads below 10 ohm. A g)",
+     "measured_value": 22.37964627091891
+    },
+    "s02_2_a_good_board_reads": {
+     "name": "s02_2_a_good_board_reads",
+     "outcome": "PASS",
+     "validators": [
+      "500000.0 <= x"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "A good board reads (reads below 10 ohm. A good board reads above 500 kohm once)",
+     "measured_value": 1272114.6126479758
+    },
+    "s02_3_rail_resistance_unpowered": {
+     "name": "s02_3_rail_resistance_unpowered",
+     "outcome": "PASS",
+     "validators": [
+      "x <= 1.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "Rail resistance, unpowered (ctor's shell tab (the large side pads): below 1 ohm.)",
+     "measured_value": 0.31098654996442376
+    }
+   },
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197940,
+   "end_time_millis": 1793740197940,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "PASS",
+   "marginal": false,
+   "descriptor_id": 4330215632,
+   "name": "step_02_rail_resistance_unpowered",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  },
+  {
+   "measurements": {
+    "s03_1_pull_ups": {
+     "name": "s03_1_pull_ups",
+     "outcome": "PASS",
+     "validators": [
+      "2090.0 <= x <= 2310.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "Pull-ups (DMM from TP1 to J3 pin 3 (SDA): 2.2 kohm +/-5% (2.2)",
+     "measured_value": 2209.1449633964653
+    },
+    "s03_2_pull_ups": {
+     "name": "s03_2_pull_ups",
+     "outcome": "PASS",
+     "validators": [
+      "2090.0 <= x <= 2310.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "Pull-ups (us meter error). TP1 to J3 pin 4 (SCL): 2.2 kohm +/-5%. Do)",
+     "measured_value": 2211.063386761509
+    }
+   },
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197941,
+   "end_time_millis": 1793740197941,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "PASS",
+   "marginal": false,
+   "descriptor_id": 4330215744,
+   "name": "step_03_pull_ups",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  },
+  {
+   "measurements": {
+    "s04_1_address_strap": {
+     "name": "s04_1_address_strap",
+     "outcome": "PASS",
+     "validators": [
+      "x <= 1.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "Address strap (d 1 (3V3 side) and pad 2 (centre, SA0): below 1 ohm as s)",
+     "measured_value": 0.21965865777194393
+    }
+   },
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197941,
+   "end_time_millis": 1793740197941,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "PASS",
+   "marginal": false,
+   "descriptor_id": 4330215856,
+   "name": "step_04_address_strap",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  },
+  {
+   "measurements": {
+    "s05_1_current": {
+     "name": "s05_1_current",
+     "outcome": "PASS",
+     "validators": [
+      "x <= 0.0001"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "current (xpected: supply stays at 3.3 V; current below 0.1 mA with)",
+     "measured_value": 2.0395039746646228e-05
+    },
+    "s05_2_a_current": {
+     "name": "s05_2_a_current",
+     "outcome": "PASS",
+     "validators": [
+      "x <= 0.002"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "A current (g while both lines are high). A current above 2 mA befo)",
+     "measured_value": 0.000902481449257876
+    },
+    "s05_3_tp1_to_tp2": {
+     "name": "s05_3_tp1_to_tp2",
+     "outcome": "FAIL",
+     "validators": [
+      "3.1999999999999997 <= x <= 3.4"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "TP1 to TP2 = (to step 2. With power on: TP1 to TP2 = 3.3 V +/-0.1 V; J3)",
+     "measured_value": 3.05
+    },
+    "s05_4_3_and_pin_4_sda_scl": {
+     "name": "s05_4_3_and_pin_4_sda_scl",
+     "outcome": "PASS",
+     "validators": [
+      "3.1999999999999997 <= x <= 3.4"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "3 and pin 4 (SDA, SCL) = (-0.1 V; J3 pin 3 and pin 4 (SDA, SCL) = 3.3 V +/-0.1 V to T)",
+     "measured_value": 3.2807483211462403
+    }
+   },
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197942,
+   "end_time_millis": 1793740197942,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "FAIL",
+   "marginal": null,
+   "descriptor_id": 4330215968,
+   "name": "step_05_power",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  },
+  {
+   "measurements": {
+    "s06_1_i2c_scan_must_show_exactly_one_device": {
+     "name": "s06_1_i2c_scan_must_show_exactly_one_device",
+     "outcome": "PASS",
+     "validators": [
+      "'x' matches /^0x6b$/"
+     ],
+     "docstring": "I2C scan must show exactly one device (n I2C scan must show exactly one device at **0x6B** (JP1)",
+     "measured_value": "0x6b"
+    },
+    "s06_2_bus_scan_and_who_am_i": {
+     "name": "s06_2_bus_scan_and_who_am_i",
+     "outcome": "FAIL",
+     "validators": [
+      "'x' matches /^0x6a$/"
+     ],
+     "docstring": "Bus scan and WHO_AM_I (ster 0x0F (WHO_AM_I) from that address: expected **0x6A** for)",
+     "measured_value": "0x69"
+    }
+   },
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197942,
+   "end_time_millis": 1793740197944,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "FAIL",
+   "marginal": null,
+   "descriptor_id": 4330216080,
+   "name": "step_06_bus_scan_and_who_am_i",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  },
+  {
+   "measurements": {
+    "s07_1_z": {
+     "name": "s07_1_z",
+     "outcome": "PASS",
+     "validators": [
+      "900.0 <= x <= 1100.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "Z = (SB). Board flat, component side up: Z = +1000 mg +/-100 mg, X a)",
+     "measured_value": 978.7464768837357
+    },
+    "s07_2_1000_mg_100_mg_x_and_y": {
+     "name": "s07_2_1000_mg_100_mg_x_and_y",
+     "outcome": "PASS",
+     "validators": [
+      "-100.0 <= x <= 100.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "+1000 mg +/-100 mg, X and Y (ide up: Z = +1000 mg +/-100 mg, X and Y within +/-100 mg of z)",
+     "measured_value": 39.65158684083703
+    },
+    "s07_3_x": {
+     "name": "s07_3_x",
+     "outcome": "PASS",
+     "validators": [
+      "900.0 <= x <= 1100.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "X = (the X arrow on the silk points up: X = +1000 mg +/-100 mg; til)",
+     "measured_value": 997.6210806017958
+    },
+    "s07_4_y": {
+     "name": "s07_4_y",
+     "outcome": "PASS",
+     "validators": [
+      "900.0 <= x <= 1100.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "Y = (mg; tilt so the Y arrow points up: Y = +1000 mg +/-100 mg. Set)",
+     "measured_value": 1026.916916101951
+    },
+    "s07_5_board_at_rest_each_axis": {
+     "name": "s07_5_board_at_rest_each_axis",
+     "outcome": "PASS",
+     "validators": [
+      "-10.0 <= x <= 10.0"
+     ],
+     "units": {
+      "name": "None",
+      "code": null,
+      "suffix": null
+     },
+     "docstring": "board at rest, each axis (B at 250 dps): board at rest, each axis within +/-10 dps (dat)",
+     "measured_value": -0.1891743304053206
+    }
+   },
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197944,
+   "end_time_millis": 1793740197944,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "PASS",
+   "marginal": false,
+   "descriptor_id": 4330216192,
+   "name": "step_07_function_and_axes",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  },
+  {
+   "measurements": {},
+   "options": {
+    "name": null,
+    "timeout_s": null,
+    "run_if": null,
+    "requires_state": false,
+    "force_repeat": false,
+    "repeat_on_measurement_fail": false,
+    "repeat_on_timeout": false,
+    "repeat_limit": null,
+    "run_under_pdb": false,
+    "phase_name_case": "KEEP",
+    "stop_on_measurement_fail": false
+   },
+   "diagnosers": [],
+   "subtest_name": null,
+   "start_time_millis": 1793740197944,
+   "end_time_millis": 1793740197945,
+   "attachments": {},
+   "diagnosis_results": [],
+   "failure_diagnosis_results": [],
+   "result": {
+    "phase_result": "CONTINUE"
+   },
+   "outcome": "PASS",
+   "marginal": false,
+   "descriptor_id": 4330216304,
+   "name": "step_08_interrupt_header_optional",
+   "codeinfo": {
+    "name": "",
+    "docstring": null,
+    "sourcecode": ""
+   }
+  }
+ ],
+ "subtests": [],
+ "branches": [],
+ "diagnosers": [],
+ "diagnoses": [],
+ "log_records": [
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197939,
+   "message": "Executing phase trigger_phase (from trigger_phase at test_descriptor.py:318)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197939,
+   "message": "Thread finished: <PhaseExecutorThread: (trigger_phase)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.trigger_phase",
+   "source": "test_state.py",
+   "lineno": 839,
+   "timestamp_millis": 1793740197939,
+   "message": "Phase outcome of trigger_phase is PASS."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197939,
+   "message": "Phase trigger_phase finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_executor.py",
+   "lineno": 346,
+   "timestamp_millis": 1793740197939,
+   "message": "Executing phase step_01_visual (from step_01_visual at bringup_htf.py:133)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197939,
+   "message": "Executing phase step_01_visual (from step_01_visual at bringup_htf.py:133)"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_01_visual",
+   "source": "bringup_htf.py",
+   "lineno": 135,
+   "timestamp_millis": 1793740197939,
+   "message": "step 1 Visual: operator check (no number in BRINGUP.md)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197940,
+   "message": "Thread finished: <PhaseExecutorThread: (step_01_visual)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_01_visual",
+   "source": "test_state.py",
+   "lineno": 839,
+   "timestamp_millis": 1793740197940,
+   "message": "Phase outcome of step_01_visual is PASS."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197940,
+   "message": "Phase step_01_visual finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_executor.py",
+   "lineno": 346,
+   "timestamp_millis": 1793740197940,
+   "message": "Executing phase step_02_rail_resistance_unpowered (from step_02_rail_resistance_unpowered at bringup_htf.py:133)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197940,
+   "message": "Executing phase step_02_rail_resistance_unpowered (from step_02_rail_resistance_unpowered at bringup_htf.py:133)"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_02_rail_resistance_unpowered",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197940,
+   "message": "step 2 s02_1_a_short_reads = 22.37964627091891 ohm"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_02_rail_resistance_unpowered",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197940,
+   "message": "step 2 s02_2_a_good_board_reads = 1272114.6126479758 ohm"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_02_rail_resistance_unpowered",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197940,
+   "message": "step 2 s02_3_rail_resistance_unpowered = 0.31098654996442376 ohm"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197940,
+   "message": "Thread finished: <PhaseExecutorThread: (step_02_rail_resistance_unpowered)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_02_rail_resistance_unpowered",
+   "source": "test_state.py",
+   "lineno": 839,
+   "timestamp_millis": 1793740197940,
+   "message": "Phase outcome of step_02_rail_resistance_unpowered is PASS."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197940,
+   "message": "Phase step_02_rail_resistance_unpowered finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_executor.py",
+   "lineno": 346,
+   "timestamp_millis": 1793740197940,
+   "message": "Executing phase step_03_pull_ups (from step_03_pull_ups at bringup_htf.py:133)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197941,
+   "message": "Executing phase step_03_pull_ups (from step_03_pull_ups at bringup_htf.py:133)"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_03_pull_ups",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197941,
+   "message": "step 3 s03_1_pull_ups = 2209.1449633964653 ohm"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_03_pull_ups",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197941,
+   "message": "step 3 s03_2_pull_ups = 2211.063386761509 ohm"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197941,
+   "message": "Thread finished: <PhaseExecutorThread: (step_03_pull_ups)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_03_pull_ups",
+   "source": "test_state.py",
+   "lineno": 839,
+   "timestamp_millis": 1793740197941,
+   "message": "Phase outcome of step_03_pull_ups is PASS."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197941,
+   "message": "Phase step_03_pull_ups finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_executor.py",
+   "lineno": 346,
+   "timestamp_millis": 1793740197941,
+   "message": "Executing phase step_04_address_strap (from step_04_address_strap at bringup_htf.py:133)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197941,
+   "message": "Executing phase step_04_address_strap (from step_04_address_strap at bringup_htf.py:133)"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_04_address_strap",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197941,
+   "message": "step 4 s04_1_address_strap = 0.21965865777194393 ohm"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197941,
+   "message": "Thread finished: <PhaseExecutorThread: (step_04_address_strap)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_04_address_strap",
+   "source": "test_state.py",
+   "lineno": 839,
+   "timestamp_millis": 1793740197941,
+   "message": "Phase outcome of step_04_address_strap is PASS."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197941,
+   "message": "Phase step_04_address_strap finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_executor.py",
+   "lineno": 346,
+   "timestamp_millis": 1793740197942,
+   "message": "Executing phase step_05_power (from step_05_power at bringup_htf.py:133)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197942,
+   "message": "Executing phase step_05_power (from step_05_power at bringup_htf.py:133)"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_05_power",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197942,
+   "message": "step 5 s05_1_current = 2.0395039746646228e-05 A"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_05_power",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197942,
+   "message": "step 5 s05_2_a_current = 0.000902481449257876 A"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_05_power",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197942,
+   "message": "step 5 s05_3_tp1_to_tp2 = 3.05 V"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_05_power",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197942,
+   "message": "step 5 s05_4_3_and_pin_4_sda_scl = 3.2807483211462403 V"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197942,
+   "message": "Thread finished: <PhaseExecutorThread: (step_05_power)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_05_power",
+   "source": "test_state.py",
+   "lineno": 827,
+   "timestamp_millis": 1793740197942,
+   "message": "Phase outcome of step_05_power is FAIL due to measurement outcome."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197942,
+   "message": "Phase step_05_power finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_executor.py",
+   "lineno": 346,
+   "timestamp_millis": 1793740197942,
+   "message": "Executing phase step_06_bus_scan_and_who_am_i (from step_06_bus_scan_and_who_am_i at bringup_htf.py:133)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197942,
+   "message": "Executing phase step_06_bus_scan_and_who_am_i (from step_06_bus_scan_and_who_am_i at bringup_htf.py:133)"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_06_bus_scan_and_who_am_i",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197943,
+   "message": "step 6 s06_1_i2c_scan_must_show_exactly_one_device = 0x6b hex"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_06_bus_scan_and_who_am_i",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197943,
+   "message": "step 6 s06_2_bus_scan_and_who_am_i = 0x69 hex"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197943,
+   "message": "Thread finished: <PhaseExecutorThread: (step_06_bus_scan_and_who_am_i)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_06_bus_scan_and_who_am_i",
+   "source": "test_state.py",
+   "lineno": 827,
+   "timestamp_millis": 1793740197944,
+   "message": "Phase outcome of step_06_bus_scan_and_who_am_i is FAIL due to measurement outcome."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197944,
+   "message": "Phase step_06_bus_scan_and_who_am_i finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_executor.py",
+   "lineno": 346,
+   "timestamp_millis": 1793740197944,
+   "message": "Executing phase step_07_function_and_axes (from step_07_function_and_axes at bringup_htf.py:133)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197944,
+   "message": "Executing phase step_07_function_and_axes (from step_07_function_and_axes at bringup_htf.py:133)"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_07_function_and_axes",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197944,
+   "message": "step 7 s07_1_z = 978.7464768837357 mg"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_07_function_and_axes",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197944,
+   "message": "step 7 s07_2_1000_mg_100_mg_x_and_y = 39.65158684083703 mg"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_07_function_and_axes",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197944,
+   "message": "step 7 s07_3_x = 997.6210806017958 mg"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_07_function_and_axes",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197944,
+   "message": "step 7 s07_4_y = 1026.916916101951 mg"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_07_function_and_axes",
+   "source": "bringup_htf.py",
+   "lineno": 139,
+   "timestamp_millis": 1793740197944,
+   "message": "step 7 s07_5_board_at_rest_each_axis = -0.1891743304053206 dps"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197944,
+   "message": "Thread finished: <PhaseExecutorThread: (step_07_function_and_axes)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_07_function_and_axes",
+   "source": "test_state.py",
+   "lineno": 839,
+   "timestamp_millis": 1793740197944,
+   "message": "Phase outcome of step_07_function_and_axes is PASS."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197944,
+   "message": "Phase step_07_function_and_axes finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_executor.py",
+   "lineno": 346,
+   "timestamp_millis": 1793740197944,
+   "message": "Executing phase step_08_interrupt_header_optional (from step_08_interrupt_header_optional at bringup_htf.py:133)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 332,
+   "timestamp_millis": 1793740197944,
+   "message": "Executing phase step_08_interrupt_header_optional (from step_08_interrupt_header_optional at bringup_htf.py:133)"
+  },
+  {
+   "level": 20,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_08_interrupt_header_optional",
+   "source": "bringup_htf.py",
+   "lineno": 135,
+   "timestamp_millis": 1793740197945,
+   "message": "step 8 Interrupt header (optional): operator check (no number in BRINGUP.md)"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor_thread",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197945,
+   "message": "Thread finished: <PhaseExecutorThread: (step_08_interrupt_header_optional)>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase.step_08_interrupt_header_optional",
+   "source": "test_state.py",
+   "lineno": 839,
+   "timestamp_millis": 1793740197945,
+   "message": "Phase outcome of step_08_interrupt_header_optional is PASS."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938.phase_executor",
+   "source": "phase_executor.py",
+   "lineno": 362,
+   "timestamp_millis": 1793740197945,
+   "message": "Phase step_08_interrupt_header_optional finished with result <PhaseResult.CONTINUE: 'CONTINUE'>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.plugs",
+   "source": "__init__.py",
+   "lineno": 358,
+   "timestamp_millis": 1793740197945,
+   "message": "Tearing down all plugs."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.util.threads",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197945,
+   "message": "Thread finished: <PlugTearDownThread: BasePlug No-Op for <class '__main__.run.<locals>.Instrument'>>"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.test_record.30420:80058a25d05f4b92:bf71a2ef9e074f07:1793740197938",
+   "source": "test_state.py",
+   "lineno": 505,
+   "timestamp_millis": 1793740197945,
+   "message": "Finishing test execution normally with outcome FAIL."
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.util.threads",
+   "source": "threads.py",
+   "lineno": 116,
+   "timestamp_millis": 1793740197945,
+   "message": "Thread finished: TestExecutorThread"
+  },
+  {
+   "level": 10,
+   "logger_name": "openhtf.core.test_descriptor",
+   "source": "test_descriptor.py",
+   "lineno": 359,
+   "timestamp_millis": 1793740197945,
+   "message": "Test completed for r1-fault, outputting now."
+  }
+ ],
+ "station_id": "sim-bench",
+ "code_info": {
+  "name": "",
+  "docstring": null,
+  "sourcecode": ""
+ }
+}

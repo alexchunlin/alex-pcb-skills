@@ -1,0 +1,262 @@
+[
+ {
+  "step": 1,
+  "title": "Visual",
+  "rows": [],
+  "manual": true
+ },
+ {
+  "step": 2,
+  "title": "Rail resistance, unpowered",
+  "rows": [
+   {
+    "step": 2,
+    "title": "Rail resistance, unpowered",
+    "what": "A short reads",
+    "text": "2. Expected: not a short. A short reads below 10 ohm. A g",
+    "kind": "min",
+    "expected": null,
+    "lo": 10.0,
+    "hi": null,
+    "unit": "ohm",
+    "inverted": true,
+    "name": "s02_1_a_short_reads"
+   },
+   {
+    "step": 2,
+    "title": "Rail resistance, unpowered",
+    "what": "A good board reads",
+    "text": "reads below 10 ohm. A good board reads above 500 kohm once",
+    "kind": "min",
+    "expected": null,
+    "lo": 500000.0,
+    "hi": null,
+    "unit": "ohm",
+    "name": "s02_2_a_good_board_reads"
+   },
+   {
+    "step": 2,
+    "title": "Rail resistance, unpowered",
+    "what": "Rail resistance, unpowered",
+    "text": "ctor's shell tab (the large side pads): below 1 ohm.",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 1.0,
+    "unit": "ohm",
+    "name": "s02_3_rail_resistance_unpowered"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 3,
+  "title": "Pull-ups",
+  "rows": [
+   {
+    "step": 3,
+    "title": "Pull-ups",
+    "what": "Pull-ups",
+    "text": "DMM from TP1 to J3 pin 3 (SDA): 2.2 kohm +/-5% (2.2",
+    "kind": "tol",
+    "expected": 2200.0,
+    "lo": 2090.0,
+    "hi": 2310.0,
+    "unit": "ohm",
+    "name": "s03_1_pull_ups"
+   },
+   {
+    "step": 3,
+    "title": "Pull-ups",
+    "what": "Pull-ups",
+    "text": "us meter error). TP1 to J3 pin 4 (SCL): 2.2 kohm +/-5%. Do",
+    "kind": "tol",
+    "expected": 2200.0,
+    "lo": 2090.0,
+    "hi": 2310.0,
+    "unit": "ohm",
+    "name": "s03_2_pull_ups"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 4,
+  "title": "Address strap",
+  "rows": [
+   {
+    "step": 4,
+    "title": "Address strap",
+    "what": "Address strap",
+    "text": "d 1 (3V3 side) and pad 2 (centre, SA0): below 1 ohm as s",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 1.0,
+    "unit": "ohm",
+    "name": "s04_1_address_strap"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 5,
+  "title": "Power",
+  "rows": [
+   {
+    "step": 5,
+    "title": "Power",
+    "what": "current",
+    "text": "xpected: supply stays at 3.3 V; current below 0.1 mA with",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 0.0001,
+    "unit": "A",
+    "name": "s05_1_current"
+   },
+   {
+    "step": 5,
+    "title": "Power",
+    "what": "A current",
+    "text": "g while both lines are high). A current above 2 mA befo",
+    "kind": "max",
+    "expected": null,
+    "lo": null,
+    "hi": 0.002,
+    "unit": "A",
+    "inverted": true,
+    "name": "s05_2_a_current"
+   },
+   {
+    "step": 5,
+    "title": "Power",
+    "what": "TP1 to TP2 =",
+    "text": "to step 2. With power on: TP1 to TP2 = 3.3 V +/-0.1 V; J3",
+    "kind": "tol",
+    "expected": 3.3,
+    "lo": 3.1999999999999997,
+    "hi": 3.4,
+    "unit": "V",
+    "name": "s05_3_tp1_to_tp2"
+   },
+   {
+    "step": 5,
+    "title": "Power",
+    "what": "3 and pin 4 (SDA, SCL) =",
+    "text": "-0.1 V; J3 pin 3 and pin 4 (SDA, SCL) = 3.3 V +/-0.1 V to T",
+    "kind": "tol",
+    "expected": 3.3,
+    "lo": 3.1999999999999997,
+    "hi": 3.4,
+    "unit": "V",
+    "name": "s05_4_3_and_pin_4_sda_scl"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 6,
+  "title": "Bus scan and WHO_AM_I",
+  "rows": [
+   {
+    "step": 6,
+    "title": "Bus scan and WHO_AM_I",
+    "what": "I2C scan must show exactly one device",
+    "text": "n I2C scan must show exactly one device at **0x6B** (JP1",
+    "kind": "eq",
+    "expected": "0x6b",
+    "lo": null,
+    "hi": null,
+    "unit": "hex",
+    "name": "s06_1_i2c_scan_must_show_exactly_one_device"
+   },
+   {
+    "step": 6,
+    "title": "Bus scan and WHO_AM_I",
+    "what": "Bus scan and WHO_AM_I",
+    "text": "ster 0x0F (WHO_AM_I) from that address: expected **0x6A** for",
+    "kind": "eq",
+    "expected": "0x6a",
+    "lo": null,
+    "hi": null,
+    "unit": "hex",
+    "name": "s06_2_bus_scan_and_who_am_i"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 7,
+  "title": "Function and axes",
+  "rows": [
+   {
+    "step": 7,
+    "title": "Function and axes",
+    "what": "Z =",
+    "text": "SB). Board flat, component side up: Z = +1000 mg +/-100 mg, X a",
+    "kind": "tol",
+    "expected": 1000.0,
+    "lo": 900.0,
+    "hi": 1100.0,
+    "unit": "mg",
+    "name": "s07_1_z"
+   },
+   {
+    "step": 7,
+    "title": "Function and axes",
+    "what": "+1000 mg +/-100 mg, X and Y",
+    "text": "ide up: Z = +1000 mg +/-100 mg, X and Y within +/-100 mg of z",
+    "kind": "zero",
+    "expected": 0.0,
+    "lo": -100.0,
+    "hi": 100.0,
+    "unit": "mg",
+    "name": "s07_2_1000_mg_100_mg_x_and_y"
+   },
+   {
+    "step": 7,
+    "title": "Function and axes",
+    "what": "X =",
+    "text": "the X arrow on the silk points up: X = +1000 mg +/-100 mg; til",
+    "kind": "tol",
+    "expected": 1000.0,
+    "lo": 900.0,
+    "hi": 1100.0,
+    "unit": "mg",
+    "name": "s07_3_x"
+   },
+   {
+    "step": 7,
+    "title": "Function and axes",
+    "what": "Y =",
+    "text": "mg; tilt so the Y arrow points up: Y = +1000 mg +/-100 mg. Set",
+    "kind": "tol",
+    "expected": 1000.0,
+    "lo": 900.0,
+    "hi": 1100.0,
+    "unit": "mg",
+    "name": "s07_4_y"
+   },
+   {
+    "step": 7,
+    "title": "Function and axes",
+    "what": "board at rest, each axis",
+    "text": "B at 250 dps): board at rest, each axis within +/-10 dps (dat",
+    "kind": "zero",
+    "expected": 0.0,
+    "lo": -10.0,
+    "hi": 10.0,
+    "unit": "dps",
+    "name": "s07_5_board_at_rest_each_axis"
+   }
+  ],
+  "manual": false
+ },
+ {
+  "step": 8,
+  "title": "Interrupt header (optional)",
+  "rows": [],
+  "manual": true
+ }
+]

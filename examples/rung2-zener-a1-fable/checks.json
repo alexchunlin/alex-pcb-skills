@@ -386,5 +386,8 @@
       "amps": 2.5,
       "within_mm": 2.0
     }
-  ]
+  ],
+  "irdrop": {
+    "_why": "spike #3 C1: every net with feeds rows solved on the copper; sources named here where the rails block does not name a part on the net"
+  }
 }

@@ -1,0 +1,500 @@
+{
+ "rows_file": "tools/bench/data/refstat-rows.json",
+ "n_rows": 9,
+ "decoupling_feed_majors": [
+  "R2-O-2",
+  "R2-O-3",
+  "R2-S-1",
+  "R2-S-2",
+  "R2-F-3",
+  "R2-F-4",
+  "R2A2-O-1",
+  "R2A2-O-2"
+ ],
+ "attempts": {
+  "rung1-zener-a1": {
+   "base": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 2,
+    "false_fails": 0,
+    "missed": [],
+    "caught": [
+     "R1-Z1-F3",
+     "R1-Z1-F4"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 2,
+    "false_fails": 0,
+    "missed": [],
+    "caught": [
+     "R1-Z1-F3",
+     "R1-Z1-F4"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U1.VDDIO:C:100n:GND",
+     "msg": "U1 (LSM6DS3TR-C): C 100n from VDDIO (3V3) to GND: nearest C2 (100nF) at 1.51 mm pad to pad (corpus p90 5.26); corpus: 85 % of 53 designs, p90 5.26 mm on 32 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U1.VDD:C:100n:GND",
+     "msg": "U1 (LSM6DS3TR-C): C 100n from VDD (3V3) to GND: nearest C1 (100nF) at 1.75 mm pad to pad (corpus p90 5.67); corpus: 88 % of 51 designs, p90 5.67 mm on 32 boards"
+    }
+   ],
+   "refstat_fails": [],
+   "new_catches": []
+  },
+  "rung1-skidl-a1": {
+   "base": {
+    "recall_fail": 3,
+    "recall_fw": 3,
+    "labels": 3,
+    "false_fails": 0,
+    "missed": [],
+    "caught": [
+     "R1-S1-F2a",
+     "R1-S1-F2b",
+     "R1-S1-F2c"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 3,
+    "recall_fw": 3,
+    "labels": 3,
+    "false_fails": 0,
+    "missed": [],
+    "caught": [
+     "R1-S1-F2a",
+     "R1-S1-F2b",
+     "R1-S1-F2c"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U1.VDDIO:C:100n:GND",
+     "msg": "U1 (LSM6DS3TR-C): C 100n from VDDIO (+3V3) to GND: nearest C2 (100nF) at 1.69 mm pad to pad (corpus p90 5.26); corpus: 85 % of 53 designs, p90 5.26 mm on 32 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U1.VDD:C:100n:GND",
+     "msg": "U1 (LSM6DS3TR-C): C 100n from VDD (+3V3) to GND: nearest C1 (100nF) at 1.96 mm pad to pad (corpus p90 5.67); corpus: 88 % of 51 designs, p90 5.67 mm on 32 boards"
+    }
+   ],
+   "refstat_fails": [],
+   "new_catches": []
+  },
+  "plink-v1": {
+   "base": {
+    "recall_fail": 1,
+    "recall_fw": 1,
+    "labels": 3,
+    "false_fails": 0,
+    "missed": [
+     "PLINK-SCHOTTKY",
+     "PLINK-SILK"
+    ],
+    "caught": [
+     "PLINK-IMU"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 1,
+    "recall_fw": 1,
+    "labels": 3,
+    "false_fails": 2,
+    "missed": [
+     "PLINK-SCHOTTKY",
+     "PLINK-SILK"
+    ],
+    "caught": [
+     "PLINK-IMU"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U8.VIN:C:bulk:GND",
+     "msg": "U8 (AMS1117-3.3): C bulk from VIN (+5V) to GND: nearest C24 (22uF 16v) at 2.15 mm pad to pad (corpus p90 12.46); corpus: 81 % of 772 designs, p90 12.46 mm on 186 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U8.VOUT:C:bulk:GND",
+     "msg": "U8 (AMS1117-3.3): C bulk from VOUT (+3.3V) to GND: nearest C25 (22uF 16v) at 8.55 mm pad to pad (corpus p90 12.99); corpus: 85 % of 768 designs, p90 12.99 mm on 192 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U11.VDDIO:C:100n:GND",
+     "msg": "U11 (LSM6DS3TR): C 100n from VDDIO (+3.3V) to GND: nearest C31 (100nF) at 1.19 mm pad to pad (corpus p90 5.26); corpus: 85 % of 53 designs, p90 5.26 mm on 32 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U11.VDD:C:100n:GND",
+     "msg": "U11 (LSM6DS3TR): C 100n from VDD (+3.3V) to GND: nearest C31 (100nF) at 2.15 mm pad to pad (corpus p90 5.67); corpus: 88 % of 51 designs, p90 5.67 mm on 32 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U1.3V3:C:bulk:GND",
+     "msg": "U1 (ESP32-S3-WROOM-1): C bulk from 3V3 (+3.3V) to GND: nearest C25 (22uF 16v) at 20.19 mm pad to pad (corpus p90 39.25); corpus: 80 % of 265 designs, p90 39.25 mm on 125 boards"
+    },
+    {
+     "status": "fail",
+     "id": "refstat:U1.EN:R:*:IC:3V3",
+     "msg": "U1 (ESP32-S3-WROOM-1): R * from EN (reset) to IC:3V3: nearest R9 (5k1) at 48.47 mm pad to pad (corpus p90 33.29); corpus: 83 % of 238 designs, p90 33.29 mm on 123 boards"
+    },
+    {
+     "status": "fail",
+     "id": "refstat:U1.EN:C:*:GND",
+     "msg": "U1 (ESP32-S3-WROOM-1): no C * from EN (reset) to GND; corpus: 80 % of 238 designs, p90 31.01 mm on 108 boards"
+    }
+   ],
+   "refstat_fails": [
+    "refstat:U1.EN:R:*:IC:3V3",
+    "refstat:U1.EN:C:*:GND"
+   ],
+   "new_catches": []
+  },
+  "plink-fixed": {
+   "base": {
+    "recall_fail": 0,
+    "recall_fw": 0,
+    "labels": 0,
+    "false_fails": 0,
+    "missed": [],
+    "caught": []
+   },
+   "refstat": {
+    "recall_fail": 0,
+    "recall_fw": 0,
+    "labels": 0,
+    "false_fails": 2,
+    "missed": [],
+    "caught": []
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U8.VIN:C:bulk:GND",
+     "msg": "U8 (AMS1117-3.3): C bulk from VIN (+5V) to GND: nearest C24 (22uF 16v) at 2.15 mm pad to pad (corpus p90 12.46); corpus: 81 % of 772 designs, p90 12.46 mm on 186 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U8.VOUT:C:bulk:GND",
+     "msg": "U8 (AMS1117-3.3): C bulk from VOUT (+3.3V) to GND: nearest C25 (22uF 16v) at 8.55 mm pad to pad (corpus p90 12.99); corpus: 85 % of 768 designs, p90 12.99 mm on 192 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U11.VDDIO:C:100n:GND",
+     "msg": "U11 (LSM6DS3TR): C 100n from VDDIO (+3.3V) to GND: nearest C31 (100nF) at 1.05 mm pad to pad (corpus p90 5.26); corpus: 85 % of 53 designs, p90 5.26 mm on 32 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U11.VDD:C:100n:GND",
+     "msg": "U11 (LSM6DS3TR): C 100n from VDD (+3.3V) to GND: nearest C31 (100nF) at 2.03 mm pad to pad (corpus p90 5.67); corpus: 88 % of 51 designs, p90 5.67 mm on 32 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U1.3V3:C:bulk:GND",
+     "msg": "U1 (ESP32-S3-WROOM-1): C bulk from 3V3 (+3.3V) to GND: nearest C25 (22uF 16v) at 20.19 mm pad to pad (corpus p90 39.25); corpus: 80 % of 265 designs, p90 39.25 mm on 125 boards"
+    },
+    {
+     "status": "fail",
+     "id": "refstat:U1.EN:R:*:IC:3V3",
+     "msg": "U1 (ESP32-S3-WROOM-1): R * from EN (reset) to IC:3V3: nearest R9 (5k1) at 48.47 mm pad to pad (corpus p90 33.29); corpus: 83 % of 238 designs, p90 33.29 mm on 123 boards"
+    },
+    {
+     "status": "fail",
+     "id": "refstat:U1.EN:C:*:GND",
+     "msg": "U1 (ESP32-S3-WROOM-1): no C * from EN (reset) to GND; corpus: 80 % of 238 designs, p90 31.01 mm on 108 boards"
+    }
+   ],
+   "refstat_fails": [
+    "refstat:U1.EN:R:*:IC:3V3",
+    "refstat:U1.EN:C:*:GND"
+   ],
+   "new_catches": []
+  },
+  "rung1-zener-a2-sonnet": {
+   "base": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 2,
+    "false_fails": 0,
+    "missed": [],
+    "caught": [
+     "R1-A2S-1",
+     "R1-A2S-2"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 2,
+    "false_fails": 0,
+    "missed": [],
+    "caught": [
+     "R1-A2S-1",
+     "R1-A2S-2"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U1.VDDIO:C:100n:GND",
+     "msg": "U1 (LSM6DS3TR-C): C 100n from VDDIO (3V3) to GND: nearest C2 (100nF 16V X7R) at 1.29 mm pad to pad (corpus p90 5.26); corpus: 85 % of 53 designs, p90 5.26 mm on 32 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U1.VDD:C:100n:GND",
+     "msg": "U1 (LSM6DS3TR-C): C 100n from VDD (3V3) to GND: nearest C1 (100nF 16V X7R) at 1.18 mm pad to pad (corpus p90 5.67); corpus: 88 % of 51 designs, p90 5.67 mm on 32 boards"
+    }
+   ],
+   "refstat_fails": [],
+   "new_catches": []
+  },
+  "rung1-zener-a2-fable": {
+   "base": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 2,
+    "false_fails": 0,
+    "missed": [],
+    "caught": [
+     "R1-A2F-1",
+     "R1-A2F-3"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 2,
+    "false_fails": 0,
+    "missed": [],
+    "caught": [
+     "R1-A2F-1",
+     "R1-A2F-3"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U1.VDDIO:C:100n:GND",
+     "msg": "U1 (LSM6DS3TR-C): C 100n from VDDIO (3V3) to GND: nearest C2 (100nF 16V X7R) at 1.21 mm pad to pad (corpus p90 5.26); corpus: 85 % of 53 designs, p90 5.26 mm on 32 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U1.VDD:C:100n:GND",
+     "msg": "U1 (LSM6DS3TR-C): C 100n from VDD (3V3) to GND: nearest C1 (100nF 16V X7R) at 1.15 mm pad to pad (corpus p90 5.67); corpus: 88 % of 51 designs, p90 5.67 mm on 32 boards"
+    }
+   ],
+   "refstat_fails": [],
+   "new_catches": []
+  },
+  "rung2-zener-a1-opus": {
+   "base": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 4,
+    "false_fails": 0,
+    "missed": [
+     "R2-O-1",
+     "R2-O-4"
+    ],
+    "caught": [
+     "R2-O-2",
+     "R2-O-3"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 4,
+    "false_fails": 0,
+    "missed": [
+     "R2-O-1",
+     "R2-O-4"
+    ],
+    "caught": [
+     "R2-O-2",
+     "R2-O-3"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U3.VIN:C:bulk:GND",
+     "msg": "U3 (AMS1117-3.3): C bulk from VIN (5V) to GND: nearest C15 (10uF 50V) at 2.89 mm pad to pad (corpus p90 12.46); corpus: 81 % of 772 designs, p90 12.46 mm on 186 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U3.VOUT:C:bulk:GND",
+     "msg": "U3 (AMS1117-3.3): C bulk from VOUT (3V3) to GND: nearest C16 (22uF 25V) at 6.41 mm pad to pad (corpus p90 12.99); corpus: 85 % of 768 designs, p90 12.99 mm on 192 boards"
+    }
+   ],
+   "refstat_fails": [],
+   "new_catches": []
+  },
+  "rung2-zener-a1-sonnet": {
+   "base": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 3,
+    "false_fails": 0,
+    "missed": [
+     "R2-S-3"
+    ],
+    "caught": [
+     "R2-S-1",
+     "R2-S-2"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 3,
+    "false_fails": 0,
+    "missed": [
+     "R2-S-3"
+    ],
+    "caught": [
+     "R2-S-1",
+     "R2-S-2"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U3.VIN:C:bulk:GND",
+     "msg": "U3 (AMS1117-3.3): C bulk from VIN (5V) to GND: nearest C16 (10uF 25V) at 2.97 mm pad to pad (corpus p90 12.46); corpus: 81 % of 772 designs, p90 12.46 mm on 186 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U3.VOUT:C:bulk:GND",
+     "msg": "U3 (AMS1117-3.3): C bulk from VOUT (3V3) to GND: nearest C17 (22uF 10V tantalum) at 3.11 mm pad to pad (corpus p90 12.99); corpus: 85 % of 768 designs, p90 12.99 mm on 192 boards"
+    }
+   ],
+   "refstat_fails": [],
+   "new_catches": []
+  },
+  "rung2-zener-a1-fable": {
+   "base": {
+    "recall_fail": 3,
+    "recall_fw": 3,
+    "labels": 4,
+    "false_fails": 0,
+    "missed": [
+     "R2-F-5"
+    ],
+    "caught": [
+     "R2-F-3",
+     "R2-F-4",
+     "R2-F-6"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 3,
+    "recall_fw": 3,
+    "labels": 4,
+    "false_fails": 0,
+    "missed": [
+     "R2-F-5"
+    ],
+    "caught": [
+     "R2-F-3",
+     "R2-F-4",
+     "R2-F-6"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U3.VIN:C:bulk:GND",
+     "msg": "U3 (AMS1117-3.3): C bulk from VIN (5V) to GND: nearest C11 (4.7uF) at 1.37 mm pad to pad (corpus p90 12.46); corpus: 81 % of 772 designs, p90 12.46 mm on 186 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U3.VOUT:C:bulk:GND",
+     "msg": "U3 (AMS1117-3.3): C bulk from VOUT (3V3) to GND: nearest C12 (22uF) at 5.15 mm pad to pad (corpus p90 12.99); corpus: 85 % of 768 designs, p90 12.99 mm on 192 boards"
+    }
+   ],
+   "refstat_fails": [],
+   "new_catches": []
+  },
+  "rung2-zener-a2-opus": {
+   "base": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 3,
+    "false_fails": 0,
+    "missed": [
+     "R2A2-O-3"
+    ],
+    "caught": [
+     "R2A2-O-1",
+     "R2A2-O-2"
+    ]
+   },
+   "refstat": {
+    "recall_fail": 2,
+    "recall_fw": 2,
+    "labels": 3,
+    "false_fails": 0,
+    "missed": [
+     "R2A2-O-3"
+    ],
+    "caught": [
+     "R2A2-O-1",
+     "R2A2-O-2"
+    ]
+   },
+   "refstat_rows": [
+    {
+     "status": "pass",
+     "id": "refstat:U3.VIN:C:bulk:GND",
+     "msg": "U3 (AMS1117-3.3): C bulk from VIN (5V) to GND: nearest C15 (10uF 25V X5R) at 2.85 mm pad to pad (corpus p90 12.46); corpus: 81 % of 772 designs, p90 12.46 mm on 186 boards"
+    },
+    {
+     "status": "pass",
+     "id": "refstat:U3.VOUT:C:bulk:GND",
+     "msg": "U3 (AMS1117-3.3): C bulk from VOUT (3V3) to GND: nearest C16 (22uF 25V X5R) at 2.91 mm pad to pad (corpus p90 12.99); corpus: 85 % of 768 designs, p90 12.99 mm on 192 boards"
+    }
+   ],
+   "refstat_fails": [],
+   "new_catches": []
+  }
+ },
+ "all": {
+  "base": {
+   "recall_fail": 19,
+   "recall_fw": 19,
+   "labels": 26,
+   "false_fails": 0
+  },
+  "refstat": {
+   "recall_fail": 19,
+   "recall_fw": 19,
+   "labels": 26,
+   "false_fails": 4
+  },
+  "new_catches": [],
+  "refstat_fails": 4,
+  "refstat_rows": 30,
+  "df_majors_caught_base": [
+   "R2-F-3",
+   "R2-F-4",
+   "R2-O-2",
+   "R2-O-3",
+   "R2-S-1",
+   "R2-S-2",
+   "R2A2-O-1",
+   "R2A2-O-2"
+  ],
+  "df_majors_caught_refstat_only": []
+ }
+}

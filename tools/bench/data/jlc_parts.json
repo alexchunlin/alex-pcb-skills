@@ -1,0 +1,467 @@
+{
+ "alternatives": {
+  "C11537": {
+   "basic": [
+    {
+     "describe": "-55\u2103~+155\u2103 125mW 150V 68k\u03a9 Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0805 Chip Resistor - Surface Mount ROHS",
+     "lcsc": "C17801",
+     "package": "0805",
+     "stock": 296946,
+     "value": "68k"
+    },
+    {
+     "describe": "-55\u2103~+155\u2103 100mW 68k\u03a9 75V Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0603 Chip Resistor - Surface Mount ROHS",
+     "lcsc": "C23231",
+     "package": "0603",
+     "stock": 928588,
+     "value": "68k"
+    }
+   ],
+   "board": "motor1",
+   "ref": "R4",
+   "size": "0402",
+   "value": "68.1k"
+  },
+  "C26982": {
+   "basic": [],
+   "board": "motor1",
+   "ref": "R1",
+   "size": "0402",
+   "value": "52.3k"
+  },
+  "C33360": {
+   "basic": [
+    {
+     "describe": "-55\u2103~+155\u2103 100mW 2.7k\u03a9 75V Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0603 Chip Resistor - Surface Mount ROHS",
+     "lcsc": "C13167",
+     "package": "0603",
+     "stock": 735132,
+     "value": "2.7k"
+    },
+    {
+     "describe": "-55\u2103~+155\u2103 125mW 150V 2.7k\u03a9 Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0805 Chip Resistor - Surface Mount ROHS",
+     "lcsc": "C17530",
+     "package": "0805",
+     "stock": 1703415,
+     "value": "2.7k"
+    }
+   ],
+   "board": "motor1",
+   "ref": "R10",
+   "size": "0402",
+   "value": "2.74k"
+  },
+  "C337699": {
+   "basic": [
+    {
+     "describe": "22nF 50V X7R \u00b110% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+     "lcsc": "C1532",
+     "package": "0402",
+     "stock": 563912,
+     "value": "22nF"
+    },
+    {
+     "describe": "22nF 50V X7R \u00b110% 0805 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+     "lcsc": "C1729",
+     "package": "0805",
+     "stock": 424322,
+     "value": "22nF"
+    },
+    {
+     "describe": "22nF 50V X7R \u00b110% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+     "lcsc": "C21122",
+     "package": "0603",
+     "stock": 874137,
+     "value": "22nF"
+    }
+   ],
+   "board": "motor1",
+   "ref": "C13",
+   "size": "0402",
+   "value": "22nF 50V X7R"
+  },
+  "C7419416": {
+   "basic": [
+    {
+     "describe": "33nF 50V X7R \u00b110% 0805 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+     "lcsc": "C1739",
+     "package": "0805",
+     "stock": 106615,
+     "value": "33nF"
+    },
+    {
+     "describe": "33nF 50V X7R \u00b110% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+     "lcsc": "C21117",
+     "package": "0603",
+     "stock": 788477,
+     "value": "33nF"
+    }
+   ],
+   "board": "motor1",
+   "ref": "C8",
+   "size": "0402",
+   "value": "33nF 50V X7R"
+  }
+ },
+ "fee_source": "https://jlcpcb.com/help/article/pcb-assembly-price (read 2026-11-03)",
+ "fee_usd": {
+  "economic": 3.07,
+  "standard": 1.53
+ },
+ "fetched": "2026-11-03",
+ "parts": {
+  "C11537": {
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "describe": "-55\u2103~+155\u2103 50V 62.5mW 68.1k\u03a9 Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0402 Chip Resistor - Surface Mount ROHS",
+   "library": "extended",
+   "mpn": "0402WGF6812TCE",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.001,
+   "stock": 40960,
+   "type": "Chip Resistor - Surface Mount"
+  },
+  "C11702": {
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "describe": "-55\u2103~+155\u2103 1k\u03a9 50V 62.5mW Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0402 Chip Resistor - Surface Mount ROHS",
+   "library": "basic",
+   "mpn": "0402WGF1001TCE",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0013,
+   "stock": 21258188,
+   "type": "Chip Resistor - Surface Mount"
+  },
+  "C12624": {
+   "brand": "Hubei KENTO Elec",
+   "describe": "-40\u2103~+85\u2103 1.6mm x 0.8mm square LED 100mW 120\u00b0 3.1V 430mcd 513nm~528nm 525nm 5mA Discrete Diode Emerald Green Water Clear 0603 LED Indication - Discrete ROHS",
+   "library": "extended",
+   "mpn": "KT-0603G",
+   "package": "0603",
+   "preferred": false,
+   "price_1": 0.0119,
+   "stock": 372755,
+   "type": "LED Indication - Discrete"
+  },
+  "C13585": {
+   "brand": "Samsung Electro-Mechanics",
+   "describe": "10uF 50V X5R \u00b110% 1206 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "basic",
+   "mpn": "CL31A106KBHNNNE",
+   "package": "1206",
+   "preferred": false,
+   "price_1": 0.1413,
+   "stock": 3068669,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C14663": {
+   "brand": "YAGEO",
+   "describe": "100nF 50V X7R \u00b110% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "basic",
+   "mpn": "CC0603KRX7R9BB104",
+   "package": "0603",
+   "preferred": false,
+   "price_1": 0.0083,
+   "stock": 38537580,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C148219": {
+   "brand": "Littelfuse",
+   "describe": "-65\u2103~+150\u2103 13.7A@10/1000us 18V 1uA 22.1V 29.2V 400W@10/1000us IEC 61000-4-2\u3001IEC 61000-4-4 TVS Unidirectional DO-214AC(SMA) ESD and Surge Protection (TVS/ESD) RO",
+   "library": "extended",
+   "mpn": "SMAJ18A",
+   "package": "DO-214AC(SMA)",
+   "preferred": false,
+   "price_1": 0.1144,
+   "stock": 10982,
+   "type": "ESD and Surge Protection (TVS/ESD)"
+  },
+  "C15195": {
+   "brand": "Samsung Electro-Mechanics",
+   "describe": "10nF 50V X7R \u00b110% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "basic",
+   "mpn": "CL05B103KB5NNNC",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0039,
+   "stock": 5737201,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C1525": {
+   "brand": "Samsung Electro-Mechanics",
+   "describe": "100nF 16V X7R \u00b110% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "basic",
+   "mpn": "CL05B104KO5NNNC",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0031,
+   "stock": 34154656,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C15850": {
+   "brand": "Samsung Electro-Mechanics",
+   "describe": "10uF 25V X5R \u00b110% 0805 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "basic",
+   "mpn": "CL21A106KAYNNNE",
+   "package": "0805",
+   "preferred": false,
+   "price_1": 0.0422,
+   "stock": 7777271,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C160404": {
+   "brand": "JST",
+   "describe": "-25\u2103~+85\u2103 1 1A 1mm 1x4P 2.9mm 4 4.32mm 4P 50V 6mm Auxiliary Solder Pin Copper alloy PA SH Surface Mount, Right Angle Tin UL94V-0 White SMD,P=1mm,\u5367\u8d34 Wire To Boar",
+   "library": "extended",
+   "mpn": "SM04B-SRSS-TB(LF)(SN)",
+   "package": "SMD,P=1mm,Surface Mount\uff0cRight Angle",
+   "preferred": false,
+   "price_1": 0.2152,
+   "stock": 59749,
+   "type": "Wire To Board Connector"
+  },
+  "C16072": {
+   "brand": "Alpha & Omega Semicon",
+   "describe": "1 P-Channel 12A 2.6nF 3.1W 30V 38m\u03a9@5V 39nC@10V 3V P-Channel SOIC-8 MOSFETs ROHS",
+   "library": "extended",
+   "mpn": "AO4407A",
+   "package": "SOIC-8",
+   "preferred": false,
+   "price_1": 0.337,
+   "stock": 1154,
+   "type": "MOSFETs"
+  },
+  "C167220": {
+   "brand": "cjiang (Changjiang Microelectronics Tech)",
+   "describe": "33m\u03a9 4.7uH 6A 9A Molded inductor \u00b120% SMD,7x6.6mm Molding Power Inductors ROHS",
+   "library": "extended",
+   "mpn": "FXL0630-4R7-M",
+   "package": "SMD,7x6.6mm",
+   "preferred": false,
+   "price_1": 0.0963,
+   "stock": 142948,
+   "type": "Molding Power Inductors"
+  },
+  "C173429": {
+   "brand": "MDD(Microdiode Semiconductor)",
+   "describe": "1 Independent 100nA@9V 11.4V~12.6V 12V 35\u03a9 500mW SOD-123 Zener Diodes ROHS",
+   "library": "extended",
+   "mpn": "BZT52C12",
+   "package": "SOD-123",
+   "preferred": false,
+   "price_1": 0.0163,
+   "stock": 291041,
+   "type": "Zener Diodes"
+  },
+  "C1855818": {
+   "brand": "Texas Instruments",
+   "describe": "-40\u2103~+125\u2103 1 200m\u03a9 750nA 9A Yes HTSSOP-16-EP Brushed DC Motor Drivers ROHS",
+   "library": "extended",
+   "mpn": "DRV8874PWPR",
+   "package": "HTSSOP-16-EP",
+   "preferred": false,
+   "price_1": 1.0136,
+   "stock": 13913,
+   "type": "Brushed DC Motor Drivers"
+  },
+  "C19193807": {
+   "brand": "Lian Xin Technology",
+   "describe": "-45\u2103~+105\u2103 2 2.54mm 2x5P 3A 5 500V Copper Gold IDC Header Through Hole Plugin,P=2.54mm IDC Connectors ROHS",
+   "library": "extended",
+   "mpn": "XDFH-0254-2*5P",
+   "package": "Plugin,P=2.54mm",
+   "preferred": false,
+   "price_1": 0.2057,
+   "stock": 3989,
+   "type": "IDC Connectors"
+  },
+  "C2286": {
+   "brand": "Hubei KENTO Elec",
+   "describe": "-40\u2103~+85\u2103 1.6mm x 0.8mm square LED 1.8V~2.4V 120\u00b0 20mA 300mcd 40mW 615nm~630nm 645nm Discrete Diode Red Water Clear 0603 LED Indication - Discrete ROHS",
+   "library": "basic",
+   "mpn": "KT-0603R",
+   "package": "0603",
+   "preferred": false,
+   "price_1": 0.0077,
+   "stock": 6820670,
+   "type": "LED Indication - Discrete"
+  },
+  "C25741": {
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "describe": "-55\u2103~+155\u2103 100k\u03a9 50V 62.5mW Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0402 Chip Resistor - Surface Mount ROHS",
+   "library": "basic",
+   "mpn": "0402WGF1003TCE",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0013,
+   "stock": 7598203,
+   "type": "Chip Resistor - Surface Mount"
+  },
+  "C25744": {
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "describe": "-55\u2103~+155\u2103 10k\u03a9 50V 62.5mW Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0402 Chip Resistor - Surface Mount ROHS",
+   "library": "basic",
+   "mpn": "0402WGF1002TCE",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0028,
+   "stock": 15827390,
+   "type": "Chip Resistor - Surface Mount"
+  },
+  "C25879": {
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "describe": "-55\u2103~+155\u2103 2.2k\u03a9 50V 62.5mW Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0402 Chip Resistor - Surface Mount ROHS",
+   "library": "basic",
+   "mpn": "0402WGF2201TCE",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0011,
+   "stock": 3557267,
+   "type": "Chip Resistor - Surface Mount"
+  },
+  "C263274": {
+   "brand": "Texas Instruments",
+   "describe": "-40\u2103~+150\u2103@(TJ) 1 1.6MHz 4.5V~17V 6A 800mV~15V Adjustable Buck Buck Built-in Yes VQFN-14-EP(3.5x3.5) DC-DC Converters ROHS",
+   "library": "extended",
+   "mpn": "TPS54620RHLR",
+   "package": "VQFN-14-EP(3.5x3.5)",
+   "preferred": false,
+   "price_1": 1.7139,
+   "stock": 6358,
+   "type": "DC-DC Converters"
+  },
+  "C265092": {
+   "brand": "JST",
+   "describe": "-25\u2103~+85\u2103 1 1A 1mm 1x5P 3.6mm 4.25mm 5 50V 5P 7mm Auxiliary Solder Pin Copper alloy PA SH Surface Mount,Vertical Tin UL94V-0 White SMD,P=1mm Wire To Board Conne",
+   "library": "extended",
+   "mpn": "BM05B-SRSS-TBT(LF)(SN)",
+   "package": "SMD,P=1mm",
+   "preferred": false,
+   "price_1": 0.4648,
+   "stock": 6722,
+   "type": "Wire To Board Connector"
+  },
+  "C26982": {
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "describe": "-55\u2103~+155\u2103 50V 52.3k\u03a9 62.5mW Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0402 Chip Resistor - Surface Mount ROHS",
+   "library": "extended",
+   "mpn": "0402WGF5232TCE",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0013,
+   "stock": 39580,
+   "type": "Chip Resistor - Surface Mount"
+  },
+  "C2836437": {
+   "brand": "KNSCHA",
+   "describe": "-55\u2103~+105\u2103 100uF 2000hrs@105\u2103 230mA@120Hz 35V 6.3mm 600m\u03a9@100kHz 7.7mm \u00b120% SMD,D6.3xL7.7mm Aluminum Electrolytic Capacitors - SMD ROHS",
+   "library": "extended",
+   "mpn": "RVE100UF35V67RV0072",
+   "package": "SMD,D6.3xL7.7mm",
+   "preferred": false,
+   "price_1": 0.0491,
+   "stock": 665147,
+   "type": "Aluminum Electrolytic Capacitors - SMD"
+  },
+  "C33360": {
+   "brand": "UNI-ROYAL(Uniroyal Elec)",
+   "describe": "-55\u2103~+155\u2103 2.74k\u03a9 50V 62.5mW Thick Film Resistor \u00b11% \u00b1100ppm/\u2103 0402 Chip Resistor - Surface Mount ROHS",
+   "library": "extended",
+   "mpn": "0402WGF2741TCE",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0011,
+   "stock": 20495,
+   "type": "Chip Resistor - Surface Mount"
+  },
+  "C337699": {
+   "brand": "Samsung Electro-Mechanics",
+   "describe": "22nF 50V X7R \u00b110% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "extended",
+   "mpn": "CL05B223KB5NNNC",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0045,
+   "stock": 793878,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C431092": {
+   "brand": "Changzhou Amass Elec",
+   "describe": "-\u3001Aviation model plug 1.2m\u03a9 15A 16/18/20AWG 2pin DC 500V Male - Power connector / plug connector ROHS",
+   "library": "extended",
+   "mpn": "XT30PW-M30.G.Y",
+   "package": "-",
+   "preferred": false,
+   "price_1": 0.3855,
+   "stock": 69617,
+   "type": "Power connector / plug connector"
+  },
+  "C45783": {
+   "brand": "Samsung Electro-Mechanics",
+   "describe": "22uF 25V X5R \u00b120% 0805 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "basic",
+   "mpn": "CL21A226MAQNNNE",
+   "package": "0805",
+   "preferred": false,
+   "price_1": 0.1839,
+   "stock": 3546554,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C474892": {
+   "brand": "Cixi Kefa Elec",
+   "describe": "-40\u2103~+105\u2103 0.75 1 10A 18~24 1x2P 2 2P 3.5mm 300V Green Through Hole \u63d2\u4ef6,P=3.5mm Screw Terminal Blocks ROHS",
+   "library": "extended",
+   "mpn": "KF350-3.5-2P",
+   "package": "Plugin,P=3.5mm",
+   "preferred": false,
+   "price_1": 0.1196,
+   "stock": 16094,
+   "type": "Screw Terminal Blocks"
+  },
+  "C52923": {
+   "brand": "Samsung Electro-Mechanics",
+   "describe": "1uF 25V X5R \u00b110% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "basic",
+   "mpn": "CL05A105KA5NQNC",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0063,
+   "stock": 10337029,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C6186": {
+   "brand": "Advanced Monolithic Systems",
+   "describe": "-40\u2103~+125\u2103 0.003%Vout 1 1.1V@(800mA) 15V 1A 3.3V 5mA 72dB@(120Hz) Fixed Over Current Protection\u3001Short Circuit Protection\u3001Thermal shutdown Positive SOT-223 Volta",
+   "library": "basic",
+   "mpn": "AMS1117-3.3",
+   "package": "SOT-223",
+   "preferred": false,
+   "price_1": 0.2065,
+   "stock": 1719142,
+   "type": "Voltage Regulators - Linear, Low Drop Out (LDO) Regulators"
+  },
+  "C7419416": {
+   "brand": "FOJAN",
+   "describe": "-55\u2103~+125\u2103 33nF 50V X7R \u00b110% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS",
+   "library": "extended",
+   "mpn": "FCC0402B333K500AT",
+   "package": "0402",
+   "preferred": false,
+   "price_1": 0.0024,
+   "stock": 289515,
+   "type": "Multilayer Ceramic Capacitors MLCC - SMD/SMT"
+  },
+  "C967633": {
+   "brand": "STMicroelectronics",
+   "describe": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 3uA 4KB IMU (accelerometer + gyroscope) SPI\u3001I2C X,Y,Z X,Y,Z \u00b116g \u00b12000dps \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b\u3001\u540c\u6b65\u4e0e\u65f6\u95f4\u6233 LGA-14(2.5x3) Accelerometers ROHS",
+   "library": "extended",
+   "mpn": "LSM6DS3TR-C",
+   "package": "LGA-14(2.5x3)",
+   "preferred": false,
+   "price_1": 1.458,
+   "stock": 19514,
+   "type": "Accelerometers"
+  }
+ },
+ "source": "https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList/v2"
+}

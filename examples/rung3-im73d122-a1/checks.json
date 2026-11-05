@@ -1,0 +1,317 @@
+{
+ "project": "im73d122_mic",
+ "rails": {
+  "VIN": {
+   "v": 5.0,
+   "source": "header J1.1, 3.3-5 V"
+  },
+  "3V3": {
+   "v": 3.3,
+   "source": "U2 through JP3, or header J1.2 with JP3 cut"
+  },
+  "PWR.LDO_OUT": {
+   "v": 3.3,
+   "source": "U2.5"
+  },
+  "GND": {}
+ },
+ "decoupling_max_mm": 2.5,
+ "decoupling": [
+  {
+   "ic": "U1",
+   "pin": "2",
+   "cap": "C2",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U1",
+   "pin": "2",
+   "cap": "C1",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U2",
+   "pin": "1",
+   "cap": "C3",
+   "max_mm": 2.5
+  },
+  {
+   "ic": "U2",
+   "pin": "5",
+   "cap": "C4",
+   "max_mm": 2.0
+  }
+ ],
+ "buses": {},
+ "connectors": {
+  "J1": {
+   "1": "VIN",
+   "2": "3V3",
+   "3": "GND",
+   "4": "DATA",
+   "5": "CLK",
+   "6": "SEL"
+  }
+ },
+ "jumpers": {
+  "JP1": {
+   "pads": {
+    "1": "3V3",
+    "2": "IND.LED_R"
+   },
+   "default": "1-2"
+  },
+  "JP2": {
+   "pads": {
+    "1": "GND",
+    "2": "SEL",
+    "3": "3V3"
+   },
+   "default": "1-2"
+  },
+  "JP3": {
+   "pads": {
+    "1": "PWR.LDO_OUT",
+    "2": "3V3"
+   },
+   "default": "1-2"
+  }
+ },
+ "test_points": {
+  "TP1": "3V3",
+  "TP2": "GND"
+ },
+ "margin": {
+  "pack": "jlcpcb",
+  "default_ratio": 1.0,
+  "min_ratio": {
+   "track_width": 2.0,
+   "clearance": 2.0,
+   "via_drill": 2.0
+  }
+ },
+ "accepted_warns": [
+  {
+   "check": "test_points",
+   "match": "VIN",
+   "reason": "J1.1 is the probe point for VIN"
+  },
+  {
+   "check": "test_points",
+   "match": "LDO_OUT",
+   "reason": "JP3 pad 1 is exposed and is the probe point"
+  }
+ ],
+ "policy": {
+  "_about": "the brief's numbers; copy them here at the plan checkpoint and do not lower them to make a tool read 0 (R1-A2-T5)",
+  "clearance_mm": 0.2,
+  "track_mm": 0.2,
+  "via_drill_mm": 0.3,
+  "via_dia_mm": 0.6,
+  "hole_clearance_mm": 0.3,
+  "silk_text_mm": 1.0
+ },
+ "currents": {
+  "VIN": 0.01,
+  "3V3": 0.01
+ },
+ "copper_oz": {
+  "outer": 1.0,
+  "inner": 0.5
+ },
+ "rise_c": 20,
+ "thermal_vias": {},
+ "refplane": {
+  "ground": "GND",
+  "step_mm": 0.25,
+  "max_gap_mm": 0,
+  "mid_max_mm": 5,
+  "skip_nets": [],
+  "_why": "Alex's stackup: In1 and In2 both solid GND, rails routed, every signal over unbroken ground (REFPLANE-1); the limit follows the net's bucket in `signals`"
+ },
+ "return_via": {
+  "ground": "GND",
+  "_why": "a via on a bucket-3 net needs a GND via within 2 mm (SIG-2)"
+ },
+ "exposure": {
+  "within_mm": 1.0,
+  "victim_weight": 3,
+  "aggressors": [
+   "CLK",
+   "MICB.CLK_MIC"
+  ],
+  "_why": "same-layer signal copper beside the 3 MHz clock"
+ },
+ "signals": {
+  "CLK": {
+   "driver": "host PDM clock on J1.5",
+   "t_rise_ns": 3,
+   "source": "assumption: 3.3 V CMOS GPIO; IM73D122 spec Table 5 allows up to 13 ns, Tedge 9 ns in Table 3",
+   "slowed_by": [],
+   "victim": false
+  },
+  "MICB.CLK_MIC": {
+   "driver": "CLK through R2 33 ohm into U1.3",
+   "t_rise_ns": 3,
+   "source": "same edge, R2 with about 5 pF is 0.2 ns",
+   "slowed_by": [
+    "R2 33 ohm"
+   ],
+   "victim": false
+  },
+  "MICB.DATA_MIC": {
+   "driver": "U1.1 DATA output",
+   "t_rise_ns": 9,
+   "source": "IM73D122 Table 3 test edge Tedge 9 ns",
+   "slowed_by": [],
+   "victim": false
+  },
+  "DATA": {
+   "driver": "U1.1 through R3 100 ohm",
+   "t_rise_ns": 9,
+   "source": "Table 3; R3 with 100 pF load is 22 ns (2.2 RC), 9 is the worst case",
+   "slowed_by": [
+    "R3 100 ohm"
+   ],
+   "victim": false
+  },
+  "SEL": {
+   "driver": "static strap, JP2",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "IND.LED_R": {
+   "driver": "DC",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "IND.LED_A": {
+   "driver": "DC",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  }
+ },
+ "calcs": [
+  {
+   "id": "i_mic_ma",
+   "expr": "1.12",
+   "unit": "mA",
+   "max": 1.5,
+   "note": "Table 6 max IDD at 3.072 MHz, 1.8 V; Fig 8 shows about 1.0 mA typ at 3.3 V, flat with VDD"
+  },
+  {
+   "id": "i_led_ma",
+   "expr": "(3.3 - 2.0) / R('R1') * 1000",
+   "unit": "mA",
+   "min": 0.5,
+   "max": 2.0,
+   "note": "KT-0603R Vf 1.8-2.4 V"
+  },
+  {
+   "id": "i_rail_ma",
+   "expr": "i_mic_ma + i_led_ma + 0.0065",
+   "unit": "mA",
+   "max": 5.0,
+   "note": "LDO load"
+  },
+  {
+   "id": "p_ldo_mw",
+   "expr": "(5.5 - 3.3) * i_rail_ma",
+   "unit": "mW",
+   "max": 50
+  },
+  {
+   "id": "tj_ldo_c",
+   "expr": "85 + p_ldo_mw / 1000 * 187.1",
+   "unit": "degC",
+   "max": 125,
+   "note": "TPS7A20 sec 5.4 RthetaJA 187.1 K/W DBV, 85 C ambient"
+  },
+  {
+   "id": "vdo_mv",
+   "expr": "145.0 * i_rail_ma / 300",
+   "unit": "mV",
+   "max": 5,
+   "note": "TPS7A20 VDO 145 mV max at 300 mA (DBV), scaled by current; a pass FET in dropout is resistive"
+  },
+  {
+   "id": "mic_noise_dbfs_a",
+   "expr": "-26 - 73",
+   "unit": "dBFS",
+   "max": -98,
+   "note": "sensitivity -26 dBFS at 94 dBSPL, SNR 73 dB(A) at 3.072 MHz"
+  },
+  {
+   "id": "ldo_noise_dbfs",
+   "expr": "-80 + 20 * log10(10e-6 / (0.1 / 2.828))",
+   "unit": "dBFS",
+   "max": -140,
+   "note": "PSR -80 dBFS for 100 mVpp (35.4 mVrms); LDO 10 uVrms 10 Hz-100 kHz at 1 mA"
+  },
+  {
+   "id": "ldo_noise_margin_db",
+   "expr": "mic_noise_dbfs_a - ldo_noise_dbfs",
+   "unit": "dB",
+   "min": 20
+  },
+  {
+   "id": "usb5v_ripple_dbfs",
+   "expr": "-80 + 20 * log10(0.05 * 10 ** (-75 / 20) / 0.1)",
+   "unit": "dBFS",
+   "max": -120,
+   "note": "50 mVpp on VIN, LDO PSRR 75 dB at 10 kHz (the worst audio-band row at IOUT 20 mA, VIN = VOUT + 1), against the PSR row"
+  },
+  {
+   "id": "direct_max_ripple_mvpp",
+   "expr": "100 * 10 ** ((mic_noise_dbfs_a - 10 + 80) / 20)",
+   "unit": "mVpp",
+   "min": 3,
+   "max": 4,
+   "note": "in-band supply noise that lands 10 dB under the mic noise if 3V3 is fed directly"
+  },
+  {
+   "id": "data_rc_ns",
+   "expr": "2.2 * R('R3') * 100e-12 * 1e9",
+   "unit": "ns",
+   "max": 40,
+   "note": "R3 into 100 pF host load, tDV budget 100 ns inside half a 3.072 MHz period (163 ns)"
+  }
+ ],
+ "feeds": [],
+ "via_in_pad": {
+  "allow": []
+ },
+ "edge_margin": {
+  "tracks_mm": 1.0,
+  "vias_mm": 1.0,
+  "parts_mm": 1.0,
+  "connector_mm": 1.5,
+  "skip_refs": []
+ },
+ "gnd_islands": {
+  "ground": "GND",
+  "warn_mm2": 0.5,
+  "max_mm2": 2.0
+ },
+ "pinmaps": {
+  "U1": {
+   "1": "MICB.DATA_MIC",
+   "2": "3V3",
+   "3": "MICB.CLK_MIC",
+   "4": "SEL",
+   "5": "GND"
+  },
+  "U2": {
+   "1": "VIN",
+   "2": "GND",
+   "3": "VIN",
+   "5": "PWR.LDO_OUT"
+  }
+ }
+}

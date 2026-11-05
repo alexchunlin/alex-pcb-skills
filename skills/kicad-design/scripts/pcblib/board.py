@@ -259,6 +259,16 @@ class Board:
             self.place(ref, *spec)
         return self
 
+    def park(self, keep, pitch=12.0):
+        """Block-by-block placement (`pcb block`, spike #6): every footprint not in keep goes to a grid right of the
+        outline, so the parts of blocks not yet placed stay off the board and out of the gate's way."""
+        bb = self.b.GetBoardEdgesBoundingBox()
+        x, y = ToMM(bb.GetRight()) + 15, ToMM(bb.GetTop())
+        rest = [r for r in sorted(self.fps) if r not in keep]
+        for i, r in enumerate(rest):
+            self.fp(r).SetPosition(mm(x + (i % 8) * pitch, y + (i // 8) * pitch))
+        return rest
+
     def orient_pads(self, ref, want):
         """Pick the rotation (0/90/180/270) under which want(pad_xy_fn) holds; raises if none does."""
         for rot in (0, 90, 180, 270):
@@ -291,25 +301,16 @@ class Board:
         self._dirty = True
         return v
 
-    def return_vias(self, nets, max_mm=2.0, gnd="GND", size=None, rings=(0.8, 1.0, 1.2, 1.5, 1.8, 2.0), step_deg=30, dry=False):
-        """SIG-2: a ground via beside every via of `nets` that has none within max_mm. A via on a fast net moves its return
-        current from one ground plane to the other, and the planes only meet at ground vias and through-hole ground
-        pads. Candidates on rings around the signal via (nearest first, step_deg apart) are checked at the board
-        clearance against other nets' pads, vias, tracks and filled zones on every copper layer and against the board
-        edge; the first clear one is placed. Returns {"placed": [...], "covered": n, "skipped": [(net, x, y, why)]}."""
-        d, drill = size or getattr(self, "via_default", (0.6, 0.3))
-        clr = getattr(self, "clearance", 0.2)
-        margin = FromMM(d / 2 + clr)
+    def _via_spot(self, gnd, d, edge_mm=None):
+        """(tracks, clear(x, y)): clear says why a via of diameter d on net gnd cannot stand at (x, y), or None. Other nets'
+        pads, vias, tracks and filled zones on every copper layer at the board clearance, any SMD pad of any net (no via
+        in a pad, spike #6) with a 0.15 mm mask web, and the board edge at edge_mm (default the setup's edge clearance)."""
         b = self.b
-        returns = [xy(t.GetPosition()) for t in b.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetname() == gnd]
-        for f in b.GetFootprints():
-            for q in f.Pads():
-                if q.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and q.GetNetname() == gnd:
-                    returns.append(xy(q.GetPosition()))
+        clr = getattr(self, "clearance", 0.2)
+        margin = FromMM(d / 2 + clr + 0.02)   # HitTest's accuracy rounds: 0.5 passed a via 0.199 mm off R6.2 (s6-a-1)
         edge = b.GetBoardEdgesBoundingBox()
         ex0, ey0, ex1, ey1 = ToMM(edge.GetLeft()), ToMM(edge.GetTop()), ToMM(edge.GetRight()), ToMM(edge.GetBottom())
-        edge_clr = getattr(self, "edge_clearance", 0.3)
-        layers = list(b.GetEnabledLayers().CuStack())
+        edge_clr = getattr(self, "edge_clearance", 0.3) if edge_mm is None else edge_mm
         zones = [(z, L) for z in b.Zones() if not z.GetIsRuleArea() and z.GetNetname() != gnd for L in z.GetLayerSet().CuStack() if z.HasFilledPolysForLayer(L)]
         pads = [q for f in b.GetFootprints() for q in f.Pads()]
         tracks = [t for t in b.GetTracks()]
@@ -323,6 +324,8 @@ class Board:
                     return f"{q.GetParentFootprint().GetReference()}.{q.GetNumber()} ({q.GetNetname()})"
                 if q.GetNetname() == gnd and q.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and q.HitTest(pt, FromMM(d / 2)):
                     return "a ground pad hole"
+                if q.GetAttribute() == pcbnew.PAD_ATTRIB_SMD and q.HitTest(pt, FromMM(d / 2 + 0.15)):
+                    return f"in pad {q.GetParentFootprint().GetReference()}.{q.GetNumber()}"
             for t in tracks:
                 if t.GetClass() == "PCB_VIA":
                     v = xy(t.GetPosition())
@@ -334,6 +337,108 @@ class Board:
                 if z.GetFilledPolysList(L).Collide(pt, margin):
                     return f"the {z.GetNetname()} pour on {b.GetLayerName(L)}"
             return None
+        return tracks, clear
+
+    def fill_islands(self, gnd="GND"):
+        """Fill the gnd zones with island removal off, on the saved board, and return every piece no gnd copper touches:
+        [{layer, area_mm2, centre, outline (SHAPE_POLY_SET), zone}], with the removal modes left as found. These are the
+        pieces KiCad's fill rips up. The caller saves or refills; the board wraps the filled copy afterwards."""
+        modes = [(z.GetZoneName(), z.GetIslandRemovalMode()) for z in self.b.Zones() if z.GetNetname() == gnd]
+        for z in self.b.Zones():
+            if z.GetNetname() == gnd and not z.GetIsRuleArea():
+                z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_NEVER)
+        self.fill(passes=1)
+        b = self.b
+        items = []
+        for t in b.GetTracks():
+            if t.GetNetname() == gnd:
+                if t.GetClass() == "PCB_VIA":
+                    items.append((None, t.GetPosition()))
+                else:
+                    items.append((t.GetLayer(), t.GetStart())); items.append((t.GetLayer(), t.GetEnd()))
+        for f in b.GetFootprints():
+            for q in f.Pads():
+                if q.GetNetname() == gnd:
+                    items.append((None if q.GetAttribute() == pcbnew.PAD_ATTRIB_PTH else f.GetLayer(), q.GetPosition()))
+        out = []
+        for z in b.Zones():
+            if z.GetNetname() != gnd or z.GetIsRuleArea():
+                continue
+            for L in z.GetLayerSet().CuStack():
+                if not z.HasFilledPolysForLayer(L):
+                    continue
+                polys = z.GetFilledPolysList(L)
+                for i in range(polys.OutlineCount()):
+                    one = pcbnew.SHAPE_POLY_SET()
+                    one.AddOutline(polys.Outline(i))
+                    # a pad or track that only reaches this piece counts: KiCad's own island test keeps such pieces too
+                    if any((lay is None or lay == L) and one.Collide(p, FromMM(0.05)) for lay, p in items):
+                        continue
+                    bb = one.BBox()
+                    out.append({"layer": b.GetLayerName(L), "area_mm2": round(one.Area() / 1e12, 3), "zone": z.GetZoneName(), "poly": one,
+                                "bbox": (ToMM(bb.GetLeft()), ToMM(bb.GetTop()), ToMM(bb.GetRight()), ToMM(bb.GetBottom()))})
+        for z in b.Zones():
+            for name, mode in modes:
+                if z.GetNetname() == gnd and z.GetZoneName() == name and not z.GetIsRuleArea():
+                    z.SetIslandRemovalMode(mode)
+        return out
+
+    def ground_islands(self, gnd="GND", size=None, min_mm2=0.5, step=0.2, edge_mm=None, dry=False):
+        """Spike #6: tie the ground fill's islands to ground with a via instead of letting KiCad rip them up. For each
+        piece over min_mm2 with no ground copper, the spot deepest inside it that passes _via_spot and sits fully on the
+        piece gets a through via onto the ground planes; one via frees the same piece on every layer it crosses, so
+        islands are re-read after each. Returns {"placed": [(layer, area, x, y)], "skipped": [(layer, area, why)]}; the
+        board is refilled with the removal modes as they were, so what is left is what KiCad would remove anyway."""
+        d, drill = size or getattr(self, "via_default", (0.6, 0.3))
+        out = {"placed": [], "skipped": []}
+        tried = set()
+        while True:
+            isl = sorted((i for i in self.fill_islands(gnd) if i["area_mm2"] >= min_mm2), key=lambda i: -i["area_mm2"])
+            isl = [i for i in isl if (i["layer"], i["area_mm2"]) not in tried]
+            if not isl:
+                break
+            i = isl[0]
+            tried.add((i["layer"], i["area_mm2"]))
+            _, clear = self._via_spot(gnd, d, edge_mm)
+            x0, y0, x1, y1 = i["bbox"]
+            nx, ny = max(1, int((x1 - x0) / step)), max(1, int((y1 - y0) / step))
+            ring = lambda x, y, r: [(x + r * math.cos(a * math.pi / 4), y + r * math.sin(a * math.pi / 4)) for a in range(8)]
+            best, why = None, "no spot inside the piece"
+            for ix in range(nx + 1):
+                for iy in range(ny + 1):
+                    x, y = round(x0 + ix * step, 3), round(y0 + iy * step, 3)
+                    if not all(i["poly"].Collide(mm(a, b_)) for a, b_ in ring(x, y, d / 2)):
+                        continue
+                    depth = sum(i["poly"].Collide(mm(a, b_)) for r in (d / 2 + 0.2, d / 2 + 0.5) for a, b_ in ring(x, y, r))
+                    w = clear(x, y)
+                    if w:
+                        why = w
+                    elif best is None or depth > best[0]:
+                        best = (depth, x, y)
+            if best:
+                out["placed"].append((i["layer"], i["area_mm2"], best[1], best[2]))
+                if not dry:
+                    self.via(best[1], best[2], gnd, size=(d, drill))
+                    tried = set()
+            else:
+                out["skipped"].append((i["layer"], i["area_mm2"], why))
+        self.fill()
+        return out
+
+    def return_vias(self, nets, max_mm=2.0, gnd="GND", size=None, rings=(0.8, 1.0, 1.2, 1.5, 1.8, 2.0), step_deg=30, dry=False):
+        """SIG-2: a ground via beside every via of `nets` that has none within max_mm. A via on a fast net moves its return
+        current from one ground plane to the other, and the planes only meet at ground vias and through-hole ground
+        pads. Candidates on rings around the signal via (nearest first, step_deg apart) are checked at the board
+        clearance against other nets' pads, vias, tracks and filled zones on every copper layer and against the board
+        edge; the first clear one is placed. Returns {"placed": [...], "covered": n, "skipped": [(net, x, y, why)]}."""
+        d, drill = size or getattr(self, "via_default", (0.6, 0.3))
+        b = self.b
+        returns = [xy(t.GetPosition()) for t in b.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetname() == gnd]
+        for f in b.GetFootprints():
+            for q in f.Pads():
+                if q.GetAttribute() == pcbnew.PAD_ATTRIB_PTH and q.GetNetname() == gnd:
+                    returns.append(xy(q.GetPosition()))
+        tracks, clear = self._via_spot(gnd, d)
 
         out = {"placed": [], "covered": 0, "skipped": []}
         for t in [t for t in tracks if t.GetClass() == "PCB_VIA" and t.GetNetname() in nets]:
@@ -607,7 +712,7 @@ class Board:
         self.arc((x1 + r, y2), (x1 + k, y2 - k), (x1, y2 - r)); self.arc((x1, y1 + r), (x1 + k, y1 + k), (x1 + r, y1))
         return self
 
-    def zone(self, net, layer, outline=None, inset=0.5, clearance=0.25, min_width=0.25, thermal=True,
+    def zone(self, net, layer, outline=None, inset=1.0, clearance=0.25, min_width=0.25, thermal=True,
              relief_gap=0.3, spoke=0.3, priority=0, name=None):
         """Copper zone. outline: list of (x, y); default the outline_rect frame inset by `inset` mm."""
         z = pcbnew.ZONE(self.b)

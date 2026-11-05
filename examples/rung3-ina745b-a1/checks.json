@@ -1,0 +1,414 @@
+{
+ "_about": "Filled at the plan checkpoint from DESIGN_LOG.md section 1.",
+ "project": "ina745_breakout",
+ "rails": {
+  "3V3": {
+   "v": 3.3,
+   "source": "U2 OUT and Qwiic pin 2"
+  },
+  "VIN": {
+   "v": 5.0,
+   "source": "header J3.1, 3.3 to 5.5 V"
+  },
+  "LDO_IN": {
+   "v": 4.7,
+   "source": "D1 cathode"
+  },
+  "GND": {}
+ },
+ "decoupling_max_mm": 2.0,
+ "decoupling": [
+  {
+   "ic": "U1",
+   "pin": "11",
+   "cap": "C1",
+   "max_mm": 2.0
+  },
+  {
+   "ic": "U2",
+   "pin": "1",
+   "cap": "C2",
+   "max_mm": 2.5
+  },
+  {
+   "ic": "U2",
+   "pin": "5",
+   "cap": "C3",
+   "max_mm": 2.5
+  }
+ ],
+ "buses": {
+  "I2C": {
+   "sda": "SDA",
+   "scl": "SCL",
+   "rail": "3V3",
+   "max_sink_ma": 3.0,
+   "chain_boards": 2,
+   "devices": {
+    "U1": {
+     "address": "0x40",
+     "strap": {
+      "pin": "4",
+      "high": "0x41",
+      "low": "0x40"
+     }
+    }
+   }
+  }
+ },
+ "pinmaps": {
+  "U1": {
+   "1": "SH_P",
+   "2": "SH_P",
+   "3": "A1",
+   "4": "A0",
+   "5": "SDA",
+   "6": "SCL",
+   "7": "IS_N",
+   "8": "SH_N",
+   "9": "SH_N",
+   "10": "ALERT",
+   "11": "3V3",
+   "12": "GND",
+   "13": "VBUS",
+   "14": "IS_P"
+  },
+  "U2": {
+   "1": "LDO_IN",
+   "2": "GND",
+   "3": "LDO_IN",
+   "5": "3V3"
+  }
+ },
+ "connectors": {
+  "J1": {
+   "1": "GND",
+   "2": "3V3",
+   "3": "SDA",
+   "4": "SCL"
+  },
+  "J2": {
+   "1": "GND",
+   "2": "3V3",
+   "3": "SDA",
+   "4": "SCL"
+  },
+  "J3": {
+   "1": "VIN",
+   "2": "3V3",
+   "3": "GND",
+   "4": "SCL",
+   "5": "SDA",
+   "6": "ALERT"
+  },
+  "J4": {
+   "1": "IS_P"
+  },
+  "J5": {
+   "1": "IS_N"
+  }
+ },
+ "jumpers": {
+  "JP1": {
+   "pads": {
+    "1": "IS_P",
+    "2": "VBUS"
+   },
+   "default": "1-2"
+  },
+  "JP2": {
+   "pads": {
+    "1": "PU_SDA",
+    "2": "3V3",
+    "3": "PU_SCL"
+   },
+   "default": "1-2-3"
+  },
+  "JP3": {
+   "pads": {
+    "1": "GND",
+    "2": "A0",
+    "3": "3V3"
+   },
+   "default": "1-2"
+  },
+  "JP4": {
+   "pads": {
+    "1": "GND",
+    "2": "A1",
+    "3": "3V3"
+   },
+   "default": "1-2"
+  },
+  "JP5": {
+   "pads": {
+    "1": "3V3",
+    "2": "LED_R"
+   },
+   "default": "1-2"
+  }
+ },
+ "test_points": {
+  "TP1": "GND",
+  "TP2": "3V3",
+  "TP3": "VBUS"
+ },
+ "margin": {
+  "pack": "/tmp/pcb-ref/kicad-druid/JLCPCB/JLCPCB-4L-2oz.kicad_dru",
+  "default_ratio": 1.0,
+  "min_ratio": {
+   "track_width": 1.3,
+   "clearance": 1.3,
+   "via_drill": 1.3
+  }
+ },
+ "accepted_warns": [
+  {
+   "check": "test_points",
+   "match": "rail VIN",
+   "reason": "J3.1 is the probe point for VIN"
+  },
+  {
+   "check": "test_points",
+   "match": "rail LDO_IN",
+   "reason": "probe C2 pad 1; internal node, not needed for bring-up"
+  }
+ ],
+ "policy": {
+  "clearance_mm": 0.2,
+  "track_mm": 0.2,
+  "via_drill_mm": 0.3,
+  "via_dia_mm": 0.6,
+  "hole_clearance_mm": 0.3,
+  "silk_text_mm": 1.0
+ },
+ "currents": {
+  "VIN": 0.1,
+  "LDO_IN": 0.1,
+  "3V3": 0.1
+ },
+ "copper_oz": {
+  "outer": 2.0,
+  "inner": 0.5
+ },
+ "rise_c": 20,
+ "thermal_vias": {},
+ "feeds": [
+  {
+   "pad": "U1.14",
+   "amps": 25,
+   "within_mm": 5.0
+  },
+  {
+   "pad": "U1.7",
+   "amps": 25,
+   "within_mm": 5.0
+  }
+ ],
+ "via_in_pad": {},
+ "edge_margin": {
+  "tracks_mm": 1.0,
+  "vias_mm": 1.0,
+  "parts_mm": 1.0,
+  "connector_mm": 1.5,
+  "skip_refs": []
+ },
+ "gnd_islands": {
+  "ground": "GND",
+  "warn_mm2": 0.5,
+  "max_mm2": 2.0
+ },
+ "refplane": {
+  "ground": "GND",
+  "step_mm": 0.25,
+  "max_gap_mm": 0,
+  "mid_max_mm": 5,
+  "skip_nets": [
+   "IS_P",
+   "IS_N"
+  ],
+  "_why": "In1 and In2 solid GND; the current path pours are exempt (brief)"
+ },
+ "return_via": {
+  "ground": "GND"
+ },
+ "exposure": {
+  "within_mm": 1.0,
+  "victim_weight": 3
+ },
+ "signals": {
+  "SDA": {
+   "driver": "U1 open drain, 10 k pull-up",
+   "t_rise_ns": 300,
+   "source": "SBOSAC3B 5.6 tR/tF 300 ns fast mode",
+   "slowed_by": [],
+   "victim": false
+  },
+  "SCL": {
+   "driver": "host open drain, 10 k pull-up",
+   "t_rise_ns": 300,
+   "source": "SBOSAC3B 5.6",
+   "slowed_by": [],
+   "victim": false
+  },
+  "ALERT": {
+   "driver": "U1 open drain, R3 10 k",
+   "t_rise_ns": 300,
+   "source": "assumption, same output as SDA",
+   "slowed_by": [],
+   "victim": false
+  },
+  "A0": {
+   "driver": "strap",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "A1": {
+   "driver": "strap",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": false
+  },
+  "VBUS": {
+   "driver": "bus sense",
+   "t_rise_ns": null,
+   "source": "DC, 1 M input",
+   "slowed_by": [],
+   "victim": true
+  },
+  "SH_P": {
+   "driver": "internal shunt Kelvin",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": true
+  },
+  "SH_N": {
+   "driver": "internal shunt Kelvin",
+   "t_rise_ns": null,
+   "source": "DC",
+   "slowed_by": [],
+   "victim": true
+  }
+ },
+ "calcs": [
+  {
+   "id": "i_pullup_ma",
+   "expr": "3.3 / R('R1') * 1000",
+   "unit": "mA",
+   "max": 3.0
+  },
+  {
+   "id": "t_rise_10k_50pF_ns",
+   "expr": "0.8473 * R('R1') * 50e-12 * 1e9",
+   "unit": "ns",
+   "max": 1000,
+   "note": "100 kHz limit, SBOSAC3B 5.6 has 300 ns at 400 kHz"
+  },
+  {
+   "id": "i_led_ma",
+   "expr": "(3.3 - 2.0) / R('R4') * 1000",
+   "unit": "mA",
+   "min": 0.5,
+   "max": 5
+  },
+  {
+   "id": "p_ldo_100ma_w",
+   "expr": "(5.5 - 0.3 - 3.3) * 0.1",
+   "unit": "W",
+   "max": 0.25
+  },
+  {
+   "id": "tj_ldo_c",
+   "expr": "60 + p_ldo_100ma_w * 182",
+   "unit": "degC",
+   "max": 125,
+   "note": "RthJA 181.9 K/W SOT-23-5, SBVS277C 6.4, 60 C local ambient"
+  },
+  {
+   "id": "p_pkg_25a_typ_w",
+   "expr": "25**2 * 1.0e-3",
+   "unit": "W",
+   "note": "package 1.0 mOhm typ, 1.3 max, SBOSAC3B 5.5"
+  },
+  {
+   "id": "p_pkg_25a_max_w",
+   "expr": "25**2 * 1.3e-3",
+   "unit": "W"
+  },
+  {
+   "id": "p_cu_25a_w",
+   "expr": "(0.0928 + 0.0986) * 1.15",
+   "unit": "W",
+   "note": "pcb irdrop IS_P 92.8 mW + IS_N 98.6 mW, x1.15 for copper at about 60 C"
+  },
+  {
+   "id": "theta_evm_kw",
+   "expr": "(150 - 60) / (37.5**2 * 1.49e-3)",
+   "unit": "K/W",
+   "note": "Figure 6-4: 37.5 A at 60 C ambient reaches Tj 150 C on TI's EVM; 1.49 mOhm at 150 C"
+  },
+  {
+   "id": "theta_board_kw",
+   "expr": "1 / (15 * 2 * 40e-3 * 25.4e-3)",
+   "unit": "K/W",
+   "note": "this board, both faces, h 15 W/m2K still air plus radiation"
+  },
+  {
+   "id": "theta_spread_kw",
+   "expr": "log(8 / 1.5) / (2 * pi * 385 * 140e-6)",
+   "unit": "K/W",
+   "vars": {
+    "pi": 3.14159
+   },
+   "note": "radial spread r 1.5 to 8 mm, two 70 um layers"
+  },
+  {
+   "id": "theta_design_kw",
+   "expr": "45.0",
+   "unit": "K/W",
+   "min": 37.0,
+   "note": "design value, above both the EVM figure and board + spread"
+  },
+  {
+   "id": "dt_25a_typ_k",
+   "expr": "theta_design_kw * (p_pkg_25a_typ_w + p_cu_25a_w) / (1 - theta_design_kw * p_pkg_25a_typ_w * 0.0039)",
+   "unit": "K",
+   "note": "R rises 0.39 %/K, Figure 6-1"
+  },
+  {
+   "id": "dt_25a_max_k",
+   "expr": "theta_design_kw * (p_pkg_25a_max_w + p_cu_25a_w) / (1 - theta_design_kw * p_pkg_25a_max_w * 0.0039)",
+   "unit": "K"
+  },
+  {
+   "id": "tj_25a_40c_worst_c",
+   "expr": "40 + dt_25a_max_k",
+   "unit": "degC",
+   "max": 125,
+   "note": "rating point: 25 A, 40 C ambient, 1.3 mOhm part"
+  },
+  {
+   "id": "tj_35a_25c_typ_c",
+   "expr": "25 + theta_design_kw * (35**2*1.0e-3 + p_cu_25a_w*(35/25)**2) / (1 - theta_design_kw * 35**2*1.0e-3 * 0.0039)",
+   "unit": "degC",
+   "note": "why the board is not rated 35 A: above 100 C on the copper"
+  },
+  {
+   "id": "v_drop_25a_mv",
+   "expr": "25 * 1.0 + 3.87 + 4.10",
+   "unit": "mV",
+   "note": "package + pcb irdrop on both pours"
+  }
+ ],
+ "bringup": "../../BRINGUP.md",
+ "irdrop": {
+  "sources": {
+   "IS_P": "J4.1",
+   "IS_N": "J5.1"
+  }
+ }
+}

@@ -4,3 +4,4 @@ __pycache__/
 .DS_Store
 skidl*.erc
 skidl*.log
+.claude/worktrees/

@@ -1,0 +1,101 @@
+{
+ "schema": 1,
+ "order": [
+  "current",
+  "qwiic",
+  "power",
+  "i2c"
+ ],
+ "groups": [
+  {
+   "name": "current",
+   "role": "current path, terminals and sensor",
+   "refs": [
+    "J4",
+    "J5",
+    "U1",
+    "C1",
+    "JP1",
+    "TP3"
+   ],
+   "anchor": "U1",
+   "near": [],
+   "why": "the path fixes the board: terminals on opposite edges, U1 on the line between them",
+   "region": [
+    100.0,
+    100.0,
+    140.0,
+    113.3
+   ]
+  },
+  {
+   "name": "qwiic",
+   "role": "west Qwiic",
+   "refs": [
+    "J1"
+   ],
+   "anchor": "J1",
+   "near": [
+    "i2c"
+   ],
+   "why": "edge-bound; opposite J2",
+   "region": [
+    100.0,
+    113.3,
+    106.3,
+    125.4
+   ]
+  },
+  {
+   "name": "power",
+   "role": "3V3 rail and LED",
+   "refs": [
+    "U2",
+    "D1",
+    "C2",
+    "C3",
+    "R4",
+    "D2",
+    "JP5"
+   ],
+   "anchor": "U2",
+   "near": [
+    "i2c"
+   ],
+   "why": "between header VIN (J3.1) and the rail, at the west end of the logic band",
+   "region": [
+    106.3,
+    113.3,
+    112.75,
+    125.4
+   ]
+  },
+  {
+   "name": "i2c",
+   "role": "header, east Qwiic, pull-ups, straps",
+   "refs": [
+    "J2",
+    "J3",
+    "R1",
+    "R2",
+    "R3",
+    "JP2",
+    "JP3",
+    "JP4",
+    "TP1",
+    "TP2"
+   ],
+   "anchor": "J3",
+   "near": [
+    "current"
+   ],
+   "why": "south band under U1 pins 3-6; last because it has the most interface nets",
+   "region": [
+    112.75,
+    113.3,
+    140.0,
+    125.4
+   ]
+  }
+ ]
+}
