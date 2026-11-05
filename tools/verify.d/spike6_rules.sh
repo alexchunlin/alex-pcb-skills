@@ -70,14 +70,13 @@ mkdir -p "$T6/p1"; cp "$ROOT"/examples/rung3-ads131m04-a1/board/ads131m04_breako
 cat > "$T6/p1/strip.py" <<'P'
 import json, sys, pcbnew
 b = pcbnew.LoadBoard("ads131m04_breakout.kicad_pcb")
-for d in [d for d in b.GetDrawings() if d.GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS)]:
-    b.Remove(d)
 f = [f for f in b.GetFootprints() if f.GetReference() == "U2"][0]
-for g in [g for g in f.GraphicalItems() if g.GetLayer() == pcbnew.F_SilkS]:
+draws = [d for d in b.GetDrawings() if d.GetLayer() in (pcbnew.F_SilkS, pcbnew.B_SilkS)]   # collect first: SWIG lists break after a Remove
+items = [g for g in f.GraphicalItems() if g.GetLayer() == pcbnew.F_SilkS]
+for d in draws:
+    b.Remove(d)
+for g in items:
     f.Remove(g)
-for z in list(b.Zones()):
-    if z.IsOnLayer(pcbnew.In1_Cu):
-        z.SetIsFilled(True)
 b.Save("ads131m04_breakout.kicad_pcb")
 json.dump({"pin1_mark": {"refs": "^U2$"}, "edge_margin": {}}, open("c.json", "w"))
 P

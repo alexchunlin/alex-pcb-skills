@@ -95,6 +95,7 @@ and what a person would still have to do.
   scripts, and all seven running designers were told. No judge or row changed.
 - **Reviewer replaced.** Board 6's blind reviewer stalled with no output for over 1.5 h and was stopped; a fresh Opus reviewer did the board from the same blind copy.
 - **Judge 1 command.** `pcb q ratsnest` and `pcb drc --pack jlcpcb` gave the finished verdict; `pcb route measure --drc` as written in the Method was not needed.
+- **After the results (rule tuning, not a change to the A/B).** Via-to-pad gap 0.15 to 0.10 mm, from a grid on three Qwiic placements below. `edge_margin` now measures courtyards and pours on every layer, inner planes included, and `b.zone` insets 1 mm by default (Alex). `pcb cpl`, `pin1_mark` added.
 - **Second mid-run fix.** `_via_spot` gained 0.02 mm of margin after a `ground-islands` via landed 0.199 mm from R6.2 on s6-a-1 (HitTest rounds).
   All three A designers and b-2 had finished; b-1, b-3 and the breakouts got it. No judge or row changed.
 
@@ -166,12 +167,28 @@ Run directories: `~/code-stuff/alex-pcb-runs/r3-*-a1`, each with `review/`. The 
 - **A rule designers write around:** limits set from the layout (ESP32-S3 C11, C12; VL53L8CX C2) and courtyards trimmed to fit. On VL53L8CX the trim hid C6 touching U4.
 - **ESP32-S3 RF:** match 3.83 mm from the pin over a 65 ohm section, XIN 0.99 mm from the RF row. Impedances solve correctly on JLC04161H-7628, which the package does not name. No simulation, no measurement.
 
+### After the report: rotation, the Qwiic cost, planes
+
+**CPL rotation.** The fault is the number in the CPL, not a footprint or a 3D model: JLC turns a part by the EasyEDA footprint of its LCSC number. And Alex's correction: JLC's engineers align pin 1 to the silk wherever they can, so a wrong rotation is a preview and rework cost, not the dead board the reviews called it. `pcb cpl` wraps the vendored `jlcfootprint` solver from kicad-jlcpcb-tools (MIT) and `pcb fab` applies its trusted corrections: 11 ICs across the five boards, corrected CPLs in `examples/rung3-*/fab/`. LEDs, diodes and the INA745B terminals stay with a person. On 12 of 12 ICs the pin-1 token in EasyEDA's package name agrees with the pad fit (+270 for -BL, +180 for -BR, 0 for -TL). No built board gave ground truth: Pace's production file looks footprint-name-table driven, and Plink's is a raw export. **One upload to JLC's preview is still the real test.** `pin1_mark` is weak: a nearby label can satisfy it.
+
+**Qwiic.** Via-to-pad gap against three placements, edge setting 0.6 and 1.0 gave the same result in every cell:
+
+| Placement | 0.15 mm | 0.10 mm | 0.05 mm |
+|---|---|---|---|
+| Rung-1 a1 | 2 `starved_thermal` | clean | clean |
+| Rung-1 a2 Fable | clean | clean | clean |
+| Rung-1 a2 Sonnet | INT2 open | INT2 open | INT2 open |
+
+At 0.10 mm the motor boards stay clean with 0, 1, 0 vias in SMD pads. INT2 leaves U1 pin 9 on a 0.5 mm LGA for J3 pin 2; one net a designer can hand-route.
+
+**Planes.** Four of the five rung-3 boards as reviewed have pours 0.45-0.55 mm off the outline and fail the new `edge_margin`. They were not changed.
+
 ### Tool list, ranked
 
-1. CPL rotation: try `kicad-jlcpcb-tools`' and `JLCKicadTools`' tables, plus a row against the EasyEDA footprint. One table disagreed with a per-part fit on U2, so test before trusting.
+1. Done: `pcb cpl`. Next: confirm the sign on JLC's preview.
 2. `pcb route`: reads the project `.kicad_dru` (INA745B: CLEAN, then 46 DRC errors), keeps hand copper and pour vias (reported by a-2, a-3, b-3, ESP32-S3), stops adding stubs on poured nets (all six A/B runs needed a post-route script).
 3. `pcb block gate`: fail when the netlist is missing, re-gate from any block, honour `skip_refs`; append-only log (VL53L8CX cleared and re-gated).
-4. `edge_margin` on courtyards, and a decision on whether planes count. `feeds` counts dangling vias. New row for same-net pads overlapping across footprints (R3.1 on U1.8). Row for a GND pad with no nearby via.
+4. `feeds` counts dangling vias. New row for same-net pads overlapping across footprints (R3.1 on U1.8). Row for a GND pad with no nearby via.
 5. `pcb irdrop`: per-run default directory (shared `/tmp/pcb-irdrop` crossed boards twice, no scored number affected) and relative paths. `pcb fab`: split PTH and NPTH drills. `pcb regen-check --out` inside the project recurses.
 6. Open, not reproduced: `ground-islands` via in a pad, reported on s6-a-1 and ESP32-S3; `--return-vias` GND via shorted to 3V3 on s6-b-3.
 
