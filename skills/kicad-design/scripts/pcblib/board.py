@@ -307,7 +307,7 @@ class Board:
         in a pad, spike #6) with a 0.15 mm mask web, and the board edge at edge_mm (default the setup's edge clearance)."""
         b = self.b
         clr = getattr(self, "clearance", 0.2)
-        margin = FromMM(d / 2 + clr)
+        margin = FromMM(d / 2 + clr + 0.02)   # HitTest's accuracy rounds: 0.5 passed a via 0.199 mm off R6.2 (s6-a-1)
         edge = b.GetBoardEdgesBoundingBox()
         ex0, ey0, ex1, ey1 = ToMM(edge.GetLeft()), ToMM(edge.GetTop()), ToMM(edge.GetRight()), ToMM(edge.GetBottom())
         edge_clr = getattr(self, "edge_clearance", 0.3) if edge_mm is None else edge_mm

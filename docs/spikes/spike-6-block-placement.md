@@ -93,6 +93,8 @@ and what a person would still have to do.
 - **Tool bug fixed mid-run, both arms alike.** The island step of `pcb route auto` crashed with `UnboundLocalError` (`_sh`) on any board
   that reached 0 airwires without entering the stitch branch. Found by `verify_all` after the designers had started, fixed in the shared
   scripts, and all seven running designers were told. No judge or row changed.
+- **Second mid-run fix.** `_via_spot` gained 0.02 mm of margin after a `ground-islands` via landed 0.199 mm from R6.2 on s6-a-1 (HitTest rounds).
+  All three A designers and b-2 had finished; b-1, b-3 and the breakouts got it. No judge or row changed.
 
 ## Results
 
