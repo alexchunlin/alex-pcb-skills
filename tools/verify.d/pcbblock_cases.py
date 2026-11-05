@@ -40,7 +40,7 @@ class GateTests(unittest.TestCase):
             ctx.start(); self.addCleanup(ctx.stop)
         ctx = patch.object(p.pcbnew, 'LoadBoard', lambda b: object(), create=True)
         ctx.start(); self.addCleanup(ctx.stop)
-        p.write_log(self.path, {'cmd': 'plan', 'ok': True})
+        p.write_log(self.path, {'cmd': 'plan', 'ok': True, 'plan_signature': p.plan_signature('board', p.load(self.path))})
 
     def call(self, fn, args):
         out = io.StringIO()
@@ -57,7 +57,7 @@ class GateTests(unittest.TestCase):
         return patch.object(p.subprocess, 'run', run)
 
     def gate(self, name='A'):
-        return self.call(p.c_gate, ['board.kicad_pcb', self.path, name, '--config', self.cfg])
+        return self.call(p.c_gate, ['board', self.path, name, '--config', self.cfg])
 
     def test_checker_success(self):
         with self.checker():
@@ -123,6 +123,7 @@ class GateTests(unittest.TestCase):
         self.positions['U1'] = [.5, 5]
         self.data['groups'][0]['region'] = [0, 0, 9, 9]
         Path(self.path).write_text(json.dumps(self.data))
+        p.write_log(self.path, {"cmd": "plan", "ok": True, "plan_signature": p.plan_signature("board", p.load(self.path))})
         with self.checker():
             self.assertEqual(self.gate()[0], 0)
 
@@ -138,6 +139,7 @@ class GateTests(unittest.TestCase):
         # Distinct objects for U1 and H1; overlap stub reports identity only.
         self.f['H1'] = types.SimpleNamespace(**vars(self.f['U1']))
         Path(self.path).write_text(json.dumps(self.data))
+        p.write_log(self.path, {"cmd": "plan", "ok": True, "plan_signature": p.plan_signature("board", p.load(self.path))})
         with self.checker():
             self.assertEqual(self.gate()[0], 0)
 
@@ -176,7 +178,7 @@ class GateTests(unittest.TestCase):
             self.positions['U2'] = [15, 5]
             self.assertEqual(self.gate('B')[0], 0)
         self.assertEqual(self.call(p.c_report, ['board', self.path, '--json'])[0], 0)
-        p.write_log(self.path, {'cmd': 'plan', 'ok': True})
+        p.write_log(self.path, {'cmd': 'plan', 'ok': True, 'plan_signature': p.plan_signature('board', p.load(self.path))})
         rc, out = self.call(p.c_report, ['board', self.path, '--json'])
         self.assertEqual(rc, 1)
         self.assertEqual(json.loads(out)['gates_passed'], [])
@@ -215,6 +217,39 @@ class GateTests(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertIn('out of order: the next block is A', out)
 
+
+    def test_changed_plan_revokes_history(self):
+        with self.checker():
+            self.assertEqual(self.gate()[0], 0)
+            self.positions['U2'] = [15, 5]
+            self.assertEqual(self.gate('B')[0], 0)
+            for group in self.data['groups']:
+                group['refs'] = []
+            Path(self.path).write_text(json.dumps(self.data))
+            self.assertEqual(self.gate()[0], 1)
+        rc, out = self.call(p.c_report, ['board', self.path, '--json'])
+        self.assertEqual(rc, 1)
+        self.assertFalse(json.loads(out)['plan_valid'])
+        self.assertEqual(json.loads(out)['gates_passed'], [])
+
+    def test_changed_config_revokes_history(self):
+        with self.checker():
+            self.assertEqual(self.gate()[0], 0)
+        Path(self.cfg).write_text('{"decoupling": {"max_mm": 1}}')
+        _, out = self.call(p.c_report, ['board', self.path, '--json'])
+        self.assertEqual(json.loads(out)['gates_passed'], [])
+
+    def test_legacy_plan_requires_replan(self):
+        p.write_log(self.path, {'cmd': 'plan', 'ok': True})
+        with self.checker():
+            rc, out = self.gate()
+        self.assertEqual(rc, 1)
+        self.assertIn('legacy logs require re-planning', out)
+
+    def test_other_board_cannot_borrow_plan(self):
+        rc, out = self.call(p.c_report, ['another-board', self.path, '--json'])
+        self.assertEqual(rc, 1)
+        self.assertFalse(json.loads(out)['plan_valid'])
 
 
 if __name__ == '__main__':

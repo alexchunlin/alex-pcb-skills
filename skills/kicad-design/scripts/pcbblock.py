@@ -16,10 +16,12 @@ before the next goes on the board, the connections between blocks last.
                                                Exit 1 when a part is missing, moved, out of its region, or a gate is missing.
 
 A gate is a scoped placement check, not proof of electrical, thermal or physical correctness.
+Plan history is bound to the board path and plan contents; changed plans or legacy unsigned
+plans require re-planning. Changing a gate config invalidates its gates and successors.
 Without --config, decoupling/feed_room are not checked. History is append-only by this tool,
 not tamper-proof; externally deleting or editing the log is outside its guarantees.
 """
-import json, os, random, re, statistics, subprocess, sys, tempfile, time
+import hashlib, json, os, random, re, statistics, subprocess, sys, tempfile, time
 import pcbnew
 from pcbnew import ToMM
 
@@ -99,19 +101,37 @@ def write_log(path, rec):
         f.write(json.dumps({"t": time.strftime("%Y-%m-%dT%H:%M:%S"), **rec}) + "\n")
 
 
-def gate_state(log, order):
+def plan_signature(bp, data):
+    payload = {"board": os.path.abspath(bp), "plan": {k: v for k, v in data.items() if k != "by"}}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+
+
+def config_signature(path):
+    if path is None:
+        return None
+    try:
+        with open(path, "rb") as stream:
+            return hashlib.sha256(stream.read()).hexdigest()
+    except OSError:
+        return None
+
+
+def gate_state(log, order, signature):
     """Replay history: a plan resets gates; any gate attempt revokes its suffix."""
     plan_ok, gates = False, {}
     for entry in log:
         if entry.get("cmd") == "plan":
-            plan_ok = entry.get("ok") is True
+            plan_ok = entry.get("ok") is True and entry.get("plan_signature") == signature
             gates.clear()
         elif entry.get("cmd") == "gate" and entry.get("block") in order:
             name = entry["block"]
             idx = order.index(name)
             for later in order[idx:]:
                 gates.pop(later, None)
-            if plan_ok and entry.get("ok") is True and all(n in gates for n in order[:idx]):
+            config = entry.get("config")
+            config_ok = not config or (entry.get("config_signature") is not None
+                                       and config_signature(config) == entry["config_signature"])
+            if plan_ok and config_ok and entry.get("ok") is True and all(n in gates for n in order[:idx]):
                 gates[name] = entry
     return plan_ok, gates
 
@@ -237,7 +257,7 @@ def c_plan(args):
         json.dump({"schema": 1, "groups": [{k: g[k] for k in keys if g.get(k)} for g in d["groups"]]}, open(tmp, "w"))
         r = subprocess.run([krt_py, "-X", "utf8", "py_tools/check_groups.py", os.path.abspath(bp), "--groups", tmp], cwd=krt, capture_output=True, text=True)
         print((r.stdout + r.stderr)[-2500:])
-    write_log(path, {"cmd": "plan", "ok": not fails, "fails": fails})
+    write_log(path, {"cmd": "plan", "ok": not fails, "fails": fails, "plan_signature": plan_signature(bp, d)})
     print(f"PCBBLOCK plan {'OK' if not fails else 'FAIL'}")
     for x in fails:
         print("  FAIL", x)
@@ -250,9 +270,9 @@ def c_gate(args):
     b, d = pcbnew.LoadBoard(bp), load(path)
     f, o, fails = fps(b), outline(b), []
     log = read_log(path)
-    plan_ok, gates = gate_state(log, d["order"])
+    plan_ok, gates = gate_state(log, d["order"], plan_signature(bp, d))
     if not plan_ok:
-        fails.append("no passing `pcb block plan` yet")
+        fails.append("no passing `pcb block plan` for this board and current plan; run it again (legacy logs require re-planning)")
     done = list(gates)
     nxt = next((n for n in d["order"] if n not in done), None)
     if name not in d["by"]:
@@ -263,7 +283,9 @@ def c_gate(args):
     placed = [r for n in d["order"][:idx + 1] for r in d["by"][n]["refs"]]
     later = [r for n in d["order"][idx + 1:] for r in d["by"][n]["refs"]]
     fails += [f"{r} of a later block is on the board" for r in later if r in f and on_board(f[r], o)]
-    fails += [f"{r} is missing from the board; restore it and re-plan" for r in placed if r not in f]
+    grouped = {ref for group in d["groups"] for ref in group["refs"]}
+    fails += [f"{ref} is missing from the board; restore it and re-plan" for ref in sorted(grouped) if ref not in f]
+    fails += [f"{ref} is in no group; update the plan and re-plan" for ref in f if ref not in grouped and not MECH.match(ref)]
     for block in d["order"][:idx + 1]:
         reg = d["by"][block]["region"]
         fails += [f"{ref} is outside region {reg}; re-gate from {block}"
@@ -294,7 +316,8 @@ def c_gate(args):
     if cfg:
         fails.extend(checker_failures(bp, cfg, path, placed, later))
     pose = {r: footprint_pose(f[r]) for r in d["by"][name]["refs"] if r in f}
-    write_log(path, {"cmd": "gate", "block": name, "ok": not fails, "fails": fails, "pose": pose})
+    write_log(path, {"cmd": "gate", "block": name, "ok": not fails, "fails": fails, "pose": pose,
+                     "config": os.path.abspath(cfg) if cfg else None, "config_signature": config_signature(cfg)})
     print(f"PCBBLOCK gate {name}: {'PASS' if not fails else 'FAIL'} ({len(placed)} parts on the board, {len(later)} parked)")
     for x in fails:
         print("  FAIL", x)
@@ -330,7 +353,7 @@ def c_report(args):
     for g in d["groups"]:
         if g.get("region"):
             outside += [r for r in g["refs"] if r in f and not in_region(f[r], g["region"])]
-    _, gates = gate_state(log, d["order"])
+    plan_ok, gates = gate_state(log, d["order"], plan_signature(args[0], d))
     done = list(gates)
     moved = sorted({ref for entry in gates.values() for ref in changed_pose(entry, f)})
     for idx, name in enumerate(d["order"]):
@@ -338,11 +361,13 @@ def c_report(args):
             done = [n for n in done if n in d["order"][:idx]]
             break
     missing = [r for g in d["groups"] for r in g["refs"] if r not in f]
+    grouped = {ref for group in d["groups"] for ref in group["refs"]}
+    ungrouped = [ref for ref in f if ref not in grouped and not MECH.match(ref)]
     pur, norm = cohesion(pts) if len({p[2] for p in pts}) > 1 else (None, None)
-    r = {"cohesion": norm, "purity": pur, "outside_region": outside, "gates_passed": [n for n in d["order"] if n in done], "gates_missing": [n for n in d["order"] if n not in done],
-         "moved_after_gate": moved, "missing_footprints": missing, "gate_fails": sum(1 for e in log if e["cmd"] == "gate" and not e["ok"])}
+    r = {"plan_valid": plan_ok, "cohesion": norm, "purity": pur, "outside_region": outside, "gates_passed": [n for n in d["order"] if n in done], "gates_missing": [n for n in d["order"] if n not in done],
+         "moved_after_gate": moved, "missing_footprints": missing, "ungrouped_footprints": ungrouped, "gate_fails": sum(1 for e in log if e["cmd"] == "gate" and not e["ok"])}
     print(json.dumps(r) if as_json else "PCBBLOCK report " + json.dumps(r))
-    sys.exit(1 if outside or moved or missing or r["gates_missing"] else 0)
+    sys.exit(1 if not plan_ok or outside or moved or missing or ungrouped or r["gates_missing"] else 0)
 
 
 def main():
