@@ -368,9 +368,10 @@ def stitch(path, drc_plain_json, open_clusters, settings):
     return actions
 
 
-def top_spans(text):
-    """(start, end) of every top-level block inside (kicad_pcb ...), string-aware."""
-    i = text.index("(kicad_pcb") + len("(kicad_pcb")
+def top_spans(text, root="kicad_pcb"):
+    """(start, end) of every child block inside the named root, string-aware."""
+    prefix = "(" + root
+    i = text.index(prefix) + len(prefix)
     spans, depth, start, instr, j = [], 0, None, False, i
     while j < len(text):
         c = text[j]
@@ -400,18 +401,43 @@ def track_uuids(text):
     """Give every top-level segment, arc and via a UUID derived from its own text (uuid5 over the block with its uuid
     removed, plus a duplicate counter). KiCad sorts tracks by UUID when it saves, and KRT writes random UUIDs, so the
     same copper came back from a refill in a different order on every run, and KRT's second pass, which reads tracks
-    in file order, then routed differently (ROUTE-T2). Track UUIDs are referenced by nothing else in the file."""
+    in file order, then routed differently (ROUTE-T2). Update ordinary board group members that reference them."""
     import re, uuid
     ns = uuid.UUID("6f1c3a52-9d0e-4b8a-a1f2-7e5d3c2b1a09")
-    seen, pieces, last = {}, [], 0
+    seen, pieces, last, renamed = {}, [], 0, {}
     for a, b in top_spans(text):
         if not text.startswith(("(segment", "(arc", "(via"), a):
             continue
         blk = text[a:b]
         body = re.sub(r'\(uuid "[^"]*"\)', "", blk)
         n = seen.get(body, 0); seen[body] = n + 1
-        new = re.sub(r'\(uuid "[^"]*"\)', f'(uuid "{uuid.uuid5(ns, body + "#" + str(n))}")', blk, count=1)
+        new_id = str(uuid.uuid5(ns, body + "#" + str(n)))
+        old = re.search(r'\(uuid "([^"]*)"\)', blk)
+        if old:
+            renamed[old.group(1)] = new_id
+        new = re.sub(r'\(uuid "[^"]*"\)', f'(uuid "{new_id}")', blk, count=1)
         pieces += [text[last:a], new]; last = b
+    pieces.append(text[last:])
+    text = "".join(pieces)
+
+    def member(match):
+        token = match.group()
+        quoted = token.startswith('"')
+        value = token[1:-1] if quoted else token
+        if value not in renamed:
+            return token
+        return f'"{renamed[value]}"' if quoted else renamed[value]
+
+    pieces, last = [], 0
+    for a, b in top_spans(text):
+        blk = text[a:b]
+        if not re.match(r"\(group(?=\s|\))", blk):
+            continue
+        for c, d in reversed(top_spans(blk, "group")):
+            if re.match(r"\(members(?=\s|\))", blk[c:d]):
+                updated = re.sub(r'"(?:\\.|[^"\\])*"|[^\s()]+', member, blk[c:d])
+                blk = blk[:c] + updated + blk[d:]
+        pieces += [text[last:a], blk]; last = b
     pieces.append(text[last:])
     return "".join(pieces)
 
@@ -422,7 +448,7 @@ def canonical(path, out=None):
     `pcb layout` writes the footprints in a different order on every clean regeneration (R1-A2-T2): the same placement
     then routes differently and regen-check FAILS (P6-T6). With the footprints sorted the copper is identical. Track,
     arc and via UUIDs are then derived from content (track_uuids, ROUTE-T2). Text-level; placement and every other
-    UUID stay byte-for-byte; pcbnew loads the result unchanged."""
+    UUID stay byte-for-byte; ordinary board group members follow rewritten track UUIDs."""
     import re
     text = open(path).read()
     spans = top_spans(text)
